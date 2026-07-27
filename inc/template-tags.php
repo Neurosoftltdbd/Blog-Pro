@@ -11,8 +11,8 @@ function blogpro_reading_time( $post_id = null ) {
 
 function blogpro_posted_on() {
 	echo '<span class="text-gray-500 text-sm">' . esc_html( get_the_date() ) . '</span>';
-	echo ' &middot; <span class="text-gray-500 text-sm">' . esc_html( blogpro_reading_time() ) . '</span>';
-	echo ' &middot; <span class="text-gray-500 text-sm">' . esc_html__( 'by', 'blog-pro' ) . ' <a href="' . esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ) . '" class="text-indigo-600 hover:text-indigo-800 font-medium no-underline">' . esc_html( get_the_author() ) . '</a></span>';
+	echo ' &#10625; <span class="text-gray-500 text-sm">' . esc_html( blogpro_reading_time() ) . '</span>';
+	echo ' &#10625; <span class="text-gray-500 text-sm">' . esc_html__( 'by', 'blog-pro' ) . ' <a href="' . esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ) . '" class="text-indigo-600 hover:text-indigo-800 font-medium no-underline">' . esc_html( get_the_author() ) . '</a></span>';
 }
 
 function blogpro_pagination() {

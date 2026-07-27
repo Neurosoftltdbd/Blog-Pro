@@ -60,8 +60,9 @@ while ( have_posts() ) : the_post();
 								<div class="w-full h-full bg-linear-to-br from-indigo-100 to-purple-100"></div>
 							<?php endif; ?>
 						</a>
-						<div class="p-6">
-							<h3 class="text-xl font-bold text-gray-900 leading-snug"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors"><?php the_title(); ?></a></h3>
+						<div class="p-5">
+							<div class="text-sm text-gray-500 mb-1"><?php echo esc_html( get_the_date() ); ?></div>
+							<h3 class="text-base font-semibold text-gray-900 leading-snug line-clamp-2"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h3>
 						</div>
 					</article>
 				<?php endwhile; wp_reset_postdata(); ?>

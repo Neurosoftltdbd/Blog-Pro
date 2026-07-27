@@ -138,8 +138,8 @@ document.addEventListener('DOMContentLoaded', function() {
 				</a>
 				<div class="p-6">
 					<div class="text-sm text-gray-500 mb-2"><?php echo esc_html( get_the_date() ); ?> &middot; <?php echo esc_html( blogpro_reading_time() ); ?></div>
-					<h3 class="text-xl font-bold text-gray-900 leading-snug"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h3>
-					<div class="text-gray-600 leading-relaxed mt-2"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 16 ) ); ?></div>
+					<h3 class="text-xl font-bold text-gray-900 leading-snug line-clamp-1"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h3>
+					<div class="text-gray-600 leading-relaxed mt-2 line-clamp-2"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 16 ) ); ?></div>
 				</div>
 			</article>
 		<?php endwhile; wp_reset_postdata(); ?>
@@ -161,8 +161,8 @@ document.addEventListener('DOMContentLoaded', function() {
 				</a>
 				<div class="flex-1">
 					<div class="text-sm text-gray-500 mb-2"><?php blogpro_posted_on(); ?></div>
-					<h2 class="text-xl font-bold text-gray-900 leading-snug"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h2>
-					<p class="text-gray-600 leading-relaxed mt-2"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 24 ) ); ?></p>
+					<h2 class="text-xl font-bold text-gray-900 leading-snug line-clamp-1"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h2>
+					<p class="text-gray-600 leading-relaxed mt-2 line-clamp-2"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 24 ) ); ?></p>
 				</div>
 			</li>
 		<?php endwhile; wp_reset_postdata(); ?>

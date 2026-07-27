@@ -13,7 +13,7 @@
 	<div class="w-full max-w-7xl mx-auto px-4 md:px-0 flex justify-between items-center py-4">
 		<div class="site-branding text-xl  font-bold tracking-tighter text-indigo-600 hover:text-indigo-800 transition-colors">
 			<?php if ( has_custom_logo() ) : the_custom_logo(); else : ?>
-				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" class="text-inherit text-decoration-none"><?php bloginfo( 'name' ); ?></a>
+				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" class="text-inherit no-underline"><?php bloginfo( 'name' ); ?></a>
 			<?php endif; ?>
 		</div>
 
