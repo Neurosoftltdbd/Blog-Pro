@@ -1,0 +1,51 @@
+# ==========================================================================
+# Blog Pro — performance & caching rules for Apache.
+#
+# HOW TO USE: append the block below to your site's root .htaccess file
+# (above the "# BEGIN WordPress" block WP manages automatically). On
+# Nginx, see the notes at the bottom of this file instead.
+# ==========================================================================
+
+<IfModule mod_deflate.c>
+	AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript
+	AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json
+	AddOutputFilterByType DEFLATE image/svg+xml application/xml application/rss+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+	ExpiresActive On
+	ExpiresByType image/jpg "access plus 1 year"
+	ExpiresByType image/jpeg "access plus 1 year"
+	ExpiresByType image/png "access plus 1 year"
+	ExpiresByType image/webp "access plus 1 year"
+	ExpiresByType image/svg+xml "access plus 1 year"
+	ExpiresByType video/mp4 "access plus 1 year"
+	ExpiresByType text/css "access plus 1 month"
+	ExpiresByType application/javascript "access plus 1 month"
+	ExpiresByType font/woff2 "access plus 1 year"
+	ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+	<FilesMatch "\.(jpg|jpeg|png|webp|svg|css|js|woff2|mp4)$">
+		Header set Cache-Control "public, max-age=31536000, immutable"
+	</FilesMatch>
+	Header set X-Content-Type-Options "nosniff"
+	Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+<IfModule mod_mime.c>
+	AddType image/webp .webp
+	AddType font/woff2 .woff2
+</IfModule>
+
+# ---------------------------------------------------------------------
+# NGINX equivalent (add inside your server{} block instead):
+#
+# gzip on;
+# gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+# location ~* \.(jpg|jpeg|png|webp|svg|css|js|woff2|mp4)$ {
+#     expires 1y;
+#     add_header Cache-Control "public, immutable";
+# }
+# ---------------------------------------------------------------------

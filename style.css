@@ -1,0 +1,73 @@
+/*
+Theme Name: Blog Pro
+Theme URI: https://nhrepon.com/wordpress/blog-pro
+Author: Blog Pro
+Author URI: https://nhrepon.com
+Description: An ultra-lightweight, dependency-free blogging theme built for sub-second load times, built-in SEO (meta tags, JSON-LD schema, XML sitemap, robots.txt), and a custom REST API for posts. No plugins required.
+Version: 1.0.2
+Requires at least: 6.0
+Requires PHP: 7.4
+Text Domain: blog-pro
+Tags: blog, custom-menu, featured-images, translation-ready, threaded-comments, performance, seo
+*/
+
+/* ==========================================================================
+   1. RESET / BASE
+   ========================================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  color: #1a1a1a;
+  background: #fff;
+}
+img,
+video,
+iframe {
+  width: 100%;
+}
+ul,
+ol {
+  padding-left: 1.25em;
+}
+figure {
+  margin: 0 0 1.5em;
+}
+figcaption {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 0.4em;
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+input[type="submit"] {
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   2. UTILITIES
+   ========================================================================== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
