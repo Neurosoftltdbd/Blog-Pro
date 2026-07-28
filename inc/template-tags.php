@@ -64,10 +64,12 @@ function blogpro_featured_query( $limit = 4 ) {
 		'posts_per_page' => $limit,
 		'tag'            => 'featured',
 		'no_found_rows'  => true,
+		'orderby'        => 'date',
+		'order'          => 'DESC',
 	) );
 	if ( ! $q->have_posts() ) {
 		// Fallback: most recent posts if nothing is tagged "featured" yet.
-		$q = new WP_Query( array( 'post_type' => 'post', 'posts_per_page' => $limit, 'no_found_rows' => true ) );
+		$q = new WP_Query( array( 'post_type' => 'post', 'posts_per_page' => $limit, 'no_found_rows' => true, 'orderby'        => 'date','order' => 'DESC', ) );
 	}
 	return $q;
 }

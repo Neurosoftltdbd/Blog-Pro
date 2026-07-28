@@ -23,6 +23,7 @@ function blogpro_format_post_for_api( $post ) {
 		'title'         => get_the_title( $post ),
 		'slug'          => $post->post_name,
 		'excerpt'       => wp_strip_all_tags( has_excerpt( $post->ID ) ? get_the_excerpt( $post ) : wp_trim_words( $content, 30 ) ),
+		'content'       => apply_filters( 'the_content', $post->post_content ),
 		'link'          => get_permalink( $post ),
 		'date'          => get_the_date( 'c', $post ),
 		'modified'      => get_the_modified_date( 'c', $post ),
