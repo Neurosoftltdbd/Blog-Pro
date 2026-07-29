@@ -39,7 +39,7 @@ while ( have_posts() ) : the_post();
 				<?php echo get_avatar( get_the_author_meta( 'ID' ), 80, '', '', array( 'class' => 'rounded-full shadow-md w-20 h-20' ) ); ?>
 			</div>
 			<div class="text-center sm:text-left">
-				<h4 class="text-xl font-bold text-gray-900 mb-1"><?php the_author(); ?></h4>
+				<p class="text-xl font-bold text-gray-900 mb-1"><?php the_author(); ?></p>
 				<p class="text-gray-600 leading-relaxed"><?php echo esc_html( get_the_author_meta( 'description' ) ); ?></p>
 			</div>
 		</div>
