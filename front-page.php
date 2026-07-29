@@ -7,7 +7,7 @@ get_header();
 ?>
 
 <div class="w-full bg-white">
-	<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 py-12">
+	<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 py-12 px-2 md:px-0">
 		<!-- Left Side: Slider (5 random posts) -->
 		<div class="lg:col-span-2 relative">
 			<?php
@@ -19,17 +19,17 @@ get_header();
 			) );
 			if ( $slider_query->have_posts() ) :
 			?>
-			<div class="relative w-full h-125 overflow-hidden rounded-lg bg-gray-100" id="heroSlider">
+			<div class="relative w-full h-60 md:h-125 overflow-hidden rounded-lg bg-gray-100" id="heroSlider">
 				<?php $slide_idx = 0; while ( $slider_query->have_posts() ) : $slider_query->the_post(); $is_active = $slide_idx === 0; ?>
-				<div class="slide absolute inset-0 w-full h-full opacity-0 z-1 transition-opacity duration-500" style="opacity: <?php echo $is_active ? 1 : 0; ?>; z-index: <?php echo $is_active ? 2 : 1; ?>;">
+				<div class="slide absolute inset-0 w-full h-full opacity-0 z-1 transition-opacity duration-500 " style="opacity: <?php echo $is_active ? 1 : 0; ?>; z-index: <?php echo $is_active ? 2 : 1; ?>;">
 					<?php if ( has_post_thumbnail() ) : ?>
 						<?php the_post_thumbnail( 'large', array( 'class' => 'w-full h-full object-cover' ) ); ?>
 					<?php else : ?>
 						<div class="w-full h-full bg-linear-to-br from-indigo-100 to-purple-100"></div>
 					<?php endif; ?>
-					<div class="absolute inset-0 flex flex-col justify-end p-8 bg-linear-to-t from-black/70 via-black/20 to-transparent text-white">
+					<div class="absolute inset-0 flex flex-col justify-end p-8 bg-linear-to-t from-black via-black/50 to-transparent text-white">
 						<span class="inline-block px-3 py-1 bg-indigo-600 text-white text-sm font-semibold rounded-full mb-3 w-fit"><?php $cats = get_the_category(); if($cats) echo esc_html($cats[0]->name); ?></span>
-						<h2 class="text-2xl md:text-3xl font-bold leading-tight"><a href="<?php the_permalink(); ?>" class="text-white hover:text-indigo-200 transition-colors no-underline"><?php the_title(); ?></a></h2>
+						<h2 class="text-lg md:text-3xl font-bold leading-tight line-clamp-2 md:line-clamp-none"><a href="<?php the_permalink(); ?>" class="text-white hover:text-indigo-200 transition-colors no-underline"><?php the_title(); ?></a></h2>
 						<div class="text-sm text-white/70 mt-2"><?php echo esc_html( get_the_date() ); ?></div>
 					</div>
 				</div>
@@ -59,7 +59,7 @@ get_header();
 				<li class="flex gap-4 items-start">
 					<a href="<?php the_permalink(); ?>" class="shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-gray-100 block">
 						<?php if ( has_post_thumbnail() ) : ?>
-							<?php the_post_thumbnail( 'thumbnail', array( 'class' => 'w-full h-full object-cover' ) ); ?>
+							<?php the_post_thumbnail( 'thumbnail', array( 'class' => 'w-full h-full object-cover hover:scale-105 transition-all easy-in-out duration-300' ) ); ?>
 						<?php else : ?>
 							<div class="w-full h-full bg-gray-200"></div>
 						<?php endif; ?>
@@ -132,19 +132,22 @@ document.addEventListener('DOMContentLoaded', function() {
 		<?php while ( $featured->have_posts() ) : $featured->the_post(); ?>
 			<article <?php post_class( 'flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300' ); ?>>
 				<a class="aspect-video bg-gray-100 block overflow-hidden" href="<?php the_permalink(); ?>" aria-hidden="true" tabindex="-1">
-					<?php if ( has_post_thumbnail() ) : the_post_thumbnail( 'blogpro-card', array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover' ) ); else : ?>
+					<?php if ( has_post_thumbnail() ) : the_post_thumbnail( 'blogpro-card', array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover hover:scale-105 transition-all easy-in-out duration-300' ) ); else : ?>
 						<div class="w-full h-full bg-gray-100"></div>
 					<?php endif; ?>
 				</a>
-				<div class="p-6">
+				<div class="p-4">
 					<div class="text-sm text-gray-500 mb-2"><?php echo esc_html( get_the_date() ); ?> &middot; <?php echo esc_html( blogpro_reading_time() ); ?></div>
-					<h3 class="text-xl font-bold text-gray-900 leading-snug line-clamp-1"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h3>
-					<div class="text-gray-600 leading-relaxed mt-2 line-clamp-2"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 16 ) ); ?></div>
+					<h3 class="text-md md:text-xl font-bold text-gray-900 leading-snug line-clamp-1"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h3>
+					<div class="text-sm text-gray-600 leading-relaxed mt-2 line-clamp-2"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 16 ) ); ?></div>
 				</div>
 			</article>
 		<?php endwhile; wp_reset_postdata(); ?>
 	</div>
 	<?php endif; ?>
+
+
+
 
 	<h2 class="text-2xl md:text-3xl font-bold text-gray-900 mt-16 mb-8"><?php esc_html_e( 'Recent Posts', 'blog-pro' ); ?></h2>
 	<?php
@@ -153,16 +156,16 @@ document.addEventListener('DOMContentLoaded', function() {
 	?>
 	<ul class="space-y-8 list-none p-0 m-0">
 		<?php while ( $recent->have_posts() ) : $recent->the_post(); ?>
-			<li class="flex flex-col md:flex-row gap-6 items-start pb-8 border-b border-gray-100 last:border-b-0">
+			<li class="flex flex-col md:flex-row gap-6 items-start pb-8 border-b border-gray-100 last:border-b-0 hover:shadow-md rounded-xl transition-all easy-in-out duration-300">
 				<a class="shrink-0 w-full aspect-video md:w-48 md:h-32 rounded-xl overflow-hidden bg-gray-100 block" href="<?php the_permalink(); ?>" aria-hidden="true" tabindex="-1">
-					<?php if ( has_post_thumbnail() ) : the_post_thumbnail( 'blogpro-card', array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover' ) ); else : ?>
+					<?php if ( has_post_thumbnail() ) : the_post_thumbnail( 'blogpro-card', array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover hover:scale-105 transition-all easy-in-out duration-300' ) ); else : ?>
 						<div class="w-full h-full bg-gray-100"></div>
 					<?php endif; ?>
 				</a>
-				<div class="flex-1">
+				<div class="flex-1 p-4">
 					<div class="text-sm text-gray-500 mb-2"><?php blogpro_posted_on(); ?></div>
-					<h2 class="text-xl font-bold text-gray-900 leading-snug line-clamp-1"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h2>
-					<p class="text-gray-600 leading-relaxed mt-2 line-clamp-2"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 24 ) ); ?></p>
+					<h2 class="text-md md:text-xl font-bold text-gray-900 leading-snug line-clamp-1"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h2>
+					<p class="text-sm text-gray-600 leading-relaxed mt-2 line-clamp-2"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 24 ) ); ?></p>
 				</div>
 			</li>
 		<?php endwhile; wp_reset_postdata(); ?>

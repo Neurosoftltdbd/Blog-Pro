@@ -33,32 +33,6 @@ body {
   color: #1a1a1a;
   background: #fff;
 }
-img,
-video,
-iframe {
-  width: 100%;
-}
-ul,
-ol {
-  padding-left: 1.25em;
-}
-figure {
-  margin: 0 0 1.5em;
-}
-figcaption {
-  font-size: 0.85rem;
-  color: #666;
-  margin-top: 0.4em;
-}
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-input[type="submit"] {
-  cursor: pointer;
-}
 
 /* ==========================================================================
    2. UTILITIES

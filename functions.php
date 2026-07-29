@@ -66,17 +66,45 @@ require BLOGPRO_DIR . '/inc/llms.php';    // serve dynamic llms.txt
 /* ---------------------------------------------------------------------
  * 3. Assets — minimal, deferred, no external dependencies
  * ------------------------------------------------------------------- */
-function blogpro_assets() {
-	wp_enqueue_style( 'blogpro-style', get_stylesheet_uri(), array(), BLOGPRO_VERSION );
-	if ( file_exists( BLOGPRO_DIR . '/assets/css/tailwind.css' ) ) {
-		wp_enqueue_style( 'blogpro-tailwind', BLOGPRO_URI . '/assets/css/tailwind.css', array(), filemtime( BLOGPRO_DIR . '/assets/css/tailwind.css' ) );
-	}
-	wp_enqueue_script( 'blogpro-main', BLOGPRO_URI . '/js/main.js', array(), BLOGPRO_VERSION, true );
-	wp_script_add_data( 'blogpro-main', 'defer', true );
+// Custom small thumbnail for ~660px display width – improves LCP
+add_image_size('blogpro-thumb-sm', 660, 370, true);
 
-	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
-		wp_enqueue_script( 'comment-reply' );
-	}
+// ------------------------------------------------------------
+// Limit srcset to images no larger than the rendered width
+function blogpro_limit_srcset( $sources, $size_array, $image_src, $image_meta, $attachment_id ) {
+    $max_width = $size_array[0]; // width the image will be displayed at
+    foreach ( $sources as $key => $src ) {
+        if ( $src['value'] > $max_width ) {
+            unset( $sources[ $key ] );
+        }
+    }
+    return $sources;
+}
+add_filter( 'wp_calculate_image_srcset', 'blogpro_limit_srcset', 10, 5 );
+
+// ------------------------------------------------------------
+// Defer Tailwind CSS – load it non‑blocking
+function blogpro_assets() {
+    wp_enqueue_style( 'blogpro-style', get_stylesheet_uri(), array(), BLOGPRO_VERSION );
+
+// if ( file_exists( BLOGPRO_DIR . '/assets/css/tailwind.css' ) ) {
+//         // Load as print media first, then switch to all onload (non‑blocking)
+//         wp_enqueue_style( 'blogpro-tailwind', BLOGPRO_URI . '/assets/css/tailwind.css', array(), filemtime( BLOGPRO_DIR . '/assets/css/tailwind.css' ), 'print' );
+//         wp_style_add_data( 'blogpro-tailwind', 'preload', true );
+//         wp_style_add_data( 'blogpro-tailwind', 'onload', "this.rel='stylesheet'" );
+//     }
+
+
+    if ( file_exists( BLOGPRO_DIR . '/assets/css/tailwind.css' ) ) {
+		wp_enqueue_style( 'blogpro-tailwind', BLOGPRO_URI . '/assets/css/tailwind.css', array(), filemtime( BLOGPRO_DIR . '/assets/css/tailwind.css' ) );
+    }
+
+    wp_enqueue_script( 'blogpro-main', BLOGPRO_URI . '/js/main.js', array(), BLOGPRO_VERSION, true );
+    wp_script_add_data( 'blogpro-main', 'defer', true );
+
+    if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
+        wp_enqueue_script( 'comment-reply' );
+    }
 }
 add_action( 'wp_enqueue_scripts', 'blogpro_assets' );
 

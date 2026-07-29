@@ -43,13 +43,13 @@ function blogpro_related_posts( $post_id, $limit = 3 ) {
 
 function blogpro_breadcrumbs() {
 	if ( is_front_page() ) return;
-	echo '<nav class="flex items-center gap-2 text-sm text-gray-500 mb-8 [&_a]:text-indigo-600 [&_a]:hover:text-indigo-800 [&_a]:font-medium [&_a]:no-underline [&_span]:text-gray-700" aria-label="' . esc_attr__( 'Breadcrumb', 'blog-pro' ) . '"><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'Home', 'blog-pro' ) . '</a>';
+	echo '<nav class="flex items-center flex-wrap gap-2 text-sm text-gray-500 mb-8 [&_a]:text-indigo-600 [&_a]:hover:text-indigo-800 [&_a]:font-medium [&_a]:no-underline [&_span]:text-gray-700" aria-label="' . esc_attr__( 'Breadcrumb', 'blog-pro' ) . '"><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'Home', 'blog-pro' ) . '</a>';
 	if ( is_singular( 'post' ) ) {
 		$cats = get_the_category();
 		if ( ! empty( $cats ) ) {
 			echo ' > <a href="' . esc_url( get_category_link( $cats[0]->term_id ) ) . '">' . esc_html( $cats[0]->name ) . '</a>';
 		}
-		echo ' > <span>' . esc_html( get_the_title() ) . '</span>';
+		// echo ' > <span>' . esc_html( get_the_title() ) . '</span>';
 	} elseif ( is_page() ) {
 		echo ' > <span>' . esc_html( get_the_title() ) . '</span>';
 	} elseif ( is_category() || is_tag() || is_tax() ) {

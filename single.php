@@ -7,8 +7,8 @@ while ( have_posts() ) : the_post();
 	<div class="w-full max-w-7xl">
 			<?php blogpro_breadcrumbs(); ?>
 		</div>
-	<div class="w-full max-w-4xl mx-auto py-12 md:py-20">
-		<h1 class="text-3xl md:text-5xl text-center font-extrabold tracking-tight text-gray-900 py-8 leading-tight"><?php the_title(); ?></h1>
+	<div class="w-full max-w-4xl mx-auto py-4 md:py-12">
+		<h1 class="text-2xl md:text-5xl text-center font-extrabold tracking-tight text-gray-900 py-4 md:py-8 leading-tight"><?php the_title(); ?></h1>
 		<?php if ( has_post_thumbnail() ) : ?>
 			<div class="w-full rounded-lg overflow-hidden shadow-lg my-12 bg-gray-100">
 				<?php the_post_thumbnail( 'blogpro-hero', array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover aspect-video rounded-lg' ) ); ?>
@@ -60,7 +60,7 @@ while ( have_posts() ) : the_post();
 								<div class="w-full h-full bg-linear-to-br from-indigo-100 to-purple-100"></div>
 							<?php endif; ?>
 						</a>
-						<div class="p-5">
+						<div class="p-2">
 							<div class="text-sm text-gray-500 mb-1"><?php echo esc_html( get_the_date() ); ?></div>
 							<h3 class="text-base font-semibold text-gray-900 leading-snug line-clamp-2"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h3>
 						</div>

@@ -67,16 +67,59 @@ function blogpro_convert_to_webp( $path ) {
 	return (bool) $ok;
 }
 
-/* Serve the .webp version automatically in front-end markup when present. */
-function blogpro_maybe_use_webp( $html ) {
-	return preg_replace_callback( '/(src|srcset)="([^"]+\.(jpe?g|png))"/i', function ( $m ) {
-		$webp = preg_replace( '/\.(jpe?g|png)$/i', '.webp', $m[2] );
-		$path = str_replace( content_url(), WP_CONTENT_DIR, $webp );
-		return file_exists( $path ) ? $m[1] . '="' . $webp . '"' : $m[0];
-	}, $html );
+
+# 1️⃣ AVIF conversion (optional)
+# Add a new function after blogpro_convert_to_webp()
+function blogpro_convert_to_avif( $path ) {
+    if ( ! function_exists('imageavif') ) return false;
+    $info = pathinfo($path);
+    $dest = $info['dirname'] . '/' . $info['filename'] . '.avif';
+    if ( file_exists($dest) ) return false;
+    $ext  = strtolower($info['extension']);
+    $img  = ( $ext === 'jpg' || $ext === 'jpeg' )
+            ? @imagecreatefromjpeg($path)
+            : ( $ext === 'png' ? @imagecreatefrompng($path) : false );
+    if ( ! $img ) return false;
+    $ok = imageavif($img, $dest, 50); // quality 0‑100
+    imagedestroy($img);
+    return (bool) $ok;
 }
-add_filter( 'the_content', 'blogpro_maybe_use_webp', 20 );
-add_filter( 'post_thumbnail_html', 'blogpro_maybe_use_webp', 20 );
+# Call it from blogpro_convert_attachment_to_webp()
+# (run after WebP conversion so AVIF is preferred if present).
+
+# 2️⃣ Picture‑element fallback (replace blogpro_maybe_use_webp)
+function blogpro_maybe_use_picture( $html ) {
+    return preg_replace_callback(
+        '/<img([^>]+)(src|srcset)=["\']([^"\']+\.(jpe?g|png))["\']([^>]*)>/i',
+        function ( $m ) {
+            $webp = preg_replace( '/\.(jpe?g|png)$/i', '.webp', $m[3] );
+            $path = str_replace( content_url(), WP_CONTENT_DIR, $webp );
+            if ( ! file_exists( $path ) ) {
+                return $m[0];
+            }
+            // Rebuild the <img> tag: keep all attributes except replace src (or srcset) with WebP URL
+            $new_img = '<img' . $m[1] . 'src="' . esc_url( $webp ) . '"' . $m[5] . '>';
+            return '<picture>'
+                 . '<source type="image/webp" srcset="' . esc_url( $webp ) . '">' . $new_img . '</picture>';
+        },
+        $html
+    );
+}
+add_filter('the_content', 'blogpro_maybe_use_picture', 20);
+add_filter('post_thumbnail_html', 'blogpro_maybe_use_picture', 20);
+
+
+
+/* Serve the .webp version automatically in front-end markup when present. */
+// function blogpro_maybe_use_webp( $html ) {
+// 	return preg_replace_callback( '/(src|srcset)="([^"]+\.(jpe?g|png))"/i', function ( $m ) {
+// 		$webp = preg_replace( '/\.(jpe?g|png)$/i', '.webp', $m[2] );
+// 		$path = str_replace( content_url(), WP_CONTENT_DIR, $webp );
+// 		return file_exists( $path ) ? $m[1] . '="' . $webp . '"' : $m[0];
+// 	}, $html );
+// }
+// add_filter( 'the_content', 'blogpro_maybe_use_webp', 20 );
+// add_filter( 'post_thumbnail_html', 'blogpro_maybe_use_webp', 20 );
 
 /* 2. Lazy-load + async decode all content/thumbnail images (WP 5.5+
       already lazy-loads by default; this reinforces decoding + explicit
