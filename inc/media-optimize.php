@@ -39,6 +39,7 @@ function blogpro_convert_attachment_to_webp( $attachment_id, $metadata = null ) 
 	if ( ! $file ) return 0;
 
 	$count = blogpro_convert_to_webp( $file ) ? 1 : 0;
+	blogpro_convert_to_avif( $file ); // ← add this line if you want AVIF active
 
 	if ( null === $metadata ) {
 		$metadata = wp_get_attachment_metadata( $attachment_id );
@@ -140,12 +141,18 @@ function blogpro_lcp_image_attributes( $attr ) {
 	}
 	return $attr;
 }
-add_filter( 'post_thumbnail_html', function ( $html ) {
-	if ( is_singular() ) {
+// add_filter( 'post_thumbnail_html', function ( $html ) {
+// 	if ( is_singular() ) {
+// 		$html = str_replace( ' loading="lazy"', ' loading="eager" fetchpriority="high"', $html );
+// 	}
+// 	return $html;
+// } );
+add_filter( 'post_thumbnail_html', function ( $html, $post_id ) {
+	if ( is_singular() && $post_id === get_queried_object_id() && in_the_loop() && is_main_query() ) {
 		$html = str_replace( ' loading="lazy"', ' loading="eager" fetchpriority="high"', $html );
 	}
 	return $html;
-} );
+}, 10, 2 );
 
 /* 3. Lazy-load iframes (YouTube/Vimeo embeds) and defer their weight. */
 function blogpro_lazy_iframes( $html ) {
@@ -187,3 +194,13 @@ function blogpro_responsive_sizes( $sizes, $size, $image_src, $image_meta, $atta
 	return '(max-width: 480px) 100vw, (max-width: 900px) 50vw, 480px';
 }
 add_filter( 'wp_calculate_image_sizes', 'blogpro_responsive_sizes', 10, 5 );
+
+
+/* 8. Register a featured-image size matching this theme's actual
+      display width, so srcset has a properly-sized candidate. */
+add_image_size( 'blogpro-featured', 820, 461, true );
+
+add_filter( 'image_size_names_choose', function( $sizes ) {
+	$sizes['blogpro-featured'] = __( 'Blog Pro Featured' );
+	return $sizes;
+} );

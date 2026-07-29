@@ -17,6 +17,7 @@ function blogpro_format_post_for_api( $post ) {
 	$categories = wp_get_post_categories( $post->ID, array( 'fields' => 'names' ) );
 	$content    = wp_strip_all_tags( $post->post_content );
 	$word_count = str_word_count( $content );
+	$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'names' ) );
 
 	return array(
 		'id'            => $post->ID,
@@ -29,10 +30,12 @@ function blogpro_format_post_for_api( $post ) {
 		'modified'      => get_the_modified_date( 'c', $post ),
 		'author'        => array(
 			'name' => get_the_author_meta( 'display_name', $post->post_author ),
-			'link' => get_author_posts_url( $post->post_author ),
+			'url' => get_author_posts_url( $post->post_author ),
+			'avatar' => get_avatar_url( $post->post_author ),
 		),
 		'featured_image'=> get_the_post_thumbnail_url( $post, 'blogpro-card' ) ?: null,
 		'categories'    => $categories,
+		'tags' 			=> $tags,	
 		'reading_time'  => max( 1, (int) ceil( $word_count / 200 ) ),
 	);
 }

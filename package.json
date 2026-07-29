@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "tailwindcss -i ./input.css -o ./assets/css/tailwind.css --watch",
-    "build": "tailwindcss -i ./input.css -o ./assets/css/tailwind.css --minify"
+    "build": "tailwindcss -i ./input.css -o ./assets/css/tailwind.css --minify && node build.js"
   },
   "keywords": [],
   "author": "",

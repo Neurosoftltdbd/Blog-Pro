@@ -98,6 +98,8 @@ function blogpro_assets() {
     if ( file_exists( BLOGPRO_DIR . '/assets/css/tailwind.css' ) ) {
 		wp_enqueue_style( 'blogpro-tailwind', BLOGPRO_URI . '/assets/css/tailwind.css', array(), filemtime( BLOGPRO_DIR . '/assets/css/tailwind.css' ) );
     }
+	wp_style_add_data( 'blogpro-tailwind', 'preload', true );
+	wp_style_add_data( 'blogpro-tailwind', 'onload', "this.rel='stylesheet'" );
 
     wp_enqueue_script( 'blogpro-main', BLOGPRO_URI . '/js/main.js', array(), BLOGPRO_VERSION, true );
     wp_script_add_data( 'blogpro-main', 'defer', true );
