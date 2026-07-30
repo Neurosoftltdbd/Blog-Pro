@@ -45,20 +45,20 @@ if ( post_password_required() ) return;
 				'<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">' .
 					'<p class="[&_.comment-form-author]:m-0">' .
 						'<label for="author" class="block text-sm font-semibold text-gray-700 mb-1.5">' . esc_html__( 'Name', 'blog-pro' ) . ( $req ? ' <span class="text-red-500">*</span>' : '' ) . '</label>' .
-						'<input id="author" name="author" type="text" value="' . esc_attr( $commenter['comment_author'] ) . '" placeholder="' . esc_attr__( 'Your name', 'blog-pro' ) . '" class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder:text-gray-400"' . $aria_req . $html_req . '>' .
+						'<input id="author" name="author" type="text" value="' . esc_attr( $commenter['comment_author'] ) . '" placeholder="' . esc_attr__( 'Your name', 'blog-pro' ) . '" autocomplete="name" class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder:text-gray-400"' . $aria_req . $html_req . '>' .
 					'</p>',
 
 			'email' =>
 					'<p class="[&_.comment-form-email]:m-0">' .
 						'<label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">' . esc_html__( 'Email', 'blog-pro' ) . ( $req ? ' <span class="text-red-500">*</span>' : '' ) . '</label>' .
-						'<input id="email" name="email" type="email" value="' . esc_attr( $commenter['comment_author_email'] ) . '" placeholder="' . esc_attr__( 'you@example.com', 'blog-pro' ) . '" class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder:text-gray-400"' . $aria_req . $html_req . '>' .
+						'<input id="email" name="email" type="email" value="' . esc_attr( $commenter['comment_author_email'] ) . '" placeholder="' . esc_attr__( 'you@example.com', 'blog-pro' ) . '" autocomplete="email" class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder:text-gray-400"' . $aria_req . $html_req . '>' .
 					'</p>' .
 				'</div>',
 
 			'url' =>
 				'<p>' .
 					'<label for="url" class="block text-sm font-semibold text-gray-700 mb-1.5">' . esc_html__( 'Website', 'blog-pro' ) . '</label>' .
-					'<input id="url" name="url" type="url" value="' . esc_attr( $commenter['comment_author_url'] ) . '" placeholder="' . esc_attr__( 'https://yourwebsite.com', 'blog-pro' ) . '" class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder:text-gray-400">' .
+					'<input id="url" name="url" type="url" value="' . esc_attr( $commenter['comment_author_url'] ) . '" placeholder="' . esc_attr__( 'https://yourwebsite.com', 'blog-pro' ) . '" autocomplete="url" class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder:text-gray-400">' .
 				'</p>',
 		);
 
@@ -73,7 +73,7 @@ if ( post_password_required() ) return;
 			'comment_field'      =>
 				'<p>' .
 					'<label for="comment" class="block text-sm font-semibold text-gray-700 mb-1.5">' . esc_html__( 'Comment', 'blog-pro' ) . ' <span class="text-red-500">*</span></label>' .
-					'<textarea id="comment" name="comment" placeholder="' . esc_attr__( 'Share your thoughts…', 'blog-pro' ) . '" rows="5" required class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder:text-gray-400 resize-y min-h-30"></textarea>' .
+					'<textarea id="comment" name="comment" placeholder="' . esc_attr__( 'Share your thoughts…', 'blog-pro' ) . '" rows="5" required autocomplete="off" class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder:text-gray-400 resize-y min-h-30"></textarea>' .
 				'</p>',
 			'label_submit'       => __( 'Post Comment', 'blog-pro' ),
 			'class_submit'       => 'inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 active:bg-indigo-800 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md',
@@ -104,7 +104,7 @@ function blogpro_comment_markup( $comment, $args, $depth ) {
 			<div class="flex-1 min-w-0">
 				<div class="flex flex-wrap items-center gap-x-3 gap-y-1">
 					<span class="font-bold text-gray-900 text-[15px]"><?php comment_author(); ?></span>
-					<span class="text-sm text-gray-400"><?php comment_date(); ?></span>
+					<span class="text-sm text-gray-700"><?php comment_date(); ?></span>
 					<?php edit_comment_link( __( 'Edit', 'blog-pro' ), '<span class="text-xs text-indigo-500">', '</span>' ); ?>
 				</div>
 				<div class="mt-2 text-gray-700 leading-relaxed text-sm [&_p]:mb-3 [&_p:last-child]:mb-0"><?php comment_text(); ?></div>

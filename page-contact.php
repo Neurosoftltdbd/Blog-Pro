@@ -24,11 +24,11 @@ while ( have_posts() ) : the_post();
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 			<p>
 				<label for="contact_name" class="block text-sm font-semibold text-gray-700 mb-1"><?php esc_html_e( 'Name', 'blog-pro' ); ?></label>
-				<input type="text" id="contact_name" name="contact_name" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+				<input type="text" id="contact_name" name="contact_name" autocomplete="name" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
 			</p>
 			<p>
 				<label for="contact_email" class="block text-sm font-semibold text-gray-700 mb-1"><?php esc_html_e( 'Email', 'blog-pro' ); ?></label>
-				<input type="email" id="contact_email" name="contact_email" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+				<input type="email" id="contact_email" name="contact_email" autocomplete="email" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
 			</p>
 		</div>
 		<p>

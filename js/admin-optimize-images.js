@@ -67,5 +67,31 @@
 				runBatch();
 			} );
 		} );
+
+		/* --- Cleanup Orphaned Files button --- */
+		var cleanupBtn    = document.getElementById( 'blogpro-cleanup-start' );
+		var cleanupStatus = document.getElementById( 'blogpro-cleanup-status' );
+		if ( cleanupBtn ) {
+			cleanupBtn.addEventListener( 'click', function () {
+				cleanupBtn.disabled = true;
+				cleanupBtn.textContent = 'Scanning…';
+				cleanupStatus.style.display = 'block';
+				cleanupStatus.textContent = 'Scanning uploads directory for orphaned files…';
+
+				postForm( 'blogpro_cleanup_orphans' ).then( function ( res ) {
+					cleanupBtn.disabled = false;
+					cleanupBtn.textContent = 'Cleanup Orphans';
+					if ( res.success ) {
+						cleanupStatus.textContent = res.data.message;
+					} else {
+						cleanupStatus.textContent = 'Cleanup failed. Please try again.';
+					}
+				} ).catch( function () {
+					cleanupBtn.disabled = false;
+					cleanupBtn.textContent = 'Cleanup Orphans';
+					cleanupStatus.textContent = 'Something went wrong. Please try again.';
+				} );
+			} );
+		}
 	} );
 })();

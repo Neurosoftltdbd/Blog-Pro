@@ -62,6 +62,7 @@ require BLOGPRO_DIR . '/inc/contact-form.php';   // no-plugin contact form handl
 require BLOGPRO_DIR . '/inc/htaccess.php';       // writes caching rules into .htaccess on activation
 require BLOGPRO_DIR . '/inc/admin-tools.php';    // bulk-optimize images uploaded before theme activation
 require BLOGPRO_DIR . '/inc/llms.php';    // serve dynamic llms.txt
+require BLOGPRO_DIR . '/inc/web-mcp-schema.php'; // WebMCP tool schemas
 
 /* ---------------------------------------------------------------------
  * 3. Assets — minimal, deferred, no external dependencies

@@ -11,11 +11,28 @@ if ( ! defined( 'ABSPATH' ) ) exit;
       and prefer it on the front end (falls back automatically if
       the browser/server can't produce one — no hard dependency). */
 add_filter( 'wp_editor_set_quality', function ( $quality, $mime ) {
-	return in_array( $mime, array( 'image/jpeg', 'image/webp' ), true ) ? 82 : $quality;
+	if ( in_array( $mime, array( 'image/jpeg', 'image/webp' ), true ) ) return 82;
+	if ( 'image/png' === $mime ) return 10; // 10 = GD compression level 9 (max)
+	return $quality;
 }, 10, 2 );
 
 function blogpro_generate_webp( $metadata, $attachment_id ) {
 	blogpro_convert_attachment_to_webp( $attachment_id, $metadata );
+	if ( ! empty( $metadata['sizes'] ) ) {
+		$file = get_attached_file( $attachment_id );
+		if ( $file ) {
+			$dir = trailingslashit( dirname( $file ) );
+			foreach ( $metadata['sizes'] as $size ) {
+				$spath = $dir . $size['file'];
+				$ext = strtolower( pathinfo( $spath, PATHINFO_EXTENSION ) );
+				$webp_path = $dir . pathinfo( $size['file'], PATHINFO_FILENAME ) . '.webp';
+				// delete PNG/JPEG thumbnail if WebP exists alongside it
+				if ( in_array( $ext, array( 'jpg', 'jpeg', 'png' ), true ) && file_exists( $spath ) && file_exists( $webp_path ) ) {
+					@unlink( $spath );
+				}
+			}
+		}
+	}
 	return $metadata;
 }
 add_filter( 'wp_generate_attachment_metadata', 'blogpro_generate_webp', 10, 2 );
@@ -39,7 +56,6 @@ function blogpro_convert_attachment_to_webp( $attachment_id, $metadata = null ) 
 	if ( ! $file ) return 0;
 
 	$count = blogpro_convert_to_webp( $file ) ? 1 : 0;
-	blogpro_convert_to_avif( $file ); // ← add this line if you want AVIF active
 
 	if ( null === $metadata ) {
 		$metadata = wp_get_attachment_metadata( $attachment_id );
@@ -58,50 +74,92 @@ function blogpro_convert_to_webp( $path ) {
 	$info = pathinfo( $path );
 	if ( empty( $info['extension'] ) ) return false;
 	$dest = $info['dirname'] . '/' . $info['filename'] . '.webp';
-	if ( file_exists( $dest ) ) return false; // already converted — nothing new to do
+	if ( file_exists( $dest ) ) {
+		if ( filesize( $dest ) > 0 ) return false; // already converted
+		@unlink( $dest ); // 0-byte = failed prior attempt — delete so we retry
+	}
 
 	$ext = strtolower( $info['extension'] );
+
+	// Bump memory for large originals — GD decompresses the whole thing into raw pixels
+	$old_limit = ini_set( 'memory_limit', '256M' );
+
 	$image = ( 'jpg' === $ext || 'jpeg' === $ext ) ? @imagecreatefromjpeg( $path ) : ( 'png' === $ext ? @imagecreatefrompng( $path ) : false );
-	if ( ! $image ) return false;
+	if ( ! $image ) { ini_set( 'memory_limit', $old_limit ); return false; }
+
+	// PNG prep: save alpha + convert palette to truecolor (WebP needs truecolor)
+	if ( 'png' === $ext ) {
+		@imagealphablending( $image, false );
+		@imagesavealpha( $image, true );
+		if ( ! @imageistruecolor( $image ) ) {
+			$w = imagesx( $image );
+			$h = imagesy( $image );
+			$tc = imagecreatetruecolor( $w, $h );
+			if ( $tc ) {
+				imagealphablending( $tc, false );
+				imagesavealpha( $tc, true );
+				imagecopy( $tc, $image, 0, 0, 0, 0, $w, $h );
+				imagedestroy( $image );
+				$image = $tc;
+			}
+		}
+	}
+
 	$ok = imagewebp( $image, $dest, 82 );
 	imagedestroy( $image );
+	ini_set( 'memory_limit', $old_limit );
+
+	// imagewebp can return true but write 0 bytes (GD bug / silent OOM)
+	if ( $ok && file_exists( $dest ) && filesize( $dest ) === 0 ) {
+		@unlink( $dest );
+		return false;
+	}
+
 	return (bool) $ok;
 }
 
 
-# 1️⃣ AVIF conversion (optional)
-# Add a new function after blogpro_convert_to_webp()
-function blogpro_convert_to_avif( $path ) {
-    if ( ! function_exists('imageavif') ) return false;
-    $info = pathinfo($path);
-    $dest = $info['dirname'] . '/' . $info['filename'] . '.avif';
-    if ( file_exists($dest) ) return false;
-    $ext  = strtolower($info['extension']);
-    $img  = ( $ext === 'jpg' || $ext === 'jpeg' )
-            ? @imagecreatefromjpeg($path)
-            : ( $ext === 'png' ? @imagecreatefrompng($path) : false );
-    if ( ! $img ) return false;
-    $ok = imageavif($img, $dest, 50); // quality 0‑100
-    imagedestroy($img);
-    return (bool) $ok;
-}
-# Call it from blogpro_convert_attachment_to_webp()
-# (run after WebP conversion so AVIF is preferred if present).
+/**
+ * Clean up WebP copies when an attachment is deleted from Media Library.
+ */
+function blogpro_delete_webp_on_attachment_removal( $post_id ) {
+	$file = get_attached_file( $post_id );
+	if ( ! $file ) return;
 
-# 2️⃣ Picture‑element fallback (replace blogpro_maybe_use_webp)
+	// WebP of original file
+	$info   = pathinfo( $file );
+	$webp   = $info['dirname'] . '/' . $info['filename'] . '.webp';
+	if ( file_exists( $webp ) ) @unlink( $webp );
+
+	// WebP of each registered size
+	$metadata = wp_get_attachment_metadata( $post_id );
+	if ( ! empty( $metadata['sizes'] ) ) {
+		$dir = trailingslashit( $info['dirname'] );
+		foreach ( $metadata['sizes'] as $size ) {
+			$ext  = pathinfo( $size['file'], PATHINFO_EXTENSION );
+			$base = basename( $size['file'], '.' . $ext );
+			$webp_size = $dir . $base . '.webp';
+			if ( file_exists( $webp_size ) ) @unlink( $webp_size );
+		}
+	}
+}
+add_action( 'delete_attachment', 'blogpro_delete_webp_on_attachment_removal' );
+
+/* 2. Picture-element fallback (replace blogpro_maybe_use_webp) */
 function blogpro_maybe_use_picture( $html ) {
     return preg_replace_callback(
         '/<img([^>]+)(src|srcset)=["\']([^"\']+\.(jpe?g|png))["\']([^>]*)>/i',
         function ( $m ) {
-            $webp = preg_replace( '/\.(jpe?g|png)$/i', '.webp', $m[3] );
-            $path = str_replace( content_url(), WP_CONTENT_DIR, $webp );
+            $webp_url = preg_replace( '/\.(jpe?g|png)$/i', '.webp', $m[3] );
+            $path = str_replace( content_url(), WP_CONTENT_DIR, $webp_url );
             if ( ! file_exists( $path ) ) {
                 return $m[0];
             }
-            // Rebuild the <img> tag: keep all attributes except replace src (or srcset) with WebP URL
-            $new_img = '<img' . $m[1] . 'src="' . esc_url( $webp ) . '"' . $m[5] . '>';
+            // Rebuild whole <img> — replace every .jpg/.png URL with .webp (covers src+srcset)
+            $img_tag = '<img' . $m[1] . $m[2] . '="' . esc_url( $webp_url ) . '"' . $m[5] . '>';
+            $img_tag = preg_replace( '/\.(jpe?g|png)(\s|")/i', '.webp$2', $img_tag );
             return '<picture>'
-                 . '<source type="image/webp" srcset="' . esc_url( $webp ) . '">' . $new_img . '</picture>';
+                 . '<source type="image/webp" srcset="' . esc_url( $webp_url ) . '">' . $img_tag . '</picture>';
         },
         $html
     );
@@ -195,6 +253,12 @@ function blogpro_responsive_sizes( $sizes, $size, $image_src, $image_meta, $atta
 }
 add_filter( 'wp_calculate_image_sizes', 'blogpro_responsive_sizes', 10, 5 );
 
+
+// disable '1536x1536' and '2048x2048' intermediate sizes — nothing in this theme uses them
+add_filter( 'wp_loaded', function () {
+	remove_image_size( '1536x1536' );
+	remove_image_size( '2048x2048' );
+} );
 
 /* 8. Register a featured-image size matching this theme's actual
       display width, so srcset has a properly-sized candidate. */

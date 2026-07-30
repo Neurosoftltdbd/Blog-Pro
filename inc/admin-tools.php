@@ -67,6 +67,15 @@ function blogpro_render_optimize_images_page() {
 			</div>
 			<p id="blogpro-optimize-status"></p>
 		</div>
+
+		<hr style="margin:24px 0">
+
+		<h2><?php esc_html_e( 'Cleanup Orphaned Files', 'blog-pro' ); ?></h2>
+		<p><?php esc_html_e( 'Scan the uploads directory and remove .webp and .avif files whose source image (.jpg, .png) no longer exists. This cleans up leftovers from previously deleted images.', 'blog-pro' ); ?></p>
+		<p>
+			<button type="button" class="button" id="blogpro-cleanup-start"><?php esc_html_e( 'Cleanup Orphans', 'blog-pro' ); ?></button>
+		</p>
+		<p id="blogpro-cleanup-status" style="display:none"></p>
 	</div>
 	<?php
 }
