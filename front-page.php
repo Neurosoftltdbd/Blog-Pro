@@ -23,7 +23,7 @@ get_header();
 				<?php $slide_idx = 0; while ( $slider_query->have_posts() ) : $slider_query->the_post(); $is_active = $slide_idx === 0; ?>
 				<div class="slide absolute inset-0 w-full h-full opacity-0 z-1 transition-opacity duration-500 " style="opacity: <?php echo $is_active ? 1 : 0; ?>; z-index: <?php echo $is_active ? 2 : 1; ?>;">
 					<?php if ( has_post_thumbnail() ) : ?>
-						<?php the_post_thumbnail( 'large', array( 'class' => 'w-full h-full object-cover' ) ); ?>
+						<?php echo blogpro_responsive_img( get_post_thumbnail_id(), array( 'class' => 'w-full h-full object-cover', 'sizes' => '(max-width: 1024px) 100vw, 66vw' ) ); ?>
 					<?php else : ?>
 						<div class="w-full h-full bg-linear-to-br from-indigo-100 to-purple-100"></div>
 					<?php endif; ?>
@@ -59,7 +59,7 @@ get_header();
 				<li class="flex gap-4 items-start">
 					<a href="<?php the_permalink(); ?>" class="shrink-0 w-20 h-20 rounded-xl overflow-hidden bg-gray-100 block">
 						<?php if ( has_post_thumbnail() ) : ?>
-							<?php the_post_thumbnail( 'thumbnail', array( 'class' => 'w-full h-full object-cover hover:scale-105 transition-all easy-in-out duration-300' ) ); ?>
+							<?php echo blogpro_responsive_img( get_post_thumbnail_id(), array( 'class' => 'w-full h-full object-cover hover:scale-105 transition-all easy-in-out duration-300', 'sizes' => '80px' ) ); ?>
 						<?php else : ?>
 							<div class="w-full h-full bg-gray-200"></div>
 						<?php endif; ?>
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		<?php while ( $featured->have_posts() ) : $featured->the_post(); ?>
 			<article <?php post_class( 'flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300' ); ?>>
 				<a class="aspect-video bg-gray-100 block overflow-hidden" href="<?php the_permalink(); ?>" aria-hidden="true" tabindex="-1">
-					<?php if ( has_post_thumbnail() ) : the_post_thumbnail( 'blogpro-card', array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover hover:scale-105 transition-all easy-in-out duration-300' ) ); else : ?>
+					<?php if ( has_post_thumbnail() ) : echo blogpro_responsive_img( get_post_thumbnail_id(), array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover hover:scale-105 transition-all easy-in-out duration-300', 'sizes' => '(max-width: 768px) 100vw, 50vw' ) ); else : ?>
 						<div class="w-full h-full bg-gray-100"></div>
 					<?php endif; ?>
 				</a>
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		<?php while ( $recent->have_posts() ) : $recent->the_post(); ?>
 			<li class="flex flex-col md:flex-row gap-6 items-start pb-8 border-b border-gray-100 last:border-b-0 hover:shadow-md rounded-xl transition-all easy-in-out duration-300">
 				<a class="shrink-0 w-full aspect-video md:w-48 md:h-32 rounded-xl overflow-hidden bg-gray-100 block" href="<?php the_permalink(); ?>" aria-hidden="true" tabindex="-1">
-					<?php if ( has_post_thumbnail() ) : the_post_thumbnail( 'blogpro-card', array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover hover:scale-105 transition-all easy-in-out duration-300' ) ); else : ?>
+					<?php if ( has_post_thumbnail() ) : echo blogpro_responsive_img( get_post_thumbnail_id(), array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover hover:scale-105 transition-all easy-in-out duration-300', 'sizes' => '(max-width: 768px) 100vw, 50vw' ) ); else : ?>
 						<div class="w-full h-full bg-gray-100"></div>
 					<?php endif; ?>
 				</a>

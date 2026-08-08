@@ -11,7 +11,7 @@ while ( have_posts() ) : the_post();
 		<h1 class="text-2xl md:text-5xl text-center font-extrabold tracking-tight text-gray-900 py-4 md:py-8 leading-tight"><?php the_title(); ?></h1>
 		<?php if ( has_post_thumbnail() ) : ?>
 			<div class="w-full rounded-lg overflow-hidden shadow-lg my-12 bg-gray-100">
-				<?php the_post_thumbnail( 'blogpro-hero', array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover aspect-video rounded-lg' ) ); ?>
+				<?php echo blogpro_responsive_img( get_post_thumbnail_id(), array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover aspect-video rounded-lg', 'sizes' => '(max-width: 896px) 100vw, 896px', 'loading' => 'eager' ) ); ?>
 			</div>
 		<?php endif; ?>
 		<div class="text-sm font-semibold text-indigo-600 uppercase tracking-widest py-4"><?php blogpro_posted_on(); ?></div>
@@ -55,7 +55,7 @@ while ( have_posts() ) : the_post();
 					<article class="flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300">
 						<a href="<?php the_permalink(); ?>" class="aspect-video bg-gray-100 block overflow-hidden" aria-hidden="true" tabindex="-1">
 							<?php if ( has_post_thumbnail() ) : ?>
-								<?php the_post_thumbnail( 'blogpro-card', array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover transform hover:scale-105 transition-transform duration-500' ) ); ?>
+								<?php echo blogpro_responsive_img( get_post_thumbnail_id(), array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover transform hover:scale-105 transition-transform duration-500', 'sizes' => '(max-width: 768px) 100vw, 33vw' ) ); ?>
 							<?php else : ?>
 								<div class="w-full h-full bg-linear-to-br from-indigo-100 to-purple-100"></div>
 							<?php endif; ?>

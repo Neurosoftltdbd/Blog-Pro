@@ -268,3 +268,219 @@ add_filter( 'image_size_names_choose', function( $sizes ) {
 	$sizes['blogpro-featured'] = __( 'Blog Pro Featured' );
 	return $sizes;
 } );
+
+/* 9. On-the-fly WebP resizing — one original per upload. The browser
+      asks for the width it needs (srcset), PHP resizes it (height auto,
+      from aspect ratio) and serves WebP. Derived sizes are cached on
+      disk so repeat requests are a plain readfile, not a re-resize. */
+add_filter( 'query_vars', function ( $vars ) {
+	$vars[] = 'blogpro_img_id';
+	$vars[] = 'blogpro_w';
+	return $vars;
+} );
+
+add_action( 'init', function () {
+	add_rewrite_rule( '^blogpro-img/(\d+)/(\d+)/?$', 'index.php?blogpro_img_id=$matches[1]&blogpro_w=$matches[2]', 'top' );
+} );
+
+add_action( 'after_switch_theme', 'flush_rewrite_rules' );
+add_action( 'init', function () {
+	// one-time flush when this rewrite rule was added after theme activation
+	if ( get_option( 'blogpro_rewrite_flush_v' ) !== BLOGPRO_VERSION ) {
+		flush_rewrite_rules();
+		update_option( 'blogpro_rewrite_flush_v', BLOGPRO_VERSION );
+	}
+}, 99 );
+
+add_action( 'parse_request', function ( $wp ) {
+	// note: get_query_var() reads $wp_query->query_vars, which is not yet
+	// populated during parse_request — read the $wp object's vars directly
+	$id = absint( isset( $wp->query_vars['blogpro_img_id'] ) ? $wp->query_vars['blogpro_img_id'] : 0 );
+	if ( ! $id ) return; // not an image request
+	$width = absint( isset( $wp->query_vars['blogpro_w'] ) ? $wp->query_vars['blogpro_w'] : 0 ) ?: 1600;
+	blogpro_serve_resized_webp( $id, $width );
+	exit;
+}, 0 );
+
+function blogpro_serve_resized_webp( $id, $width ) {
+	if ( ! function_exists( 'imagewebp' ) ) wp_die( '', '', array( 'response' => 500 ) );
+
+	$mime = get_post_mime_type( $id );
+	if ( ! in_array( $mime, array( 'image/jpeg', 'image/png', 'image/webp' ), true ) ) {
+		wp_die( '', '', array( 'response' => 404 ) );
+	}
+	$file = get_attached_file( $id );
+	if ( ! $file || ! file_exists( $file ) ) wp_die( '', '', array( 'response' => 404 ) );
+
+	$width     = max( 16, min( 2560, $width ) );
+	$upload    = wp_upload_dir();
+	$cache_dir = trailingslashit( $upload['basedir'] ) . 'blogpro-cache';
+	$cache     = $cache_dir . '/' . $id . '-' . $width . '.webp';
+
+	if ( ! file_exists( $cache ) ) {
+		$orig = wp_getimagesize( $file );
+		if ( ! $orig ) wp_die( '', '', array( 'response' => 500 ) );
+		$w = $orig[0];
+		$h = $orig[1];
+		$width = min( $width, $w ); // never upscale
+		$height = (int) round( $h * $width / $w ); // height auto
+
+		$old_limit = ini_set( 'memory_limit', '256M' );
+		if ( 'image/png' === $mime ) {
+			$src = @imagecreatefrompng( $file );
+		} elseif ( 'image/webp' === $mime ) {
+			$src = @imagecreatefromwebp( $file );
+		} else {
+			$src = @imagecreatefromjpeg( $file );
+		}
+		if ( ! $src ) { ini_set( 'memory_limit', $old_limit ); wp_die( '', '', array( 'response' => 500 ) ); }
+		$dst = imagecreatetruecolor( $width, $height );
+		imagealphablending( $dst, false );
+		imagesavealpha( $dst, true );
+		imagecopyresampled( $dst, $src, 0, 0, 0, 0, $width, $height, $w, $h );
+		imagedestroy( $src );
+		wp_mkdir_p( $cache_dir );
+		$ok = imagewebp( $dst, $cache, 82 );
+		imagedestroy( $dst );
+		ini_set( 'memory_limit', $old_limit );
+		if ( ! $ok || ! file_exists( $cache ) || filesize( $cache ) === 0 ) {
+			@unlink( $cache );
+			wp_die( '', '', array( 'response' => 500 ) );
+		}
+	}
+
+	header( 'Content-Type: image/webp' );
+	header( 'Content-Length: ' . filesize( $cache ) );
+	header( 'Cache-Control: public, max-age=31536000, immutable' ); // URL is deterministic — safe to cache forever
+	readfile( $cache );
+}
+
+/**
+ * Rewrite every content <img> to responsive resizer URLs. Fixes legacy
+ * imports (no size metadata → single-candidate srcset → browser downloads
+ * the full original) and gives all content images a proper srcset.
+ * Height stays auto (aspect preserved by the resizer); srcset width caps
+ * at the original so nothing is upscaled.
+ */
+function blogpro_responsive_content_images( $content ) {
+	return preg_replace_callback(
+		'/<img\b[^>]*>/i',
+		function ( $m ) {
+			$img = $m[0];
+
+			// already handled (our own output)
+			if ( false !== strpos( $img, '/blogpro-img/' ) ) return $img;
+
+			if ( ! preg_match( '/src=["\']([^"\']+)["\']/i', $img, $src_m ) ) return $img;
+			$src_url = $src_m[1];
+			$url_parts = wp_parse_url( $src_url );
+			if ( ! isset( $url_parts['path'] ) ) return $img;
+
+			// path relative to the WP root (handles subdirectory installs)
+			$site_path = (string) wp_parse_url( site_url(), PHP_URL_PATH );
+			$rel       = isset( $url_parts['path'] ) ? preg_replace( '#^' . preg_quote( rtrim( $site_path, '/' ), '#' ) . '#', '', $url_parts['path'] ) : '';
+			$path = wp_normalize_path( untrailingslashit( ABSPATH ) . $rel );
+			if ( ! file_exists( $path ) || ! is_readable( $path ) ) return $img;
+
+			$id = attachment_url_to_postid( $src_url );
+			if ( ! $id ) {
+				// imported file not matched by URL — resolve by realpath (normalized,
+				// since realpath() returns OS separators)
+				$base = wp_normalize_path( untrailingslashit( wp_upload_dir()['basedir'] ) );
+				$real = realpath( $path );
+				if ( ! $real ) return $img;
+				$rel = ltrim( str_replace( $base, '', wp_normalize_path( $real ) ), '/' );
+				if ( $rel === wp_normalize_path( $real ) ) return $img; // not under uploads
+				global $wpdb;
+				$id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND meta_value = %s LIMIT 1", $rel ) );
+				if ( ! $id ) {
+					// file may be a WebP copy whose attachment row is the .png/.jpg original
+					$alt = preg_replace( '/\.webp$/i', '.png', $rel );
+					$alt = ( $alt !== $rel ) ? $alt : preg_replace( '/\.webp$/i', '.jpg', $rel );
+					if ( $alt !== $rel ) {
+						$id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND meta_value = %s LIMIT 1", $alt ) );
+					}
+				}
+			}
+			if ( ! $id ) return $img;
+
+			$mime = get_post_mime_type( $id );
+			if ( ! in_array( $mime, array( 'image/jpeg', 'image/png', 'image/webp' ), true ) ) return $img;
+
+			if ( preg_match( '/width=["\'](\d+)["\']/i', $img, $wm ) ) {
+				$orig_w = (int) $wm[1];
+			} else {
+				$orig_w = (int) wp_getimagesize( $path )[0];
+			}
+			if ( $orig_w < 1 ) return $img;
+
+			$widths = array( 320, 480, 768, 1024, 1280, 1600 );
+			$widths = array_values( array_filter( $widths, function ( $w ) use ( $orig_w ) { return $w < $orig_w; } ) );
+			$widths[] = $orig_w;
+
+			$base   = home_url( '/blogpro-img/' . $id . '/' );
+			$srcset = implode( ', ', array_map( function ( $w ) use ( $base ) {
+				return esc_url( $base . $w . '/' ) . ' ' . $w . 'w';
+			}, $widths ) );
+
+			$img = preg_replace( '/\bsrc=["\'][^"\']*["\']/i', 'src="' . esc_url( $base . $widths[0] . '/' ) . '"', $img );
+			if ( false !== stripos( $img, 'srcset=' ) ) {
+				$img = preg_replace( '/\bsrcset=["\'][^"\']*["\']/i', 'srcset="' . esc_attr( $srcset ) . '"', $img );
+			} else {
+				$img = preg_replace( '/\bsrc=["\'][^"\']*["\']/i', 'srcset="' . esc_attr( $srcset ) . '" src="' . esc_url( $base . $widths[0] . '/' ) . '"', $img );
+			}
+			if ( false !== stripos( $img, 'sizes=' ) ) {
+				$img = preg_replace( '/\bsizes=["\'][^"\']*["\']/i', 'sizes="(max-width: 820px) 100vw, 820px"', $img );
+			} else {
+				$img = str_replace( ' srcset="', ' sizes="(max-width: 820px) 100vw, 820px" srcset="', $img );
+			}
+			return $img;
+		},
+		$content
+	);
+}
+// priority 10: must run BEFORE blogpro_maybe_use_picture (20) — once src is a
+// /blogpro-img/ URL it has no .jpg/.png extension, so the picture filter skips it
+add_filter( 'the_content', 'blogpro_responsive_content_images', 10 );
+
+/**
+ * Responsive <img> served by the resizer above. Emits a srcset of
+ * widths up to the original, height auto — one upload, no size queue.
+ */
+function blogpro_responsive_img( $attachment_id, $args = array() ) {
+	$src = wp_get_attachment_image_src( $attachment_id, 'full' );
+	if ( ! $src ) return '';
+
+	$orig_w = (int) $src[1];
+	$orig_h = (int) $src[2];
+	$widths = array( 320, 480, 768, 1024, 1280, 1600 );
+	$widths = array_values( array_filter( $widths, function ( $w ) use ( $orig_w ) { return $w < $orig_w; } ) );
+	$widths[] = $orig_w;
+
+	$base   = home_url( '/blogpro-img/' . $attachment_id . '/' );
+	$srcset = implode( ', ', array_map( function ( $w ) use ( $base ) {
+		return esc_url( $base . $w . '/' ) . ' ' . $w . 'w';
+	}, $widths ) );
+
+	$attrs  = array(
+		'class'    => isset( $args['class'] ) ? $args['class'] : '',
+		'width'    => $orig_w, // intrinsic ratio for CLS; CSS (w-full h-auto) overrides display size
+		'height'   => $orig_h,
+		'alt'      => isset( $args['alt'] ) ? $args['alt'] : '',
+		'sizes'    => isset( $args['sizes'] ) ? $args['sizes'] : '100vw',
+		'loading'  => isset( $args['loading'] ) ? $args['loading'] : 'lazy',
+		'decoding' => 'async',
+	);
+
+	return sprintf(
+		'<img src="%s" srcset="%s" width="%d" height="%d" sizes="%s" alt="%s" loading="%s" decoding="async" class="%s">',
+		esc_url( $base . $widths[0] . '/' ),
+		$srcset,
+		$attrs['width'],
+		$attrs['height'],
+		esc_attr( $attrs['sizes'] ),
+		esc_attr( $attrs['alt'] ),
+		esc_attr( $attrs['loading'] ),
+		esc_attr( $attrs['class'] )
+	);
+}

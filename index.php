@@ -26,7 +26,7 @@ get_header();
 		<?php while ( have_posts() ) : the_post(); ?>
 		<article <?php post_class( 'flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1' ); ?>>
 			<a class="aspect-video bg-gray-100 block overflow-hidden shrink-0" href="<?php the_permalink(); ?>" aria-hidden="true" tabindex="-1">
-				<?php if ( has_post_thumbnail() ) : the_post_thumbnail( 'blogpro-card', array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover transform hover:scale-105 transition-transform duration-500' ) ); else : ?>
+				<?php if ( has_post_thumbnail() ) : echo blogpro_responsive_img( get_post_thumbnail_id(), array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover transform hover:scale-105 transition-transform duration-500', 'sizes' => '(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw' ) ); else : ?>
 					<div class="w-full h-full bg-linear-to-br from-indigo-100 to-purple-100"></div>
 				<?php endif; ?>
 			</a>

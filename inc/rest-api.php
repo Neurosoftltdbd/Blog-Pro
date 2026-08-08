@@ -7,7 +7,8 @@
  *
  * Namespace: blogpro/v1
  *   GET /wp-json/blogpro/v1/posts              list (paged, filterable)
- *   GET /wp-json/blogpro/v1/posts/{id}          single post
+ *   GET /wp-json/blogpro/v1/posts/{id}          single post by ID
+ *   GET /wp-json/blogpro/v1/posts/{slug}        single post by slug
  *   GET /wp-json/blogpro/v1/posts/featured      featured posts (tagged "featured")
  *   GET /wp-json/blogpro/v1/categories          category list
  */
@@ -40,6 +41,15 @@ function blogpro_format_post_for_api( $post ) {
 	);
 }
 
+function blogpro_single_post_response( $post ) {
+	if ( ! $post || 'publish' !== $post->post_status || 'post' !== $post->post_type ) {
+		return new WP_Error( 'not_found', 'Post not found', array( 'status' => 404 ) );
+	}
+	$data            = blogpro_format_post_for_api( $post );
+	$data['content'] = apply_filters( 'the_content', $post->post_content );
+	return new WP_REST_Response( $data, 200 );
+}
+
 function blogpro_register_rest_routes() {
 	register_rest_route( 'blogpro/v1', '/posts', array(
 		'methods'             => 'GET',
@@ -49,6 +59,7 @@ function blogpro_register_rest_routes() {
 			'per_page' => array( 'default' => 10, 'sanitize_callback' => 'absint' ),
 			'category' => array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ),
 			'search'   => array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ),
+			'slug'     => array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ),
 		),
 		'callback' => function ( $request ) {
 			$args = array(
@@ -57,6 +68,7 @@ function blogpro_register_rest_routes() {
 				'paged'          => $request['page'],
 				'posts_per_page' => min( 50, $request['per_page'] ),
 				's'              => $request['search'],
+				'slug'           => $request['slug'],
 			);
 			if ( $request['category'] ) {
 				$args['category_name'] = $request['category'];
@@ -91,12 +103,16 @@ function blogpro_register_rest_routes() {
 		'permission_callback' => '__return_true',
 		'callback'            => function ( $request ) {
 			$post = get_post( (int) $request['id'] );
-			if ( ! $post || 'publish' !== $post->post_status || 'post' !== $post->post_type ) {
-				return new WP_Error( 'not_found', 'Post not found', array( 'status' => 404 ) );
-			}
-			$data            = blogpro_format_post_for_api( $post );
-			$data['content'] = apply_filters( 'the_content', $post->post_content );
-			return new WP_REST_Response( $data, 200 );
+			return blogpro_single_post_response( $post );
+		},
+	) );
+
+	register_rest_route( 'blogpro/v1', '/posts/(?P<slug>[a-z0-9-]+)', array(
+		'methods'             => 'GET',
+		'permission_callback' => '__return_true',
+		'callback'            => function ( $request ) {
+			$post = get_page_by_path( $request['slug'], OBJECT, 'post' );
+			return blogpro_single_post_response( $post );
 		},
 	) );
 
