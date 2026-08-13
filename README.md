@@ -2,6 +2,7 @@ BLOG PRO — a plugin-free, speed-first WordPress blogging theme
 ================================================================
 
 INSTALLATION
+
 1. Zip the "blog-pro" folder (or use the .zip you already have) and upload
    via WordPress Admin → Appearance → Themes → Add New → Upload Theme.
 2. Activate "Blog Pro". Activation automatically registers the /sitemap.xml
@@ -12,6 +13,7 @@ INSTALLATION
    directly into the homepage hero, meta description fallback, and JSON-LD.
 
 CREATING THE CORE PAGES
+
 - Home: Settings → Reading → set "Your homepage displays" to a static page,
   OR simply leave it on "Your latest posts" — front-page.php only activates
   if you assign a static front page. For the full hero+featured+recent
@@ -42,6 +44,7 @@ appear in the homepage's Featured Posts section and the
 /wp-json/blogpro/v1/posts/featured REST endpoint.
 
 SEO — WHAT'S BUILT IN, NO PLUGIN NEEDED
+
 - Dynamic <title>, meta description, canonical URL, Open Graph, Twitter
   Card tags on every template (inc/seo-meta.php).
 - JSON-LD schema.org structured data: WebSite, Organization, BreadcrumbList,
@@ -64,6 +67,7 @@ This returns a slimmer payload than WordPress core's /wp/v2/posts —
 purpose-built for a fast blog front end or a future headless/mobile app.
 
 SPEED — HOW SUB-1-SECOND LOADS ARE ACHIEVED
+
 1. No plugins, no page builder, no jQuery dependency — theme JS is one
    small vanilla file, loaded with `defer`.
 2. Unused core assets are dequeued (block-library CSS, emoji script,
@@ -96,6 +100,7 @@ SPEED — HOW SUB-1-SECOND LOADS ARE ACHIEVED
    requests — the theme ships one compact stylesheet.
 
 RECOMMENDED HOSTING-LEVEL ADDITIONS (outside theme scope)
+
 - Use a host with HTTP/2 or HTTP/3 and server-side page caching
   (e.g. object cache / Redis, or a reverse-proxy cache) for logged-out
   traffic — this theme is built to work with or without one.

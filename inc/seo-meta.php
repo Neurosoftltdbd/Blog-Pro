@@ -59,7 +59,10 @@ function blogpro_get_meta_title() {
 	if ( is_404() ) {
 		return __( 'Page not found', 'blog-pro' ) . ' | ' . get_bloginfo( 'name' );
 	}
-	return wp_get_document_title();
+	if ( is_author() ) {
+		return sprintf( __( 'Posts by %s | %s', 'blog-pro' ), get_the_author(), get_bloginfo( 'name' ) );
+	}
+	return wp_get_archive_title() . ' | ' . get_bloginfo( 'name' );
 }
 
 function blogpro_get_canonical_url() {

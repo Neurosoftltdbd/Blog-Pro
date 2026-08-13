@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/theme.json",
+  "version": 3,
+  "customTemplates": [
+    {
+      "name": "home-pws",
+      "title": "PWS Home",
+      "postTypes": ["page"]
+    }
+  ]
+}

@@ -60,6 +60,7 @@ const excludeSet = new Set([
   "build.js",
   ".git",
   ".vscode",
+  ".claude",
 ]);
 
 function copyRecursive(src, dest) {

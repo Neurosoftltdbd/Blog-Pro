@@ -1,8 +1,45 @@
 <?php
 /**
  * Home page: hero, featured posts, recent posts grid.
+ *
+ * If the static front page has any page template selected (block or PHP)
+ * it is rendered instead of this classic one. With no template selected
+ * the default front-page content below is used.
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
+
+$front_page_id = (int) get_option( 'page_on_front' );
+$selected      = $front_page_id ? get_page_template_slug( $front_page_id ) : '';
+
+if ( $selected ) {
+	global $_wp_current_template_id, $_wp_current_template_content;
+
+	// Load a block template file directly so any Site Editor DB
+	// customization does not replace the template shipped with the theme.
+	$template_file = _get_block_template_file( 'wp_template', $selected );
+
+	if ( $template_file && ! empty( $template_file['path'] ) ) {
+		$block_template = _build_block_template_result_from_file( $template_file, 'wp_template' );
+
+		$_wp_current_template_id      = $block_template->id;
+		$_wp_current_template_content = $block_template->content;
+
+		get_header();
+		echo get_the_block_template_html();
+		get_footer();
+		return;
+	}
+
+	// Otherwise include a PHP page template if one is selected.
+	if ( 0 === validate_file( $selected ) ) {
+		$php_template = locate_template( array( $selected ) );
+		if ( $php_template ) {
+			include $php_template;
+			return;
+		}
+	}
+}
+
 get_header();
 ?>
 
