@@ -24,9 +24,9 @@ function blogpro_setup() {
 	add_theme_support( 'align-wide' );
 
 	// Custom, compact thumbnail sizes — avoids generating/serving oversized images.
-	set_post_thumbnail_size( 640, 400, true );
-	add_image_size( 'blogpro-card', 480, 300, true );
-	add_image_size( 'blogpro-hero', 1200, 675, true );
+	// set_post_thumbnail_size( 640, 400, true );
+	// add_image_size( 'blogpro-card', 480, 300, true );
+	// add_image_size( 'blogpro-hero', 1200, 675, true );
 
 	register_nav_menus( array(
 		'primary' => __( 'Primary Menu', 'blog-pro' ),
@@ -57,6 +57,7 @@ require BLOGPRO_DIR . '/inc/sitemap.php';        // XML sitemap
 require BLOGPRO_DIR . '/inc/robots.php';         // robots.txt
 require BLOGPRO_DIR . '/inc/rest-api.php';       // custom REST endpoints
 require BLOGPRO_DIR . '/inc/media-optimize.php'; // image/video optimization
+require BLOGPRO_DIR . '/inc/force-wp-to-webp.php'; // serve WebP masters through core image APIs
 require BLOGPRO_DIR . '/inc/template-tags.php';  // helper functions for templates
 require BLOGPRO_DIR . '/inc/contact-form.php';   // no-plugin contact form handler
 require BLOGPRO_DIR . '/inc/htaccess.php';       // writes caching rules into .htaccess on activation
@@ -77,8 +78,6 @@ if ( class_exists( 'WooCommerce' ) ) {
 /* ---------------------------------------------------------------------
  * 3. Assets — minimal, deferred, no external dependencies
  * ------------------------------------------------------------------- */
-// Custom small thumbnail for ~660px display width – improves LCP
-add_image_size('blogpro-thumb-sm', 660, 370, true);
 
 // ------------------------------------------------------------
 // Limit srcset to images no larger than the rendered width

@@ -254,15 +254,18 @@ function blogpro_responsive_sizes( $sizes, $size, $image_src, $image_meta, $atta
 add_filter( 'wp_calculate_image_sizes', 'blogpro_responsive_sizes', 10, 5 );
 
 
-// disable '1536x1536' and '2048x2048' intermediate sizes — nothing in this theme uses them
-add_filter( 'wp_loaded', function () {
-	remove_image_size( '1536x1536' );
-	remove_image_size( '2048x2048' );
+// Disable WP's default intermediate sizes — the theme serves everything
+// through the on-the-fly WebP resizer (blogpro-img/{id}/…), so pre-generating
+// thumbnail/medium/medium_large (and 1536/2048) on every upload just wastes
+// disk. Uses the 'intermediate_image_sizes' filter — the one WP actually
+// reads when deciding which sizes to generate on upload — and removes the
+// core-added 1536x1536/2048x2048 sizes. `large` is kept: attachment.php
+// renders single images at 'large' and would otherwise fall back to the
+// full-size original. Only affects NEW uploads; existing images keep their
+// old sizes until re-generated (Optimize Existing Images).
+add_filter( 'intermediate_image_sizes', function ( $sizes ) {
+	return array_diff( $sizes, array( 'thumbnail', 'medium', 'medium_large', '1536x1536', '2048x2048' ) );
 } );
-
-/* 8. Register a featured-image size matching this theme's actual
-      display width, so srcset has a properly-sized candidate. */
-add_image_size( 'blogpro-featured', 820, 461, true );
 
 add_filter( 'image_size_names_choose', function( $sizes ) {
 	$sizes['blogpro-featured'] = __( 'Blog Pro Featured' );
@@ -281,6 +284,10 @@ add_filter( 'query_vars', function ( $vars ) {
 
 add_action( 'init', function () {
 	// add_rewrite_rule( '^blogpro-img/(\d+)/(\d+)/?$', 'index.php?blogpro_img_id=$matches[1]&blogpro_w=$matches[2]', 'top' );
+	// blogpro-img/{id}/{name}-{width}.webp — the {name} segment is decorative
+	// (readable URLs); the resizer serves by id + width only.
+	add_rewrite_rule( '^blogpro-img/(\d+)/([^/]+)-(\d+)\.webp$', 'index.php?blogpro_img_id=$matches[1]&blogpro_w=$matches[3]', 'top' );
+	// Back-compat: blogpro-img/{id}/{width}.webp from older cached markup.
 	add_rewrite_rule( '^blogpro-img/(\d+)/(\d+)\.webp$', 'index.php?blogpro_img_id=$matches[1]&blogpro_w=$matches[2]', 'top' );
 } );
 
@@ -316,17 +323,36 @@ function blogpro_serve_resized_webp( $id, $width ) {
 	$width     = max( 16, min( 2560, $width ) );
 	$upload    = wp_upload_dir();
 	$cache_dir = trailingslashit( $upload['basedir'] ) . 'blogpro-cache';
-	// $cache = $cache_dir . '/' . $id . '-' . $width . '.webp';
-	
+
+	// Resize source: prefer the WebP master created at upload time
+	// (original-name.webp) — resized variants are then derived from the
+	// compressed WebP, not the heavy original. Falls back to the original
+	// for images uploaded before this theme, and native WebP uploads.
+	$info   = pathinfo( $file );
+	$master = $info['dirname'] . '/' . $info['filename'] . '.webp';
+	$source = ( file_exists( $master ) && filesize( $master ) > 0 ) ? $master : $file;
+
 	// Cache file named after the source image (original-name-width.webp, e.g.
 	// holiday-480.webp) instead of a numeric ID, so generated files are easy
 	// to recognize. The width stays in the name so every variant is distinct.
 	// URL/behaviour is unchanged — only the on-disk name differs.
-	$base  = sanitize_file_name( pathinfo( $file, PATHINFO_FILENAME ) );
+	$base  = sanitize_file_name( $info['filename'] );
 	$cache = $cache_dir . '/' . $base . '-' . $width . '.webp';
 
+	// No resize needed (full size): serve the WebP master directly when it
+	// exists — it's already WebP, exactly the original, and already on disk.
+	// (Only when the master is our own converted copy, not a native upload.)
+	if ( $source === $master ) {
+		$size = wp_getimagesize( $source );
+		if ( $size && isset( $size[0] ) && $width >= (int) $size[0] ) {
+			$serve = $source;
+			blogpro_serve_webp_file( $serve );
+			return;
+		}
+	}
+
 	if ( ! file_exists( $cache ) ) {
-		$orig = wp_getimagesize( $file );
+		$orig = wp_getimagesize( $source );
 		if ( ! $orig ) wp_die( '', '', array( 'response' => 500 ) );
 		$w = $orig[0];
 		$h = $orig[1];
@@ -334,12 +360,12 @@ function blogpro_serve_resized_webp( $id, $width ) {
 		$height = (int) round( $h * $width / $w ); // height auto
 
 		$old_limit = ini_set( 'memory_limit', '256M' );
-		if ( 'image/png' === $mime ) {
-			$src = @imagecreatefrompng( $file );
-		} elseif ( 'image/webp' === $mime ) {
-			$src = @imagecreatefromwebp( $file );
+		if ( 'image/webp' === $mime || $source === $master ) {
+			$src = @imagecreatefromwebp( $source );
+		} elseif ( 'image/png' === $mime ) {
+			$src = @imagecreatefrompng( $source );
 		} else {
-			$src = @imagecreatefromjpeg( $file );
+			$src = @imagecreatefromjpeg( $source );
 		}
 		if ( ! $src ) { ini_set( 'memory_limit', $old_limit ); wp_die( '', '', array( 'response' => 500 ) ); }
 		$dst = imagecreatetruecolor( $width, $height );
@@ -357,10 +383,18 @@ function blogpro_serve_resized_webp( $id, $width ) {
 		}
 	}
 
+	blogpro_serve_webp_file( $cache );
+}
+
+/**
+ * Send a WebP file with far-future caching. Shared by the resizer's
+ * full-size fast path and the on-demand resized cache.
+ */
+function blogpro_serve_webp_file( $path ) {
 	header( 'Content-Type: image/webp' );
-	header( 'Content-Length: ' . filesize( $cache ) );
+	header( 'Content-Length: ' . filesize( $path ) );
 	header( 'Cache-Control: public, max-age=31536000, immutable' ); // URL is deterministic — safe to cache forever
-	readfile( $cache );
+	readfile( $path );
 }
 
 /**
@@ -426,16 +460,21 @@ function blogpro_responsive_content_images( $content ) {
 			$widths = array_values( array_filter( $widths, function ( $w ) use ( $orig_w ) { return $w < $orig_w; } ) );
 			$widths[] = $orig_w;
 
-			$base   = home_url( '/blogpro-img/' . $id . '/' );
+			// Named URL: blogpro-img/{id}/{name}-{width}.webp — the name segment
+			// is decorative; the rewrite rule maps it to the resizer (id + width).
+			$att_file = get_attached_file( $id );
+			$fname    = $att_file ? sanitize_file_name( pathinfo( $att_file, PATHINFO_FILENAME ) ) : '';
+			if ( '' === $fname ) $fname = $id;
+			$base   = home_url( '/blogpro-img/' . $id . '/' . $fname . '-' );
 			$srcset = implode( ', ', array_map( function ( $w ) use ( $base ) {
-				return esc_url( $base . $w . '/' ) . ' ' . $w . 'w';
+				return esc_url( $base . $w . '.webp' ) . ' ' . $w . 'w';
 			}, $widths ) );
 
-			$img = preg_replace( '/\bsrc=["\'][^"\']*["\']/i', 'src="' . esc_url( $base . $widths[0] . '/' ) . '"', $img );
+			$img = preg_replace( '/\bsrc=["\'][^"\']*["\']/i', 'src="' . esc_url( $base . $widths[0] . '.webp' ) . '"', $img );
 			if ( false !== stripos( $img, 'srcset=' ) ) {
 				$img = preg_replace( '/\bsrcset=["\'][^"\']*["\']/i', 'srcset="' . esc_attr( $srcset ) . '"', $img );
 			} else {
-				$img = preg_replace( '/\bsrc=["\'][^"\']*["\']/i', 'srcset="' . esc_attr( $srcset ) . '" src="' . esc_url( $base . $widths[0] . '/' ) . '"', $img );
+				$img = preg_replace( '/\bsrc=["\'][^"\']*["\']/i', 'srcset="' . esc_attr( $srcset ) . '" src="' . esc_url( $base . $widths[0] . '.webp' ) . '"', $img );
 			}
 			if ( false !== stripos( $img, 'sizes=' ) ) {
 				$img = preg_replace( '/\bsizes=["\'][^"\']*["\']/i', 'sizes="(max-width: 820px) 100vw, 820px"', $img );
@@ -465,9 +504,14 @@ function blogpro_responsive_img( $attachment_id, $args = array() ) {
 	$widths = array_values( array_filter( $widths, function ( $w ) use ( $orig_w ) { return $w < $orig_w; } ) );
 	$widths[] = $orig_w;
 
-	$base   = home_url( '/blogpro-img/' . $attachment_id . '/' );
+	// Named URL: blogpro-img/{id}/{name}-{width}.webp — the name segment is
+	// decorative; the rewrite rule maps it to the resizer (id + width).
+	$att_file = get_attached_file( $attachment_id );
+	$fname    = $att_file ? sanitize_file_name( pathinfo( $att_file, PATHINFO_FILENAME ) ) : '';
+	if ( '' === $fname ) $fname = $attachment_id;
+	$base   = home_url( '/blogpro-img/' . $attachment_id . '/' . $fname . '-' );
 	$srcset = implode( ', ', array_map( function ( $w ) use ( $base ) {
-		return esc_url( $base . $w . '/' ) . ' ' . $w . 'w';
+		return esc_url( $base . $w . '.webp' ) . ' ' . $w . 'w';
 	}, $widths ) );
 
 	$attrs  = array(
@@ -482,7 +526,7 @@ function blogpro_responsive_img( $attachment_id, $args = array() ) {
 
 	return sprintf(
 		'<img src="%s" srcset="%s" width="%d" height="%d" sizes="%s" alt="%s" loading="%s" decoding="async" class="%s">',
-		esc_url( $base . $widths[0] . '/' ),
+		esc_url( $base . $widths[0] . '.webp' ),
 		$srcset,
 		$attrs['width'],
 		$attrs['height'],
