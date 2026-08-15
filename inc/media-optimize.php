@@ -280,7 +280,8 @@ add_filter( 'query_vars', function ( $vars ) {
 } );
 
 add_action( 'init', function () {
-	add_rewrite_rule( '^blogpro-img/(\d+)/(\d+)/?$', 'index.php?blogpro_img_id=$matches[1]&blogpro_w=$matches[2]', 'top' );
+	// add_rewrite_rule( '^blogpro-img/(\d+)/(\d+)/?$', 'index.php?blogpro_img_id=$matches[1]&blogpro_w=$matches[2]', 'top' );
+	add_rewrite_rule( '^blogpro-img/(\d+)/(\d+)\.webp$', 'index.php?blogpro_img_id=$matches[1]&blogpro_w=$matches[2]', 'top' );
 } );
 
 add_action( 'after_switch_theme', 'flush_rewrite_rules' );
@@ -315,7 +316,14 @@ function blogpro_serve_resized_webp( $id, $width ) {
 	$width     = max( 16, min( 2560, $width ) );
 	$upload    = wp_upload_dir();
 	$cache_dir = trailingslashit( $upload['basedir'] ) . 'blogpro-cache';
-	$cache     = $cache_dir . '/' . $id . '-' . $width . '.webp';
+	// $cache = $cache_dir . '/' . $id . '-' . $width . '.webp';
+	
+	// Cache file named after the source image (original-name-width.webp, e.g.
+	// holiday-480.webp) instead of a numeric ID, so generated files are easy
+	// to recognize. The width stays in the name so every variant is distinct.
+	// URL/behaviour is unchanged — only the on-disk name differs.
+	$base  = sanitize_file_name( pathinfo( $file, PATHINFO_FILENAME ) );
+	$cache = $cache_dir . '/' . $base . '-' . $width . '.webp';
 
 	if ( ! file_exists( $cache ) ) {
 		$orig = wp_getimagesize( $file );

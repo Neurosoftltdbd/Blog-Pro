@@ -71,7 +71,7 @@ function blogpro_render_optimize_images_page() {
 		<hr style="margin:24px 0">
 
 		<h2><?php esc_html_e( 'Cleanup Orphaned Files', 'blog-pro' ); ?></h2>
-		<p><?php esc_html_e( 'Scan the uploads directory and remove .webp and .avif files whose source image (.jpg, .png) no longer exists. This cleans up leftovers from previously deleted images.', 'blog-pro' ); ?></p>
+		<p><?php esc_html_e( 'Scan the uploads directory and remove .webp and .avif files whose source image (.jpg, .png) no longer exists, and sweep the blogpro-cache folder for stale resized images. This cleans up leftovers from previously deleted images.', 'blog-pro' ); ?></p>
 		<p>
 			<button type="button" class="button" id="blogpro-cleanup-start"><?php esc_html_e( 'Cleanup Orphans', 'blog-pro' ); ?></button>
 		</p>
@@ -96,6 +96,111 @@ function blogpro_ajax_optimize_count() {
 	wp_send_json_success( array( 'total' => (int) $total ) );
 }
 add_action( 'wp_ajax_blogpro_optimize_count', 'blogpro_ajax_optimize_count' );
+
+/* Cleanup orphaned image files.
+ *
+ * Two passes:
+ *   1. uploads/ — remove .webp/.avif files whose source image (.jpg/.jpeg/.png)
+ *      no longer exists. Leftovers from deleted attachments.
+ *   2. blogpro-cache/ — the on-the-fly resizer's output dir. Cache files are
+ *      named {original-name}-{width}.webp (see media-optimize.php). A cache
+ *      file is an orphan when no file with that original name exists anywhere
+ *      in uploads/ (source deleted or re-uploaded). Caches for current sources
+ *      are always re-generated on demand, so removing stale ones is safe.
+ */
+function blogpro_ajax_cleanup_orphans() {
+	check_ajax_referer( 'blogpro_optimize_images', 'nonce' );
+	if ( ! current_user_can( 'upload_files' ) ) wp_send_json_error( 'forbidden', 403 );
+
+	$removed   = 0;
+	$upload    = wp_upload_dir();
+	$basedir   = trailingslashit( wp_normalize_path( $upload['basedir'] ) );
+	$cache_dir = $basedir . 'blogpro-cache';
+
+	// Index source images (.jpg/.jpeg/.png) under uploads/ by basename, so we
+	// can answer "does a source for name X exist?" without re-scanning per file.
+	// The key is the basename without extension (e.g. 'holiday-768x512').
+	$sources = array();
+	if ( is_dir( $basedir ) ) {
+		$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $basedir, FilesystemIterator::SKIP_DOTS ) );
+		foreach ( $it as $entry ) {
+			if ( ! $entry->isFile() ) continue;
+			$ext = strtolower( $entry->getExtension() );
+			if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png' ), true ) ) continue;
+			$sources[ $entry->getBasename( '.' . $entry->getExtension() ) ] = true;
+		}
+	}
+
+	// Record every file that is a real attachment's original, so Pass 1 never
+	// deletes one. A .webp/.avif in the library can be a native upload (no
+	// jpg/png source at all), so we must not infer orphan-ness purely from
+	// missing file-system sources — check the DB before unlinking anything.
+	global $wpdb;
+	$attached_files = $wpdb->get_col( "SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file'" );
+	$attached = array();
+	foreach ( $attached_files as $rel ) {
+		$attached[ wp_normalize_path( $rel ) ] = true;
+	}
+
+	// Pass 1 — orphaned .webp/.avif in uploads/ whose source is gone.
+	if ( is_dir( $basedir ) ) {
+		$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $basedir, FilesystemIterator::SKIP_DOTS ) );
+		foreach ( $it as $entry ) {
+			if ( ! $entry->isFile() ) continue;
+			$file = wp_normalize_path( $entry->getPathname() );
+			// Skip the resizer cache dir — handled separately below.
+			if ( strpos( $file, wp_normalize_path( $cache_dir ) . DIRECTORY_SEPARATOR ) === 0 ) continue;
+
+			$ext = strtolower( $entry->getExtension() );
+			if ( ! in_array( $ext, array( 'webp', 'avif' ), true ) ) continue;
+
+			// Never delete a file that's itself a live attachment's original —
+			// .webp/.avif are valid library formats, so a native upload may
+			// have no jpg/png source at all.
+			$rel = ltrim( str_replace( $basedir, '', $file ), '/' );
+			if ( isset( $attached[ $rel ] ) ) continue;
+
+			$base = $entry->getBasename( '.' . $entry->getExtension() );
+			// The paired source may be the full name (holiday.webp ->
+			// holiday.jpg), or — for legacy thumbnails — the base minus a
+			// width/scale suffix (photo-768x512.webp -> photo.jpg).
+			if ( isset( $sources[ $base ] ) ) continue;
+			$plain = preg_replace( '/-\d+x\d+$/', '', $base );
+			if ( $plain !== $base && isset( $sources[ $plain ] ) ) continue;
+
+			@unlink( $file );
+			$removed++;
+		}
+	}
+
+	// Pass 2 — stale variants in the resizer cache dir.
+	if ( is_dir( $cache_dir ) ) {
+		$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $cache_dir, FilesystemIterator::SKIP_DOTS ) );
+		foreach ( $it as $entry ) {
+			if ( ! $entry->isFile() ) continue;
+			if ( strtolower( $entry->getExtension() ) !== 'webp' ) continue;
+
+			// Cache format is {name}-{width}.webp. The width is the last
+			// numeric segment — strip it to get the source-image name.
+			$parts = explode( '-', $entry->getBasename( '.webp' ) );
+			array_pop( $parts );
+			$name = implode( '-', $parts );
+			if ( '' === $name ) continue; // not one of ours
+
+			if ( isset( $sources[ $name ] ) ) continue; // source exists
+
+			@unlink( wp_normalize_path( $entry->getPathname() ) );
+			$removed++;
+		}
+	}
+
+	wp_send_json_success( array( 'message' => sprintf(
+		/* translators: %d: number of orphaned files removed */
+		__( 'Cleanup complete — removed %d orphaned file(s).', 'blog-pro' ),
+		$removed
+	) ) );
+}
+add_action( 'wp_ajax_blogpro_cleanup_orphans', 'blogpro_ajax_cleanup_orphans' );
 
 /* Processes one small batch: regenerates sizes + converts to WebP. */
 function blogpro_ajax_optimize_batch() {

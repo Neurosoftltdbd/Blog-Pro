@@ -63,6 +63,16 @@ require BLOGPRO_DIR . '/inc/htaccess.php';       // writes caching rules into .h
 require BLOGPRO_DIR . '/inc/admin-tools.php';    // bulk-optimize images uploaded before theme activation
 require BLOGPRO_DIR . '/inc/llms.php';    // serve dynamic llms.txt
 require BLOGPRO_DIR . '/inc/web-mcp-schema.php'; // WebMCP tool schemas
+require BLOGPRO_DIR . '/inc/class-blogpro-nav-walker.php'; // Dropdown menu walker
+require BLOGPRO_DIR . '/inc/widgets.php';
+
+
+// WooCommerce integration if active
+if ( class_exists( 'WooCommerce' ) ) {
+    require BLOGPRO_DIR . '/woocommerce/wcom-support.php';
+}
+
+
 
 /* ---------------------------------------------------------------------
  * 3. Assets — minimal, deferred, no external dependencies

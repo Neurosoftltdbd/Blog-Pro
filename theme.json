@@ -6,6 +6,11 @@
       "name": "home-pws",
       "title": "PWS Home",
       "postTypes": ["page"]
+    },
+    {
+      "name": "home-business",
+      "title": "Business Home",
+      "postTypes": ["page"]
     }
   ]
 }

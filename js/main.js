@@ -2,23 +2,41 @@
 (function () {
   "use strict";
 
-  var toggle = document.querySelector(".nav-toggle");
-  var nav = document.querySelector(".mobile-nav");
+  // Main mobile menu toggle
+  var menuToggle = document.querySelector(".nav-toggle");
+  var mobileMenu = document.querySelector("#mobile-menu");
 
-  if (toggle && nav) {
-    toggle.addEventListener("click", function () {
-      var isOpen = nav.classList.toggle("hidden");
-      toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  if (menuToggle && mobileMenu) {
+    menuToggle.addEventListener("click", function () {
+      var isHidden = mobileMenu.classList.toggle("hidden");
+      menuToggle.setAttribute("aria-expanded", String(!isHidden));
     });
   }
 
-  // Belt-and-suspenders lazy loading for any browser/embed that missed
-  // the native loading="lazy" attribute (e.g. dynamically injected iframes).
+  // Mobile submenu toggles
+  var submenuToggles = document.querySelectorAll('.mobile-nav .submenu-toggle');
+
+  submenuToggles.forEach(function(toggle) {
+    var subMenu = toggle.closest('.menu-item-has-children').querySelector('.sub-menu');
+
+    if (subMenu) {
+      toggle.addEventListener('click', function() {
+        var isExpanded = this.getAttribute('aria-expanded') === 'true';
+        this.setAttribute('aria-expanded', String(!isExpanded));
+        subMenu.classList.toggle('hidden');
+
+        var iconSvg = this.querySelector('svg');
+        if (iconSvg) {
+          iconSvg.style.transform = !isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+      });
+    }
+  });
+
+  // Lazy loading for images/iframes
   if ("IntersectionObserver" in window) {
-    var lazyTargets = document.querySelectorAll(
-      "img:not([loading]), iframe:not([loading])",
-    );
-    var io = new IntersectionObserver(function (entries, observer) {
+    var lazyTargets = document.querySelectorAll("img:not([loading]), iframe:not([loading])");
+    var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
           entry.target.setAttribute("loading", "lazy");
@@ -27,7 +45,7 @@
       });
     });
     lazyTargets.forEach(function (el) {
-      io.observe(el);
+      observer.observe(el);
     });
   }
 })();
