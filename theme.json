@@ -11,6 +11,21 @@
       "name": "home-business",
       "title": "Business Home",
       "postTypes": ["page"]
+    },
+    {
+      "name": "home-ecommerce",
+      "title": "Ecommerce Home",
+      "postTypes": ["page"]
+    },
+    {
+      "name": "home-tourism",
+      "title": "Tourism Home",
+      "postTypes": ["page"]
+    },
+    {
+      "name": "pws-services",
+      "title": "PWS Services",
+      "postTypes": ["page"]
     }
   ]
 }

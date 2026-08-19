@@ -8,79 +8,31 @@
 <!-- ===== HERO ===== -->
 <!-- wp:group {"className":"pws-hero relative overflow-hidden","style":{"spacing":{"padding":{"top":"0","bottom":"0"}}}} -->
 <div
-  class="wp-block-group pws-hero relative overflow-hidden"
-  style="
-    background: linear-gradient(135deg, #0e1b4a 0%, #11295c 40%, #0e54d8 100%);
-    min-height: 80vh;
-    display: flex;
-    align-items: center;
-  "
+  class="wp-block-group pws-hero relative overflow-hidden bg-linear-to-br from-[#0e1b4a] via-[#11295c] to-[#0e54d8] min-h-[80vh] flex items-center"
 >
   <!-- Decorative blobs -->
   <div
     aria-hidden="true"
-    style="
-      position: absolute;
-      top: -80px;
-      right: -80px;
-      width: 480px;
-      height: 480px;
-      background: radial-gradient(
-        circle,
-        rgba(14, 84, 216, 0.35) 0%,
-        transparent 70%
-      );
-      border-radius: 50%;
-      pointer-events: none;
-    "
+    class="absolute -top-20 -right-20 w-120 h-120 bg-[radial-gradient(circle,rgba(14,84,216,0.35)0%,transparent70%)] rounded-full pointer-events-none"
   ></div>
   <div
     aria-hidden="true"
-    style="
-      position: absolute;
-      bottom: -60px;
-      left: -60px;
-      width: 360px;
-      height: 360px;
-      background: radial-gradient(
-        circle,
-        rgba(0, 176, 80, 0.2) 0%,
-        transparent 70%
-      );
-      border-radius: 50%;
-      pointer-events: none;
-    "
+    class="absolute -bottom-15 -left-15 w-90 h-90 bg-[radial-gradient(circle,rgba(0,176,80,0.2)0%,transparent70%)] rounded-full pointer-events-none"
   ></div>
 
   <!-- wp:group {"className":"max-w-7xl mx-auto px-6 py-20 w-full","layout":{"type":"constrained"}} -->
   <div class="wp-block-group max-w-7xl mx-auto px-6 py-20 w-full">
     <!-- Split layout: text left, graphic right -->
     <!-- wp:group {"className":"flex flex-col lg:flex-row items-center gap-12 lg:gap-16","layout":{"type":"flex","flexWrap":"wrap"}} -->
-    <div
-      class="wp-block-group"
-      style="display: flex; flex-wrap: wrap; align-items: center; gap: 3rem"
-    >
+    <div class="wp-block-group flex flex-wrap items-center gap-12">
       <!-- LEFT — text -->
       <!-- wp:group {"className":"flex-1 min-w-0"} -->
-      <div class="wp-block-group" style="flex: 1 1 340px; min-width: 0">
+      <div class="wp-block-group flex-[1_1_340px] min-w-0">
         <!-- Badge -->
         <!-- wp:paragraph {"className":"inline-flex items-center gap-2 mb-6"} -->
-        <p class="has-text-align-left" style="margin-bottom: 1.5rem">
+        <p class="has-text-align-left mb-6">
           <span
-            style="
-              display: inline-flex;
-              align-items: center;
-              gap: 0.5rem;
-              background: rgba(0, 176, 80, 0.15);
-              border: 1px solid rgba(0, 176, 80, 0.4);
-              color: #4ade80;
-              font-size: 0.75rem;
-              font-weight: 700;
-              letter-spacing: 0.1em;
-              text-transform: uppercase;
-              padding: 0.375rem 1rem;
-              border-radius: 9999px;
-            "
+            class="inline-flex items-center gap-2 bg-[rgba(0,176,80,0.15)] border border-[rgba(0,176,80,0.4)] text-[#4ade80] text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full"
           >
             <svg
               width="12"
@@ -99,101 +51,37 @@
 
         <!-- wp:heading {"level":1,"align":"left"} -->
         <h1
-          class="has-text-align-left"
-          style="
-            font-size: clamp(2.25rem, 5vw, 3.75rem);
-            font-weight: 900;
-            line-height: 1.1;
-            color: #ffffff;
-            margin-bottom: 1.5rem;
-            letter-spacing: -0.02em;
-          "
+          class="text-[clamp(2.25rem,5vw,3.75rem)] font-black leading-[1.1] text-white mb-6 tracking-tight"
         >
           Transform Your Business with
           <span
-            style="
-              background: linear-gradient(135deg, #60d4fa, #4ade80);
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-              background-clip: text;
-            "
+            class="bg-[linear-gradient(135deg,#60d4fa,#4ade80)] bg-clip-text text-transparent"
             >Digital Excellence</span
           >
         </h1>
         <!-- /wp:heading -->
 
         <!-- wp:paragraph -->
-        <p
-          style="
-            color: #bfdbfe;
-            font-size: 1.1rem;
-            line-height: 1.75;
-            margin-bottom: 2rem;
-            max-width: 520px;
-          "
-        >
+        <p class="text-[#bfdbfe] text-lg leading-relaxed mb-8 max-w-130">
           We provide comprehensive Tally accounting, digital marketing, and web
           app solutions to help your business thrive in the digital age.
         </p>
         <!-- /wp:paragraph -->
 
         <!-- Feature pills -->
-        <div
-          style="
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            margin-bottom: 2.5rem;
-          "
-        >
+        <div class="flex flex-wrap gap-3 mb-10">
           <span
-            style="
-              display: inline-flex;
-              align-items: center;
-              gap: 0.5rem;
-              background: rgba(255, 255, 255, 0.08);
-              border: 1px solid rgba(255, 255, 255, 0.18);
-              color: #e2e8f0;
-              font-size: 0.875rem;
-              font-weight: 600;
-              padding: 0.5rem 1.25rem;
-              border-radius: 9999px;
-              backdrop-filter: blur(8px);
-            "
+            class="inline-flex items-center gap-2 bg-white/8 border border-white/18 text-[#e2e8f0] text-sm font-semibold py-2 px-5 rounded-full backdrop-blur-sm"
           >
             &#x1F4CA; Accounting and Business Solutions
           </span>
           <span
-            style="
-              display: inline-flex;
-              align-items: center;
-              gap: 0.5rem;
-              background: rgba(255, 255, 255, 0.08);
-              border: 1px solid rgba(255, 255, 255, 0.18);
-              color: #e2e8f0;
-              font-size: 0.875rem;
-              font-weight: 600;
-              padding: 0.5rem 1.25rem;
-              border-radius: 9999px;
-              backdrop-filter: blur(8px);
-            "
+            class="inline-flex items-center gap-2 bg-white/8 border border-white/18 text-[#e2e8f0] text-sm font-semibold py-2 px-5 rounded-full backdrop-blur-sm"
           >
             &#x1F3AF; Digital Marketing and SEO
           </span>
           <span
-            style="
-              display: inline-flex;
-              align-items: center;
-              gap: 0.5rem;
-              background: rgba(255, 255, 255, 0.08);
-              border: 1px solid rgba(255, 255, 255, 0.18);
-              color: #e2e8f0;
-              font-size: 0.875rem;
-              font-weight: 600;
-              padding: 0.5rem 1.25rem;
-              border-radius: 9999px;
-              backdrop-filter: blur(8px);
-            "
+            class="inline-flex items-center gap-2 bg-white/8 border border-white/18 text-[#e2e8f0] text-sm font-semibold py-2 px-5 rounded-full backdrop-blur-sm"
           >
             &#x1F4BB; Web Application Development
           </span>
@@ -201,29 +89,13 @@
 
         <!-- CTA Buttons -->
         <!-- wp:buttons -->
-        <div
-          class="wp-block-buttons"
-          style="display: flex; flex-wrap: wrap; gap: 1rem"
-        >
+        <div class="wp-block-buttons flex flex-wrap gap-4">
           <!-- wp:button {"url":"/contact/","style":{"border":{"radius":"12px"}}} -->
           <div class="wp-block-button">
             <a
-              class="wp-block-button__link no-underline"
+              class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/18 text-[#e2e8f0] text-sm font-semibold py-4 px-6 rounded-xl backdrop-blur-sm hover:font-bold transition-all ease-in-out duration-500"
               href="/contact/"
-              style="
-                display: inline-flex;
-                align-items: center;
-                gap: 0.5rem;
-                background: #ffffff;
-                color: #0e54d8;
-                font-weight: 700;
-                font-size: 1rem;
-                padding: 0.875rem 2rem;
-                border-radius: 12px;
-                box-shadow: 0 8px 32px rgba(14, 84, 216, 0.25);
-                transition: all 0.25s;
-                border: none;
-              "
+              aria-label="Get Started"
             >
               Get Started
               <svg
@@ -243,22 +115,9 @@
           <!-- wp:button {"url":"#services","style":{"border":{"radius":"12px"}}} -->
           <div class="wp-block-button">
             <a
-              class="wp-block-button__link no-underline"
+              class="inline-flex items-center gap-2 bg-white/10 text-white hover:bg-white/20 border border-white/25 backdrop-blur-sm transition-all ease-in-out duration-500 font-semibold text-sm py-4 px-6 rounded-xl"
               href="#services"
-              style="
-                display: inline-flex;
-                align-items: center;
-                gap: 0.5rem;
-                background: rgba(255, 255, 255, 0.1);
-                color: #ffffff;
-                font-weight: 600;
-                font-size: 1rem;
-                padding: 0.875rem 2rem;
-                border-radius: 12px;
-                border: 1.5px solid rgba(255, 255, 255, 0.25);
-                backdrop-filter: blur(8px);
-                transition: all 0.25s;
-              "
+              aria-label="Explore Services"
             >
               Explore Services
             </a>
@@ -272,233 +131,103 @@
       <!-- RIGHT — TallyPrime graphic card -->
       <!-- wp:group {"className":"flex-1 flex justify-center"} -->
       <div
-        class="wp-block-group"
-        style="
-          flex: 1 1 340px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        "
+        class="wp-block-group flex-[1_1_340px] flex justify-center items-center"
       >
         <div
-          style="
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.4);
-            max-width: 480px;
-            width: 100%;
-            position: relative;
-            overflow: hidden;
-          "
+          class="bg-white rounded-2xl p-8 shadow-[0_32px_80px_rgba(0,0,0,0.4)] max-w-120 w-full relative overflow-hidden"
         >
           <!-- Card header gradient strip -->
           <div
-            style="
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              height: 4px;
-              background: linear-gradient(90deg, #0e54d8, #00b050);
-            "
+            class="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-[#0e54d8] to-[#00b050]"
           ></div>
 
           <!-- Card title -->
-          <div style="text-align: center; margin-bottom: 1.5rem">
+          <div class="text-center mb-6">
             <p
-              style="
-                font-size: 0.85rem;
-                color: #64748b;
-                font-weight: 600;
-                margin-bottom: 0.25rem;
-                text-transform: uppercase;
-                letter-spacing: 0.08em;
-              "
+              class="text-[0.85rem] text-[#64748b] font-semibold mb-1 uppercase tracking-wider"
             >
               Upgrade Your Business with
             </p>
             <h2
-              style="
-                font-size: 2rem;
-                font-weight: 900;
-                background: linear-gradient(135deg, #0e54d8, #00b050);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-                margin: 0;
-                line-height: 1.2;
-              "
+              class="text-[2rem] font-black bg-[linear-gradient(135deg,#0e54d8,#00b050)] bg-clip-text text-transparent m-0 leading-tight"
             >
               TallyPrime
             </h2>
           </div>
 
           <!-- Feature grid -->
-          <div
-            style="
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 0.75rem;
-              margin-bottom: 1.5rem;
-            "
-          >
+          <div class="grid grid-cols-2 gap-3 mb-6">
             <div
-              style="
-                background: #f0f7ff;
-                border-radius: 12px;
-                padding: 0.875rem;
-                text-align: center;
-                border: 1px solid #dbeafe;
-              "
+              class="bg-[#f0f7ff] rounded-xl p-3.5 text-center border border-[#dbeafe]"
             >
-              <div style="font-size: 1.5rem; margin-bottom: 0.25rem">
-                &#x1F4CA;
-              </div>
-              <div style="font-size: 0.75rem; font-weight: 700; color: #1e40af">
-                GST Billing
-              </div>
+              <div class="text-2xl mb-1">&#x1F4CA;</div>
+              <div class="text-xs font-bold text-[#1e40af]">GST Billing</div>
             </div>
             <div
-              style="
-                background: #f0f7ff;
-                border-radius: 12px;
-                padding: 0.875rem;
-                text-align: center;
-                border: 1px solid #dbeafe;
-              "
+              class="bg-[#f0f7ff] rounded-xl p-3.5 text-center border border-[#dbeafe]"
             >
-              <div style="font-size: 1.5rem; margin-bottom: 0.25rem">
-                &#x1F4C8;
-              </div>
-              <div style="font-size: 0.75rem; font-weight: 700; color: #1e40af">
+              <div class="text-2xl mb-1">&#x1F4C8;</div>
+              <div class="text-xs font-bold text-[#1e40af]">
                 Accounting Reports
               </div>
             </div>
             <div
-              style="
-                background: #f0f7ff;
-                border-radius: 12px;
-                padding: 0.875rem;
-                text-align: center;
-                border: 1px solid #dbeafe;
-              "
+              class="bg-[#f0f7ff] rounded-xl p-3.5 text-center border border-[#dbeafe]"
             >
-              <div style="font-size: 1.5rem; margin-bottom: 0.25rem">
-                &#x1F4E6;
-              </div>
-              <div style="font-size: 0.75rem; font-weight: 700; color: #1e40af">
+              <div class="text-2xl mb-1">&#x1F4E6;</div>
+              <div class="text-xs font-bold text-[#1e40af]">
                 Inventory Management
               </div>
             </div>
             <div
-              style="
-                background: #f0f7ff;
-                border-radius: 12px;
-                padding: 0.875rem;
-                text-align: center;
-                border: 1px solid #dbeafe;
-              "
+              class="bg-[#f0f7ff] rounded-xl p-3.5 text-center border border-[#dbeafe]"
             >
-              <div style="font-size: 1.5rem; margin-bottom: 0.25rem">
-                &#x1F465;
-              </div>
-              <div style="font-size: 0.75rem; font-weight: 700; color: #1e40af">
+              <div class="text-2xl mb-1">&#x1F465;</div>
+              <div class="text-xs font-bold text-[#1e40af]">
                 Multi-User Access
               </div>
             </div>
           </div>
 
           <!-- Bottom icons row -->
-          <div
-            style="
-              display: flex;
-              justify-content: space-around;
-              padding: 1rem 0;
-              border-top: 1px solid #e2e8f0;
-            "
-          >
-            <div style="text-align: center">
+          <div class="flex justify-around py-4 border-t border-[#e2e8f0]">
+            <div class="text-center">
               <div
-                style="
-                  width: 44px;
-                  height: 44px;
-                  background: #0e54d8;
-                  border-radius: 12px;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  margin: 0 auto 0.375rem;
-                  color: #fff;
-                  font-size: 1.2rem;
-                "
+                class="w-11 h-11 bg-[#0e54d8] rounded-xl flex items-center justify-center mx-auto mb-1.5 text-white text-xl"
               >
                 &#x26A1;
               </div>
-              <div style="font-size: 0.65rem; font-weight: 600; color: #475569">
+              <div class="text-[0.65rem] font-semibold text-[#475569]">
                 Fast Billing
               </div>
             </div>
-            <div style="text-align: center">
+            <div class="text-center">
               <div
-                style="
-                  width: 44px;
-                  height: 44px;
-                  background: #0e54d8;
-                  border-radius: 12px;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  margin: 0 auto 0.375rem;
-                  color: #fff;
-                  font-size: 1.2rem;
-                "
+                class="w-11 h-11 bg-[#0e54d8] rounded-xl flex items-center justify-center mx-auto mb-1.5 text-white text-xl"
               >
                 &#x1F9E0;
               </div>
-              <div style="font-size: 0.65rem; font-weight: 600; color: #475569">
+              <div class="text-[0.65rem] font-semibold text-[#475569]">
                 Smart Accounting
               </div>
             </div>
-            <div style="text-align: center">
+            <div class="text-center">
               <div
-                style="
-                  width: 44px;
-                  height: 44px;
-                  background: #0e54d8;
-                  border-radius: 12px;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  margin: 0 auto 0.375rem;
-                  color: #fff;
-                  font-size: 1.2rem;
-                "
+                class="w-11 h-11 bg-[#0e54d8] rounded-xl flex items-center justify-center mx-auto mb-1.5 text-white text-xl"
               >
                 &#x1F512;
               </div>
-              <div style="font-size: 0.65rem; font-weight: 600; color: #475569">
+              <div class="text-[0.65rem] font-semibold text-[#475569]">
                 Secure Data
               </div>
             </div>
-            <div style="text-align: center">
+            <div class="text-center">
               <div
-                style="
-                  width: 44px;
-                  height: 44px;
-                  background: #00b050;
-                  border-radius: 12px;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  margin: 0 auto 0.375rem;
-                  color: #fff;
-                  font-size: 1.2rem;
-                "
+                class="w-11 h-11 bg-[#00b050] rounded-xl flex items-center justify-center mx-auto mb-1.5 text-white text-xl"
               >
                 &#x1F4C4;
               </div>
-              <div style="font-size: 0.65rem; font-weight: 600; color: #475569">
+              <div class="text-[0.65rem] font-semibold text-[#475569]">
                 Easy GST Filing
               </div>
             </div>
@@ -506,23 +235,9 @@
 
           <!-- Bottom banner -->
           <div
-            style="
-              background: linear-gradient(90deg, #0e54d8, #0069ff);
-              border-radius: 10px;
-              padding: 0.75rem 1rem;
-              text-align: center;
-              margin-top: 1rem;
-            "
+            class="bg-linear-to-r from-[#0e54d8] to-[#0069ff] rounded-[10px] px-4 py-3 text-center mt-4"
           >
-            <p
-              style="
-                color: #ffffff;
-                font-size: 0.8rem;
-                font-weight: 700;
-                margin: 0;
-                letter-spacing: 0.05em;
-              "
-            >
+            <p class="text-white text-[0.8rem] font-bold m-0 tracking-wider">
               &#x2705; Official TallyPrime Solution Provider
             </p>
           </div>
@@ -534,141 +249,44 @@
 
     <!-- Stats bar -->
     <div
-      style="
-        margin-top: 4rem;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 1rem;
-      "
+      class="mt-16 grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4"
     >
       <div
-        style="
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 14px;
-          padding: 1.25rem 1.5rem;
-          backdrop-filter: blur(10px);
-          text-align: center;
-        "
+        class="bg-white/8 border border-white/15 rounded-[14px] py-5 px-6 backdrop-blur-sm text-center"
       >
+        <div class="text-[2rem] font-black text-white leading-none">99.8%</div>
         <div
-          style="
-            font-size: 2rem;
-            font-weight: 900;
-            color: #ffffff;
-            line-height: 1;
-          "
-        >
-          99.8%
-        </div>
-        <div
-          style="
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #93c5fd;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-top: 0.25rem;
-          "
+          class="text-[0.7rem] font-bold text-[#93c5fd] uppercase tracking-wider mt-1"
         >
           SLA Uptime
         </div>
       </div>
       <div
-        style="
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 14px;
-          padding: 1.25rem 1.5rem;
-          backdrop-filter: blur(10px);
-          text-align: center;
-        "
+        class="bg-white/8 border border-white/15 rounded-[14px] py-5 px-6 backdrop-blur-sm text-center"
       >
+        <div class="text-[2rem] font-black text-white leading-none">150+</div>
         <div
-          style="
-            font-size: 2rem;
-            font-weight: 900;
-            color: #ffffff;
-            line-height: 1;
-          "
-        >
-          150+
-        </div>
-        <div
-          style="
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #93c5fd;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-top: 0.25rem;
-          "
+          class="text-[0.7rem] font-bold text-[#93c5fd] uppercase tracking-wider mt-1"
         >
           Happy Clients
         </div>
       </div>
       <div
-        style="
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 14px;
-          padding: 1.25rem 1.5rem;
-          backdrop-filter: blur(10px);
-          text-align: center;
-        "
+        class="bg-white/8 border border-white/15 rounded-[14px] py-5 px-6 backdrop-blur-sm text-center"
       >
+        <div class="text-[2rem] font-black text-white leading-none">100%</div>
         <div
-          style="
-            font-size: 2rem;
-            font-weight: 900;
-            color: #ffffff;
-            line-height: 1;
-          "
-        >
-          100%
-        </div>
-        <div
-          style="
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #93c5fd;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-top: 0.25rem;
-          "
+          class="text-[0.7rem] font-bold text-[#93c5fd] uppercase tracking-wider mt-1"
         >
           Delivered
         </div>
       </div>
       <div
-        style="
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 14px;
-          padding: 1.25rem 1.5rem;
-          backdrop-filter: blur(10px);
-          text-align: center;
-        "
+        class="bg-white/8 border border-white/15 rounded-[14px] py-5 px-6 backdrop-blur-sm text-center"
       >
+        <div class="text-[2rem] font-black text-white leading-none">24/7</div>
         <div
-          style="
-            font-size: 2rem;
-            font-weight: 900;
-            color: #ffffff;
-            line-height: 1;
-          "
-        >
-          24/7
-        </div>
-        <div
-          style="
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #93c5fd;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-top: 0.25rem;
-          "
+          class="text-[0.7rem] font-bold text-[#93c5fd] uppercase tracking-wider mt-1"
         >
           Support
         </div>
@@ -681,114 +299,54 @@
 
 <!-- ===== SERVICES ===== -->
 <!-- wp:group {"style":{"spacing":{"padding":{"top":"5rem","bottom":"6rem"}}}} -->
-<div
-  class="wp-block-group"
-  style="background: #f8fafc; padding-top: 5rem; padding-bottom: 6rem"
-  id="services"
->
+<div class="wp-block-group bg-[#f8fafc] pt-20 pb-24" id="services">
   <!-- wp:group {"className":"max-w-7xl mx-auto px-6","layout":{"type":"constrained"}} -->
   <div class="wp-block-group max-w-7xl mx-auto px-6">
     <!-- Section heading -->
-    <div style="text-align: center; margin-bottom: 3.5rem">
+    <div class="text-center mb-14">
       <!-- wp:heading {"level":2,"align":"center"} -->
       <h2
-        class="has-text-align-center"
-        style="
-          font-size: clamp(1.875rem, 4vw, 2.5rem);
-          font-weight: 900;
-          color: #0f172a;
-          margin-bottom: 0.75rem;
-          letter-spacing: -0.02em;
-        "
+        class="has-text-align-center text-[clamp(1.875rem,4vw,2.5rem)] font-black text-[#0f172a] mb-3 tracking-tight"
       >
         Our Services
       </h2>
       <!-- /wp:heading -->
       <!-- wp:paragraph {"align":"center"} -->
       <p
-        class="has-text-align-center"
-        style="
-          color: #64748b;
-          font-size: 1.05rem;
-          max-width: 560px;
-          margin: 0 auto;
-        "
+        class="has-text-align-center text-[#64748b] text-[1.05rem] max-w-140 mx-auto"
       >
         We offer comprehensive solutions for your business needs.
       </p>
       <!-- /wp:paragraph -->
       <!-- Decorative underline -->
       <div
-        style="
-          width: 64px;
-          height: 4px;
-          background: linear-gradient(90deg, #0e54d8, #00b050);
-          border-radius: 9999px;
-          margin: 1rem auto 0;
-        "
+        class="w-16 h-1 bg-linear-to-r from-[#0e54d8] to-[#00b050] rounded-full mx-auto mt-4"
       ></div>
     </div>
 
     <!-- Services grid -->
-    <div
-      style="
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 2rem;
-      "
-    >
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-8">
       <!-- Service Card 3: Tally Cloud -->
       <div
         class="bg-amber-50 rounded-lg overflow-hidden shadow-lg shadow-emerald-200 transition-all ease-in-out duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
       >
         <div
-          style="
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            padding: 2rem;
-            text-align: center;
-            height: 180px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          "
+          class="bg-[linear-gradient(135deg,#fef3c7,#fde68a)] p-8 text-center h-45 flex items-center justify-center"
         >
-          <div style="font-size: 4rem">&#x2601;&#xFE0F;</div>
+          <div class="text-[4rem]">&#x2601;&#xFE0F;</div>
         </div>
-        <div style="padding: 1.5rem">
-          <h3
-            style="
-              font-size: 1.05rem;
-              font-weight: 800;
-              color: #0f172a;
-              margin-bottom: 0.5rem;
-            "
-          >
+        <div class="p-6">
+          <h3 class="text-[1.05rem] font-extrabold text-[#0f172a] mb-2">
             Tally Prime Cloud Solution
           </h3>
-          <p
-            style="
-              font-size: 0.85rem;
-              color: #64748b;
-              line-height: 1.6;
-              margin-bottom: 1rem;
-            "
-          >
+          <p class="text-[0.85rem] text-[#64748b] leading-relaxed mb-4">
             Access your Tally data from anywhere with secure cloud hosting and
             worry-free updates.
           </p>
           <a
             href="/services/tally-prime-cloud/"
-            style="
-              display: inline-flex;
-              align-items: center;
-              gap: 0.35rem;
-              color: #0e54d8;
-              font-size: 0.8rem;
-              font-weight: 700;
-              text-decoration: none;
-              text-transform: uppercase;
-              letter-spacing: 0.06em;
-            "
+            class="inline-flex items-center gap-1.5 text-[#0e54d8] text-[0.8rem] font-bold no-underline uppercase tracking-wider"
+            aria-label="Learn more about Tally Prime Cloud Solution"
           >
             Learn More
             <svg
@@ -811,53 +369,22 @@
         class="bg-amber-50 rounded-lg overflow-hidden shadow-lg shadow-emerald-200 transition-all ease-in-out duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
       >
         <div
-          style="
-            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
-            padding: 2rem;
-            text-align: center;
-            height: 180px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          "
+          class="bg-[linear-gradient(135deg,#ede9fe,#ddd6fe)] p-8 text-center h-45 flex items-center justify-center"
         >
-          <div style="font-size: 4rem">&#x1F4CA;</div>
+          <div class="text-[4rem]">&#x1F4CA;</div>
         </div>
-        <div style="padding: 1.5rem">
-          <h3
-            style="
-              font-size: 1.05rem;
-              font-weight: 800;
-              color: #0f172a;
-              margin-bottom: 0.5rem;
-            "
-          >
+        <div class="p-6">
+          <h3 class="text-[1.05rem] font-extrabold text-[#0f172a] mb-2">
             Tally Prime ERP Solution
           </h3>
-          <p
-            style="
-              font-size: 0.85rem;
-              color: #64748b;
-              line-height: 1.6;
-              margin-bottom: 1rem;
-            "
-          >
+          <p class="text-[0.85rem] text-[#64748b] leading-relaxed mb-4">
             Sales, implementation, customization, GST &amp; payroll setup, and
             ongoing support for your Tally ERP.
           </p>
           <a
             href="/services/simplified-business-with-tally-erp/"
-            style="
-              display: inline-flex;
-              align-items: center;
-              gap: 0.35rem;
-              color: #0e54d8;
-              font-size: 0.8rem;
-              font-weight: 700;
-              text-decoration: none;
-              text-transform: uppercase;
-              letter-spacing: 0.06em;
-            "
+            class="inline-flex items-center gap-1.5 text-[#0e54d8] text-[0.8rem] font-bold no-underline uppercase tracking-wider"
+            aria-label="Learn more about Tally Prime ERP Solution"
           >
             Learn More
             <svg
@@ -874,58 +401,28 @@
           </a>
         </div>
       </div>
+
       <!-- Service Card 1: Web App Dev -->
       <div
         class="bg-amber-50 rounded-lg overflow-hidden shadow-lg shadow-emerald-200 transition-all ease-in-out duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
       >
         <div
-          style="
-            background: linear-gradient(135deg, #e0f2fe, #dbeafe);
-            padding: 2rem;
-            text-align: center;
-            height: 180px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          "
+          class="bg-[linear-gradient(135deg,#e0f2fe,#dbeafe)] p-8 text-center h-45 flex items-center justify-center"
         >
-          <div style="font-size: 4rem">&#x1F4BB;</div>
+          <div class="text-[4rem]">&#x1F4BB;</div>
         </div>
-        <div style="padding: 1.5rem">
-          <h3
-            style="
-              font-size: 1.05rem;
-              font-weight: 800;
-              color: #0f172a;
-              margin-bottom: 0.5rem;
-            "
-          >
+        <div class="p-6">
+          <h3 class="text-[1.05rem] font-extrabold text-[#0f172a] mb-2">
             Web Application Development
           </h3>
-          <p
-            style="
-              font-size: 0.85rem;
-              color: #64748b;
-              line-height: 1.6;
-              margin-bottom: 1rem;
-            "
-          >
+          <p class="text-[0.85rem] text-[#64748b] leading-relaxed mb-4">
             Responsive business websites, e-commerce stores, and custom apps
             built for speed and conversions.
           </p>
           <a
             href="/services/web-application-development/"
-            style="
-              display: inline-flex;
-              align-items: center;
-              gap: 0.35rem;
-              color: #0e54d8;
-              font-size: 0.8rem;
-              font-weight: 700;
-              text-decoration: none;
-              text-transform: uppercase;
-              letter-spacing: 0.06em;
-            "
+            class="inline-flex items-center gap-1.5 text-[#0e54d8] text-[0.8rem] font-bold no-underline uppercase tracking-wider"
+            aria-label="Learn more about Web Application Development"
           >
             Learn More
             <svg
@@ -948,53 +445,22 @@
         class="bg-amber-50 rounded-lg overflow-hidden shadow-lg shadow-emerald-200 transition-all ease-in-out duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
       >
         <div
-          style="
-            background: linear-gradient(135deg, #dcfce7, #d1fae5);
-            padding: 2rem;
-            text-align: center;
-            height: 180px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          "
+          class="bg-[linear-gradient(135deg,#dcfce7,#d1fae5)] p-8 text-center h-45 flex items-center justify-center"
         >
-          <div style="font-size: 4rem">&#x1F3AF;</div>
+          <div class="text-[4rem]">&#x1F3AF;</div>
         </div>
-        <div style="padding: 1.5rem">
-          <h3
-            style="
-              font-size: 1.05rem;
-              font-weight: 800;
-              color: #0f172a;
-              margin-bottom: 0.5rem;
-            "
-          >
+        <div class="p-6">
+          <h3 class="text-[1.05rem] font-extrabold text-[#0f172a] mb-2">
             Digital Marketing
           </h3>
-          <p
-            style="
-              font-size: 0.85rem;
-              color: #64748b;
-              line-height: 1.6;
-              margin-bottom: 1rem;
-            "
-          >
+          <p class="text-[0.85rem] text-[#64748b] leading-relaxed mb-4">
             Social media management, Google &amp; Meta ads, and content
             campaigns that bring in qualified leads.
           </p>
           <a
             href="/services/digital-marketing/"
-            style="
-              display: inline-flex;
-              align-items: center;
-              gap: 0.35rem;
-              color: #0e54d8;
-              font-size: 0.8rem;
-              font-weight: 700;
-              text-decoration: none;
-              text-transform: uppercase;
-              letter-spacing: 0.06em;
-            "
+            class="inline-flex items-center gap-1.5 text-[#0e54d8] text-[0.8rem] font-bold no-underline uppercase tracking-wider"
+            aria-label="Learn more about Digital Marketing"
           >
             Learn More
             <svg
@@ -1014,23 +480,11 @@
     </div>
 
     <!-- View all services link -->
-    <div style="text-align: center; margin-top: 3rem">
+    <div class="text-center mt-12">
       <a
         href="/services/"
-        style="
-          display: inline-flex;
-          align-items: center;
-          gap: 0.5rem;
-          background: #0e54d8;
-          color: #ffffff;
-          font-weight: 700;
-          font-size: 0.95rem;
-          padding: 0.875rem 2.5rem;
-          border-radius: 12px;
-          text-decoration: none;
-          box-shadow: 0 8px 24px rgba(14, 84, 216, 0.3);
-          transition: all 0.25s;
-        "
+        class="inline-flex items-center gap-2 bg-[#0e54d8] text-white font-bold text-[0.95rem] py-3.5 px-10 rounded-xl no-underline shadow-[0_8px_24px_rgba(14,84,216,0.3)] transition-all"
+        aria-label="View All Services"
       >
         View All Services
         <svg
@@ -1053,61 +507,32 @@
 
 <!-- ===== TEAM ===== -->
 <!-- wp:group {"style":{"spacing":{"padding":{"top":"5rem","bottom":"5rem"}}}} -->
-<div
-  class="wp-block-group"
-  style="background: #ecfdf5; padding-top: 5rem; padding-bottom: 5rem"
-  id="team"
->
+<div class="wp-block-group bg-[#ecfdf5] pt-20 pb-20" id="team">
   <!-- wp:group {"className":"max-w-7xl mx-auto px-6","layout":{"type":"constrained"}} -->
   <div class="wp-block-group max-w-7xl mx-auto px-6">
     <!-- Heading -->
-    <div style="text-align: center; margin-bottom: 3.5rem">
+    <div class="text-center mb-14">
       <!-- wp:heading {"level":2,"align":"center"} -->
       <h2
-        class="has-text-align-center"
-        style="
-          font-size: clamp(1.875rem, 4vw, 2.5rem);
-          font-weight: 900;
-          color: #0f172a;
-          margin-bottom: 0.75rem;
-          letter-spacing: -0.02em;
-        "
+        class="has-text-align-center text-[clamp(1.875rem,4vw,2.5rem)] font-black text-[#0f172a] mb-3 tracking-tight"
       >
         Meet Our Team
       </h2>
       <!-- /wp:heading -->
       <!-- wp:paragraph {"align":"center"} -->
       <p
-        class="has-text-align-center"
-        style="
-          color: #64748b;
-          font-size: 1.05rem;
-          max-width: 520px;
-          margin: 0 auto;
-        "
+        class="has-text-align-center text-[#64748b] text-[1.05rem] max-w-130 mx-auto"
       >
         Get to know the talented people behind our success.
       </p>
       <!-- /wp:paragraph -->
       <div
-        style="
-          width: 64px;
-          height: 4px;
-          background: linear-gradient(90deg, #00b050, #0e54d8);
-          border-radius: 9999px;
-          margin: 1rem auto 0;
-        "
+        class="w-16 h-1 bg-linear-to-r from-[#00b050] to-[#0e54d8] rounded-full mx-auto mt-4"
       ></div>
     </div>
 
     <!-- Team grid -->
-    <div
-      style="
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 2rem;
-      "
-    >
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-8">
       <!-- Team Member 1 -->
       <div
         class="bg-gray-50 rounded-lg text-center p-6 shadow-lg transition-all ease-in-out duration-300 hover:scale-105 cursor-pointer"
@@ -1120,40 +545,19 @@
             src="https://properwaysolution.com/wp-content/uploads/2025/09/WhatsApp-Image-2025-09-03-at-6.50.08-PM-Edited.png"
           />
         </div>
-        <h3
-          style="
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 0.25rem;
-          "
-        >
+        <h3 class="text-[1.05rem] font-extrabold text-[#0f172a] mb-1">
           Md. Yusuf Raihan
         </h3>
         <p
-          style="
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #00b050;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 1rem;
-          "
+          class="text-[0.8rem] font-semibold text-[#00b050] uppercase tracking-wider mb-4"
         >
           Senior Executive (Business Development)
         </p>
-        <div style="display: flex; flex-direction: column; gap: 0.5rem">
+        <div class="flex flex-col gap-2">
           <a
             href="mailto:yusufraihan1994@gmail.com"
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 0.5rem;
-              color: #64748b;
-              font-size: 0.8rem;
-              text-decoration: none;
-            "
+            class="flex items-center justify-center gap-2 text-[#64748b] text-[0.8rem] no-underline"
+            aria-label="Email Md. Yusuf Raihan at yusufraihan1994@gmail.com"
           >
             <svg
               width="14"
@@ -1170,15 +574,8 @@
           </a>
           <a
             href="tel:+8801829419736"
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 0.5rem;
-              color: #64748b;
-              font-size: 0.8rem;
-              text-decoration: none;
-            "
+            class="flex items-center justify-center gap-2 text-[#64748b] text-[0.8rem] no-underline"
+            aria-label="Call Md. Yusuf Raihan at +880 1829-419736"
           >
             <svg
               width="14"
@@ -1209,40 +606,19 @@
             src="https://properwaysolution.com/wp-content/uploads/2025/09/WhatsApp-Image-2025-09-03-at-6.34.00-PM-Edited.png"
           />
         </div>
-        <h3
-          style="
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 0.25rem;
-          "
-        >
+        <h3 class="text-[1.05rem] font-extrabold text-[#0f172a] mb-1">
           Md. Maksudur Rahman
         </h3>
         <p
-          style="
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #00b050;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 1rem;
-          "
+          class="text-[0.8rem] font-semibold text-[#00b050] uppercase tracking-wider mb-4"
         >
           Executive (Business Development)
         </p>
-        <div style="display: flex; flex-direction: column; gap: 0.5rem">
+        <div class="flex flex-col gap-2">
           <a
             href="mailto:maksudur@properwaysolution.com"
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 0.5rem;
-              color: #64748b;
-              font-size: 0.8rem;
-              text-decoration: none;
-            "
+            class="flex items-center justify-center gap-2 text-[#64748b] text-[0.8rem] no-underline"
+            aria-label="Email Md. Maksudur Rahman at maksudur@properwaysolution.com"
           >
             <svg
               width="14"
@@ -1272,40 +648,19 @@
             src="https://properwaysolution.com/wp-content/uploads/2026/02/Nur-Hossain-photo-for-cv.png"
           />
         </div>
-        <h3
-          style="
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 0.25rem;
-          "
-        >
+        <h3 class="text-[1.05rem] font-extrabold text-[#0f172a] mb-1">
           Md. Nur Hossain
         </h3>
         <p
-          style="
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #00b050;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 1rem;
-          "
+          class="text-[0.8rem] font-semibold text-[#00b050] uppercase tracking-wider mb-4"
         >
           Web Application Developer
         </p>
-        <div style="display: flex; flex-direction: column; gap: 0.5rem">
+        <div class="flex flex-col gap-2">
           <a
             href="mailto:nurhossainrepon7248@gmail.com"
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 0.5rem;
-              color: #64748b;
-              font-size: 0.8rem;
-              text-decoration: none;
-            "
+            class="flex items-center justify-center gap-2 text-[#64748b] text-[0.8rem] no-underline"
+            aria-label="Email Md. Nur Hossain at nurhossainrepon7248@gmail.com"
           >
             <svg
               width="14"
@@ -1322,15 +677,8 @@
           </a>
           <a
             href="tel:+8801829938427"
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 0.5rem;
-              color: #64748b;
-              font-size: 0.8rem;
-              text-decoration: none;
-            "
+            class="flex items-center justify-center gap-2 text-[#64748b] text-[0.8rem] no-underline"
+            aria-label="Call Md. Nur Hossain at +880 1829-938427"
           >
             <svg
               width="14"
@@ -1356,134 +704,61 @@
 
 <!-- ===== TESTIMONIALS ===== -->
 <!-- wp:group {"style":{"spacing":{"padding":{"top":"5rem","bottom":"5rem"}}}} -->
-<div
-  class="wp-block-group"
-  style="background: #eff6ff; padding-top: 5rem; padding-bottom: 5rem"
-  id="testimonials"
->
+<div class="wp-block-group bg-[#eff6ff] pt-20 pb-20" id="testimonials">
   <!-- wp:group {"className":"max-w-7xl mx-auto px-6","layout":{"type":"constrained"}} -->
   <div class="wp-block-group max-w-7xl mx-auto px-6">
     <!-- Heading -->
-    <div style="text-align: center; margin-bottom: 3.5rem">
+    <div class="text-center mb-14">
       <!-- wp:heading {"level":2,"align":"center"} -->
       <h2
-        class="has-text-align-center"
-        style="
-          font-size: clamp(1.875rem, 4vw, 2.5rem);
-          font-weight: 900;
-          color: #0f172a;
-          margin-bottom: 0.75rem;
-          letter-spacing: -0.02em;
-        "
+        class="has-text-align-center text-[clamp(1.875rem,4vw,2.5rem)] font-black text-[#0f172a] mb-3 tracking-tight"
       >
         What Our Clients Say
       </h2>
       <!-- /wp:heading -->
       <!-- wp:paragraph {"align":"center"} -->
       <p
-        class="has-text-align-center"
-        style="
-          color: #64748b;
-          font-size: 1.05rem;
-          max-width: 520px;
-          margin: 0 auto;
-        "
+        class="has-text-align-center text-[#64748b] text-[1.05rem] max-w-130 mx-auto"
       >
         Here's what our clients have to say about our services.
       </p>
       <!-- /wp:paragraph -->
       <div
-        style="
-          width: 64px;
-          height: 4px;
-          background: linear-gradient(90deg, #0e54d8, #00b050);
-          border-radius: 9999px;
-          margin: 1rem auto 0;
-        "
+        class="w-16 h-1 bg-linear-to-r from-[#0e54d8] to-[#00b050] rounded-full mx-auto mt-4"
       ></div>
     </div>
 
     <!-- Testimonials grid -->
-    <div
-      style="
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 2rem;
-      "
-    >
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-8">
       <!-- Testimonial 1 -->
       <div
-        style="
-          background: #ffffff;
-          border-radius: 20px;
-          padding: 2rem;
-          box-shadow: 0 4px 24px rgba(14, 84, 216, 0.1);
-          border: 1.5px solid #dbeafe;
-          position: relative;
-          overflow: hidden;
-        "
+        class="bg-white rounded-2xl p-8 shadow-[0_4px_24px_rgba(14,84,216,0.1)] border-[1.5px] border-[#dbeafe] relative overflow-hidden"
       >
         <div
-          style="
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #dbeafe, transparent);
-            border-radius: 0 20px 0 80px;
-          "
+          class="absolute top-0 right-0 w-20 h-20 bg-[linear-gradient(135deg,#dbeafe,transparent)] rounded-[0_20px_0_80px]"
         ></div>
-        <div style="display: flex; gap: 0.25rem; margin-bottom: 1rem">
-          <span style="color: #f59e0b; font-size: 1rem"
+        <div class="flex gap-1 mb-4">
+          <span class="text-[#f59e0b] text-base"
             >&#9733;&#9733;&#9733;&#9733;&#9733;</span
           >
         </div>
         <!-- wp:paragraph -->
-        <p
-          style="
-            color: #334155;
-            font-size: 0.9rem;
-            line-height: 1.7;
-            font-style: italic;
-            margin-bottom: 1.5rem;
-          "
-        >
+        <p class="text-[#334155] text-[0.9rem] leading-relaxed italic mb-6">
           &ldquo;Proper way solution team is super expert. They simplified my
           business.&rdquo;
         </p>
         <!-- /wp:paragraph -->
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e2e8f0;
-          "
-        >
+        <div class="flex items-center gap-3 pt-4 border-t border-[#e2e8f0]">
           <div
-            style="
-              width: 44px;
-              height: 44px;
-              background: linear-gradient(135deg, #0e54d8, #60a5fa);
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: #ffffff;
-              font-weight: 800;
-              font-size: 0.85rem;
-              flex-shrink: 0;
-            "
+            class="w-11 h-11 bg-[linear-gradient(135deg,#0e54d8,#60a5fa)] rounded-full flex items-center justify-center text-white font-extrabold text-[0.85rem] shrink-0"
           >
             MR
           </div>
           <div>
-            <div style="font-weight: 800; color: #0f172a; font-size: 0.9rem">
+            <div class="font-extrabold text-[#0f172a] text-[0.9rem]">
               Md. Masudur Rahman
             </div>
-            <div style="color: #64748b; font-size: 0.78rem">
+            <div class="text-[#64748b] text-[0.78rem]">
               CEO, Rhythm Medical International
             </div>
           </div>
@@ -1492,76 +767,32 @@
 
       <!-- Testimonial 2 -->
       <div
-        style="
-          background: #ffffff;
-          border-radius: 20px;
-          padding: 2rem;
-          box-shadow: 0 4px 24px rgba(14, 84, 216, 0.1);
-          border: 1.5px solid #dbeafe;
-          position: relative;
-          overflow: hidden;
-        "
+        class="bg-white rounded-2xl p-8 shadow-[0_4px_24px_rgba(14,84,216,0.1)] border-[1.5px] border-[#dbeafe] relative overflow-hidden"
       >
         <div
-          style="
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #d1fae5, transparent);
-            border-radius: 0 20px 0 80px;
-          "
+          class="absolute top-0 right-0 w-20 h-20 bg-[linear-gradient(135deg,#d1fae5,transparent)] rounded-[0_20px_0_80px]"
         ></div>
-        <div style="display: flex; gap: 0.25rem; margin-bottom: 1rem">
-          <span style="color: #f59e0b; font-size: 1rem"
+        <div class="flex gap-1 mb-4">
+          <span class="text-[#f59e0b] text-base"
             >&#9733;&#9733;&#9733;&#9733;&#9733;</span
           >
         </div>
         <!-- wp:paragraph -->
-        <p
-          style="
-            color: #334155;
-            font-size: 0.9rem;
-            line-height: 1.7;
-            font-style: italic;
-            margin-bottom: 1.5rem;
-          "
-        >
+        <p class="text-[#334155] text-[0.9rem] leading-relaxed italic mb-6">
           &ldquo;They provide a top notch Tally accounting services.&rdquo;
         </p>
         <!-- /wp:paragraph -->
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e2e8f0;
-          "
-        >
+        <div class="flex items-center gap-3 pt-4 border-t border-[#e2e8f0]">
           <div
-            style="
-              width: 44px;
-              height: 44px;
-              background: linear-gradient(135deg, #00b050, #34d399);
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: #ffffff;
-              font-weight: 800;
-              font-size: 0.85rem;
-              flex-shrink: 0;
-            "
+            class="w-11 h-11 bg-[linear-gradient(135deg,#00b050,#34d399)] rounded-full flex items-center justify-center text-white font-extrabold text-[0.85rem] shrink-0"
           >
             NP
           </div>
           <div>
-            <div style="font-weight: 800; color: #0f172a; font-size: 0.9rem">
+            <div class="font-extrabold text-[#0f172a] text-[0.9rem]">
               Nikolas Pandey
             </div>
-            <div style="color: #64748b; font-size: 0.78rem">
+            <div class="text-[#64748b] text-[0.78rem]">
               Small Business Owner
             </div>
           </div>
@@ -1570,76 +801,32 @@
 
       <!-- Testimonial 3 -->
       <div
-        style="
-          background: #ffffff;
-          border-radius: 20px;
-          padding: 2rem;
-          box-shadow: 0 4px 24px rgba(14, 84, 216, 0.1);
-          border: 1.5px solid #dbeafe;
-          position: relative;
-          overflow: hidden;
-        "
+        class="bg-white rounded-2xl p-8 shadow-[0_4px_24px_rgba(14,84,216,0.1)] border-[1.5px] border-[#dbeafe] relative overflow-hidden"
       >
         <div
-          style="
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #ede9fe, transparent);
-            border-radius: 0 20px 0 80px;
-          "
+          class="absolute top-0 right-0 w-20 h-20 bg-[linear-gradient(135deg,#ede9fe,transparent)] rounded-[0_20px_0_80px]"
         ></div>
-        <div style="display: flex; gap: 0.25rem; margin-bottom: 1rem">
-          <span style="color: #f59e0b; font-size: 1rem"
+        <div class="flex gap-1 mb-4">
+          <span class="text-[#f59e0b] text-base"
             >&#9733;&#9733;&#9733;&#9733;&#9733;</span
           >
         </div>
         <!-- wp:paragraph -->
-        <p
-          style="
-            color: #334155;
-            font-size: 0.9rem;
-            line-height: 1.7;
-            font-style: italic;
-            margin-bottom: 1.5rem;
-          "
-        >
+        <p class="text-[#334155] text-[0.9rem] leading-relaxed italic mb-6">
           &ldquo;Tally prime is super accounting software.&rdquo;
         </p>
         <!-- /wp:paragraph -->
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e2e8f0;
-          "
-        >
+        <div class="flex items-center gap-3 pt-4 border-t border-[#e2e8f0]">
           <div
-            style="
-              width: 44px;
-              height: 44px;
-              background: linear-gradient(135deg, #7c3aed, #6366f1);
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: #ffffff;
-              font-weight: 800;
-              font-size: 0.85rem;
-              flex-shrink: 0;
-            "
+            class="w-11 h-11 bg-[linear-gradient(135deg,#7c3aed,#6366f1)] rounded-full flex items-center justify-center text-white font-extrabold text-[0.85rem] shrink-0"
           >
             IC
           </div>
           <div>
-            <div style="font-weight: 800; color: #0f172a; font-size: 0.9rem">
+            <div class="font-extrabold text-[#0f172a] text-[0.9rem]">
               Ibrahim Chowdhury
             </div>
-            <div style="color: #64748b; font-size: 0.78rem">Wholesaler</div>
+            <div class="text-[#64748b] text-[0.78rem]">Wholesaler</div>
           </div>
         </div>
       </div>
@@ -1651,38 +838,20 @@
 
 <!-- ===== BLOG PREVIEW ===== -->
 <!-- wp:group {"style":{"spacing":{"padding":{"top":"5rem","bottom":"5rem"}}}} -->
-<div
-  class="wp-block-group"
-  style="background: #f8fafc; padding-top: 5rem; padding-bottom: 5rem"
->
+<div class="wp-block-group bg-[#f8fafc] pt-20 pb-20">
   <!-- wp:group {"className":"max-w-7xl mx-auto px-6","layout":{"type":"constrained"}} -->
   <div class="wp-block-group max-w-7xl mx-auto px-6">
-    <div
-      style="
-        display: flex;
-        flex-wrap: wrap;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 1.5rem;
-        margin-bottom: 3rem;
-      "
-    >
+    <div class="flex flex-wrap items-end justify-between gap-6 mb-12">
       <div>
         <!-- wp:heading {"level":2} -->
         <h2
-          style="
-            font-size: clamp(1.875rem, 4vw, 2.5rem);
-            font-weight: 900;
-            color: #0f172a;
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.02em;
-          "
+          class="text-[clamp(1.875rem,4vw,2.5rem)] font-black text-[#0f172a] mb-2 tracking-tight"
         >
           Latest Insights from Our Experts
         </h2>
         <!-- /wp:heading -->
         <!-- wp:paragraph -->
-        <p style="color: #64748b; font-size: 1rem">
+        <p class="text-[#64748b] text-base">
           Explore our articles on Tally, business automation, web development,
           and growth marketing.
         </p>
@@ -1691,24 +860,9 @@
       <!-- wp:button {"url":"/blog/","style":{"border":{"radius":"10px"}}} -->
       <div class="wp-block-button">
         <a
-          class="wp-block-button__link no-underline"
+          class="wp-block-button__link no-underline inline-flex items-center gap-2 bg-white border-[1.5px] border-[#e2e8f0] text-[#0e54d8] font-bold text-[0.85rem] py-3 px-6 rounded-[10px] uppercase tracking-wider whitespace-nowrap"
           href="/blog/"
-          style="
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #ffffff;
-            border: 1.5px solid #e2e8f0;
-            color: #0e54d8;
-            font-weight: 700;
-            font-size: 0.85rem;
-            padding: 0.75rem 1.5rem;
-            border-radius: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            white-space: nowrap;
-            text-decoration: none;
-          "
+          aria-label="Read All Articles"
         >
           Read All Articles
           <svg
@@ -1732,12 +886,7 @@
       <!-- wp:post-template {"className":"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"} -->
       <!-- wp:group {"className":"group flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-blue-400 hover:shadow-lg transition-all duration-300","layout":{"type":"constrained"}} -->
       <div
-        class="wp-block-group group flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden hover:border-blue-400 hover:shadow-lg transition-all duration-300"
-        style="
-          border-radius: 16px;
-          overflow: hidden;
-          border: 1.5px solid #e2e8f0;
-        "
+        class="wp-block-group group flex flex-col bg-white border-[1.5px] border-[#e2e8f0] rounded-2xl overflow-hidden"
       >
         <!-- wp:post-featured-image {"isLink":true,"className":"relative block aspect-[16/10] overflow-hidden"} /-->
         <!-- wp:group {"className":"p-6 flex flex-col flex-grow","layout":{"type":"constrained"}} -->
@@ -1756,10 +905,7 @@
 
       <!-- wp:query-no-results -->
       <!-- wp:paragraph {"align":"center"} -->
-      <p
-        class="has-text-align-center"
-        style="color: #64748b; text-align: center"
-      >
+      <p class="has-text-align-center text-[#64748b] text-center">
         No posts yet — check back soon.
       </p>
       <!-- /wp:paragraph -->
@@ -1773,37 +919,21 @@
 
 <!-- ===== FEATURES / READY TO GET STARTED ===== -->
 <!-- wp:group {"style":{"spacing":{"padding":{"top":"5rem","bottom":"5rem"}}}} -->
-<div
-  class="wp-block-group"
-  style="background: #f1f5f9; padding-top: 5rem; padding-bottom: 5rem"
->
+<div class="wp-block-group bg-[#f1f5f9] pt-20 pb-20">
   <!-- wp:group {"className":"max-w-7xl mx-auto px-6","layout":{"type":"constrained"}} -->
   <div class="wp-block-group max-w-7xl mx-auto px-6">
     <!-- Heading -->
-    <div style="text-align: center; margin-bottom: 3.5rem">
+    <div class="text-center mb-14">
       <!-- wp:heading {"level":2,"align":"center"} -->
       <h2
-        class="has-text-align-center"
-        style="
-          font-size: clamp(1.875rem, 4vw, 2.5rem);
-          font-weight: 900;
-          color: #0f172a;
-          margin-bottom: 0.75rem;
-          letter-spacing: -0.02em;
-        "
+        class="has-text-align-center text-[clamp(1.875rem,4vw,2.5rem)] font-black text-[#0f172a] mb-3 tracking-tight"
       >
         Ready to Get Started?
       </h2>
       <!-- /wp:heading -->
       <!-- wp:paragraph {"align":"center"} -->
       <p
-        class="has-text-align-center"
-        style="
-          color: #64748b;
-          font-size: 1.05rem;
-          max-width: 600px;
-          margin: 0 auto;
-        "
+        class="has-text-align-center text-[#64748b] text-[1.05rem] max-w-150 mx-auto"
       >
         Take the first step towards transforming your business. Contact us today
         for a free consultation.
@@ -1813,51 +943,21 @@
 
     <!-- Features grid -->
     <div
-      style="
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 3rem;
-      "
+      class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6 mb-12"
     >
       <!-- Feature 1 -->
       <div
-        style="
-          background: #ffffff;
-          border-radius: 16px;
-          padding: 1.75rem;
-          text-align: center;
-          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
-          border: 1.5px solid #e2e8f0;
-          transition: all 0.3s;
-        "
+        class="bg-white rounded-2xl p-7 text-center shadow-[0_2px_16px_rgba(0,0,0,0.06)] border-[1.5px] border-[#e2e8f0] transition-all duration-300"
       >
         <div
-          style="
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #0e54d8, #3b82f6);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 1.5rem;
-          "
+          class="w-14 h-14 bg-[linear-gradient(135deg,#0e54d8,#3b82f6)] rounded-[14px] flex items-center justify-center mx-auto mb-4 text-2xl"
         >
           &#x2705;
         </div>
-        <h3
-          style="
-            font-size: 1rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 0.5rem;
-          "
-        >
+        <h3 class="text-base font-extrabold text-[#0f172a] mb-2">
           Expert Team
         </h3>
-        <p style="font-size: 0.82rem; color: #64748b; line-height: 1.6">
+        <p class="text-[0.82rem] text-[#64748b] leading-relaxed">
           Our team of seasoned professionals brings years of industry experience
           to every project.
         </p>
@@ -1865,42 +965,17 @@
 
       <!-- Feature 2 -->
       <div
-        style="
-          background: #ffffff;
-          border-radius: 16px;
-          padding: 1.75rem;
-          text-align: center;
-          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
-          border: 1.5px solid #e2e8f0;
-          transition: all 0.3s;
-        "
+        class="bg-white rounded-2xl p-7 text-center shadow-[0_2px_16px_rgba(0,0,0,0.06)] border-[1.5px] border-[#e2e8f0] transition-all duration-300"
       >
         <div
-          style="
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #00b050, #34d399);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 1.5rem;
-          "
+          class="w-14 h-14 bg-[linear-gradient(135deg,#00b050,#34d399)] rounded-[14px] flex items-center justify-center mx-auto mb-4 text-2xl"
         >
           &#x1F680;
         </div>
-        <h3
-          style="
-            font-size: 1rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 0.5rem;
-          "
-        >
+        <h3 class="text-base font-extrabold text-[#0f172a] mb-2">
           Fast Delivery
         </h3>
-        <p style="font-size: 0.82rem; color: #64748b; line-height: 1.6">
+        <p class="text-[0.82rem] text-[#64748b] leading-relaxed">
           We are committed to delivering high-quality solutions on time, every
           time.
         </p>
@@ -1908,42 +983,17 @@
 
       <!-- Feature 3 -->
       <div
-        style="
-          background: #ffffff;
-          border-radius: 16px;
-          padding: 1.75rem;
-          text-align: center;
-          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
-          border: 1.5px solid #e2e8f0;
-          transition: all 0.3s;
-        "
+        class="bg-white rounded-2xl p-7 text-center shadow-[0_2px_16px_rgba(0,0,0,0.06)] border-[1.5px] border-[#e2e8f0] transition-all duration-300"
       >
         <div
-          style="
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #7c3aed, #8b5cf6);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 1.5rem;
-          "
+          class="w-14 h-14 bg-[linear-gradient(135deg,#7c3aed,#8b5cf6)] rounded-[14px] flex items-center justify-center mx-auto mb-4 text-2xl"
         >
           &#x1F4A1;
         </div>
-        <h3
-          style="
-            font-size: 1rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 0.5rem;
-          "
-        >
+        <h3 class="text-base font-extrabold text-[#0f172a] mb-2">
           Innovative Solutions
         </h3>
-        <p style="font-size: 0.82rem; color: #64748b; line-height: 1.6">
+        <p class="text-[0.82rem] text-[#64748b] leading-relaxed">
           We leverage the latest technologies to build cutting-edge solutions
           for your business.
         </p>
@@ -1951,42 +1001,17 @@
 
       <!-- Feature 4 -->
       <div
-        style="
-          background: #ffffff;
-          border-radius: 16px;
-          padding: 1.75rem;
-          text-align: center;
-          box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
-          border: 1.5px solid #e2e8f0;
-          transition: all 0.3s;
-        "
+        class="bg-white rounded-2xl p-7 text-center shadow-[0_2px_16px_rgba(0,0,0,0.06)] border-[1.5px] border-[#e2e8f0] transition-all duration-300"
       >
         <div
-          style="
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #f59e0b, #f97316);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            font-size: 1.5rem;
-          "
+          class="w-14 h-14 bg-[linear-gradient(135deg,#f59e0b,#f97316)] rounded-[14px] flex items-center justify-center mx-auto mb-4 text-2xl"
         >
           &#x1F91D;
         </div>
-        <h3
-          style="
-            font-size: 1rem;
-            font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 0.5rem;
-          "
-        >
+        <h3 class="text-base font-extrabold text-[#0f172a] mb-2">
           Dedicated Support
         </h3>
-        <p style="font-size: 0.82rem; color: #64748b; line-height: 1.6">
+        <p class="text-[0.82rem] text-[#64748b] leading-relaxed">
           We provide ongoing support and maintenance to ensure your business
           runs smoothly.
         </p>
@@ -1994,27 +1019,13 @@
     </div>
 
     <!-- CTA button -->
-    <div style="text-align: center">
+    <div class="text-center">
       <!-- wp:button {"url":"/contact/","style":{"border":{"radius":"14px"}}} -->
-      <div class="wp-block-button" style="display: inline-block">
+      <div class="wp-block-button inline-block">
         <a
-          class="wp-block-button__link no-underline"
+          class="flex items-center justify-between gap-2 text-white font-bold text-lg py-4 px-10 rounded-2xl transition-all tracking-wide bg-linear-to-br from-purple-500 to-indigo-600 hover:scale-105"
           href="/contact/"
-          style="
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: linear-gradient(135deg, #7c3aed, #ec4899);
-            color: #ffffff;
-            font-weight: 800;
-            font-size: 1.05rem;
-            padding: 1rem 2.5rem;
-            border-radius: 14px;
-            box-shadow: 0 8px 32px rgba(124, 58, 237, 0.35);
-            transition: all 0.25s;
-            letter-spacing: 0.02em;
-            text-decoration: none;
-          "
+          aria-label="Contact Us"
         >
           Contact Us
           <svg

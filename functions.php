@@ -153,3 +153,6 @@ function blogpro_deactivate() {
 	blogpro_remove_htaccess_rules();
 }
 add_action( 'switch_theme', 'blogpro_deactivate' );
+
+// Disable block-based widget editor
+add_filter( 'use_widgets_block_editor', '__return_false' );

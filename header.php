@@ -32,7 +32,7 @@
 <!-- Desktop menu -->
 		<nav class="primary-nav hidden md:flex" id="primary-menu" aria-label="<?php esc_attr_e( 'Primary', 'blog-pro' ); ?>">
 			<?php
-			$menu_classes = 'flex flex-col md:flex-row md:space-x-8 space-y-4 md:space-y-0 w-full text-gray-700 font-medium [&_a]:transition-colors [&_a:hover]:text-indigo-600';
+			$menu_classes = 'flex flex-col md:flex-row md:space-x-8 space-y-4 md:space-y-0 w-full text-gray-700 font-medium [&_a]:transition-colors [&_a:hover]:text-indigo-600 [&_li:hover]:font-bold [&_li]:transition-all [&_li]:easy-in-out [&_li]:duration-300';
 			if ( has_nav_menu( 'primary' ) ) {
 				wp_nav_menu( array(
 					'theme_location' => 'primary',

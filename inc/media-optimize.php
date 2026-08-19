@@ -254,15 +254,6 @@ function blogpro_responsive_sizes( $sizes, $size, $image_src, $image_meta, $atta
 add_filter( 'wp_calculate_image_sizes', 'blogpro_responsive_sizes', 10, 5 );
 
 
-// Disable WP's default intermediate sizes — the theme serves everything
-// through the on-the-fly WebP resizer (blogpro-img/{id}/…), so pre-generating
-// thumbnail/medium/medium_large (and 1536/2048) on every upload just wastes
-// disk. Uses the 'intermediate_image_sizes' filter — the one WP actually
-// reads when deciding which sizes to generate on upload — and removes the
-// core-added 1536x1536/2048x2048 sizes. `large` is kept: attachment.php
-// renders single images at 'large' and would otherwise fall back to the
-// full-size original. Only affects NEW uploads; existing images keep their
-// old sizes until re-generated (Optimize Existing Images).
 add_filter( 'intermediate_image_sizes', function ( $sizes ) {
 	return array_diff( $sizes, array( 'thumbnail', 'medium', 'medium_large', '1536x1536', '2048x2048' ) );
 } );
@@ -272,10 +263,6 @@ add_filter( 'image_size_names_choose', function( $sizes ) {
 	return $sizes;
 } );
 
-/* 9. On-the-fly WebP resizing — one original per upload. The browser
-      asks for the width it needs (srcset), PHP resizes it (height auto,
-      from aspect ratio) and serves WebP. Derived sizes are cached on
-      disk so repeat requests are a plain readfile, not a re-resize. */
 add_filter( 'query_vars', function ( $vars ) {
 	$vars[] = 'blogpro_img_id';
 	$vars[] = 'blogpro_w';
