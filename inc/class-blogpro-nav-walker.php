@@ -30,7 +30,6 @@ class Blogpro_Nav_Walker extends Walker_Nav_Menu {
 		$indent = str_repeat( "\t", $depth );
 
         $is_mobile = ! empty( $args->is_mobile );
-    error_log( 'is_mobile: ' . var_export( $is_mobile, true ) ); // TEMP
 
 		$classes  = self::SUBMENU_BASE_CLASSES . ' ';
 		$classes .= ( 0 === $depth ) ? self::SUBMENU_DESKTOP_CLASSES : self::SUBMENU_NESTED_CLASSES;
@@ -114,6 +113,14 @@ class Blogpro_Nav_Walker extends Walker_Nav_Menu {
 			'href'   => $menu_item->url ?: '',
 			'class'  => 'flex items-center',
 		);
+
+		// A menu item whose title resolves to empty text (icon-only item,
+		// image link, etc.) has no discernible label — give the link an
+		// accessible name from the menu item title or the URL.
+		if ( '' === trim( wp_strip_all_tags( $title ) ) && empty( $atts['aria-label'] ) ) {
+			$atts['aria-label'] = $menu_item->title ?: ( $menu_item->url ? $menu_item->url : __( 'Menu item', 'blog-pro' ) );
+		}
+
 		$atts = apply_filters( 'nav_menu_link_attributes', $atts, $menu_item, $args, $depth );
 
 		$attributes = '';

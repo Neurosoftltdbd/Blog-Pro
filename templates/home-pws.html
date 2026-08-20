@@ -1,16 +1,6 @@
-<!-- ================================================================
-  PWS Home — Faithfully ported from properwaysolution.com
-  Brand blue #0e54d8 + accent green #00b050
-  Split hero, service image-cards, team, testimonials, features CTA.
-  Body-only: header/footer are rendered by the theme (front-page.php).
-================================================================= -->
-
-<!-- ===== HERO ===== -->
-<!-- wp:group {"className":"pws-hero relative overflow-hidden","style":{"spacing":{"padding":{"top":"0","bottom":"0"}}}} -->
 <div
   class="wp-block-group pws-hero relative overflow-hidden bg-linear-to-br from-[#0e1b4a] via-[#11295c] to-[#0e54d8] min-h-[80vh] flex items-center"
 >
-  <!-- Decorative blobs -->
   <div
     aria-hidden="true"
     class="absolute -top-20 -right-20 w-120 h-120 bg-[radial-gradient(circle,rgba(14,84,216,0.35)0%,transparent70%)] rounded-full pointer-events-none"
@@ -20,16 +10,9 @@
     class="absolute -bottom-15 -left-15 w-90 h-90 bg-[radial-gradient(circle,rgba(0,176,80,0.2)0%,transparent70%)] rounded-full pointer-events-none"
   ></div>
 
-  <!-- wp:group {"className":"max-w-7xl mx-auto px-6 py-20 w-full","layout":{"type":"constrained"}} -->
   <div class="wp-block-group max-w-7xl mx-auto px-6 py-20 w-full">
-    <!-- Split layout: text left, graphic right -->
-    <!-- wp:group {"className":"flex flex-col lg:flex-row items-center gap-12 lg:gap-16","layout":{"type":"flex","flexWrap":"wrap"}} -->
     <div class="wp-block-group flex flex-wrap items-center gap-12">
-      <!-- LEFT — text -->
-      <!-- wp:group {"className":"flex-1 min-w-0"} -->
       <div class="wp-block-group flex-[1_1_340px] min-w-0">
-        <!-- Badge -->
-        <!-- wp:paragraph {"className":"inline-flex items-center gap-2 mb-6"} -->
         <p class="has-text-align-left mb-6">
           <span
             class="inline-flex items-center gap-2 bg-[rgba(0,176,80,0.15)] border border-[rgba(0,176,80,0.4)] text-[#4ade80] text-xs font-bold uppercase tracking-wider px-4 py-1.5 rounded-full"
@@ -47,9 +30,6 @@
             Tally &amp; Digital Solutions Agency
           </span>
         </p>
-        <!-- /wp:paragraph -->
-
-        <!-- wp:heading {"level":1,"align":"left"} -->
         <h1
           class="text-[clamp(2.25rem,5vw,3.75rem)] font-black leading-[1.1] text-white mb-6 tracking-tight"
         >
@@ -59,16 +39,12 @@
             >Digital Excellence</span
           >
         </h1>
-        <!-- /wp:heading -->
 
-        <!-- wp:paragraph -->
         <p class="text-[#bfdbfe] text-lg leading-relaxed mb-8 max-w-130">
           We provide comprehensive Tally accounting, digital marketing, and web
           app solutions to help your business thrive in the digital age.
         </p>
-        <!-- /wp:paragraph -->
 
-        <!-- Feature pills -->
         <div class="flex flex-wrap gap-3 mb-10">
           <span
             class="inline-flex items-center gap-2 bg-white/8 border border-white/18 text-[#e2e8f0] text-sm font-semibold py-2 px-5 rounded-full backdrop-blur-sm"
@@ -86,11 +62,7 @@
             &#x1F4BB; Web Application Development
           </span>
         </div>
-
-        <!-- CTA Buttons -->
-        <!-- wp:buttons -->
         <div class="wp-block-buttons flex flex-wrap gap-4">
-          <!-- wp:button {"url":"/contact/","style":{"border":{"radius":"12px"}}} -->
           <div class="wp-block-button">
             <a
               class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/18 text-[#e2e8f0] text-sm font-semibold py-4 px-6 rounded-xl backdrop-blur-sm hover:font-bold transition-all ease-in-out duration-500"
@@ -111,8 +83,6 @@
               </svg>
             </a>
           </div>
-          <!-- /wp:button -->
-          <!-- wp:button {"url":"#services","style":{"border":{"radius":"12px"}}} -->
           <div class="wp-block-button">
             <a
               class="inline-flex items-center gap-2 bg-white/10 text-white hover:bg-white/20 border border-white/25 backdrop-blur-sm transition-all ease-in-out duration-500 font-semibold text-sm py-4 px-6 rounded-xl"
@@ -122,26 +92,17 @@
               Explore Services
             </a>
           </div>
-          <!-- /wp:button -->
         </div>
-        <!-- /wp:buttons -->
       </div>
-      <!-- /wp:group -->
-
-      <!-- RIGHT — TallyPrime graphic card -->
-      <!-- wp:group {"className":"flex-1 flex justify-center"} -->
       <div
         class="wp-block-group flex-[1_1_340px] flex justify-center items-center"
       >
         <div
           class="bg-white rounded-2xl p-8 shadow-[0_32px_80px_rgba(0,0,0,0.4)] max-w-120 w-full relative overflow-hidden"
         >
-          <!-- Card header gradient strip -->
           <div
             class="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-[#0e54d8] to-[#00b050]"
           ></div>
-
-          <!-- Card title -->
           <div class="text-center mb-6">
             <p
               class="text-[0.85rem] text-[#64748b] font-semibold mb-1 uppercase tracking-wider"
@@ -154,8 +115,6 @@
               TallyPrime
             </h2>
           </div>
-
-          <!-- Feature grid -->
           <div class="grid grid-cols-2 gap-3 mb-6">
             <div
               class="bg-[#f0f7ff] rounded-xl p-3.5 text-center border border-[#dbeafe]"
@@ -188,8 +147,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Bottom icons row -->
           <div class="flex justify-around py-4 border-t border-[#e2e8f0]">
             <div class="text-center">
               <div
@@ -232,8 +189,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Bottom banner -->
           <div
             class="bg-linear-to-r from-[#0e54d8] to-[#0069ff] rounded-[10px] px-4 py-3 text-center mt-4"
           >
@@ -243,11 +198,7 @@
           </div>
         </div>
       </div>
-      <!-- /wp:group -->
     </div>
-    <!-- /wp:group -->
-
-    <!-- Stats bar -->
     <div
       class="mt-16 grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4"
     >
@@ -293,49 +244,46 @@
       </div>
     </div>
   </div>
-  <!-- /wp:group -->
 </div>
-<!-- /wp:group -->
 
-<!-- ===== SERVICES ===== -->
-<!-- wp:group {"style":{"spacing":{"padding":{"top":"5rem","bottom":"6rem"}}}} -->
+<!-- Our Service Section Starts -->
 <div class="wp-block-group bg-[#f8fafc] pt-20 pb-24" id="services">
-  <!-- wp:group {"className":"max-w-7xl mx-auto px-6","layout":{"type":"constrained"}} -->
   <div class="wp-block-group max-w-7xl mx-auto px-6">
-    <!-- Section heading -->
     <div class="text-center mb-14">
-      <!-- wp:heading {"level":2,"align":"center"} -->
       <h2
         class="has-text-align-center text-[clamp(1.875rem,4vw,2.5rem)] font-black text-[#0f172a] mb-3 tracking-tight"
       >
         Our Services
       </h2>
-      <!-- /wp:heading -->
-      <!-- wp:paragraph {"align":"center"} -->
       <p
         class="has-text-align-center text-[#64748b] text-[1.05rem] max-w-140 mx-auto"
       >
         We offer comprehensive solutions for your business needs.
       </p>
-      <!-- /wp:paragraph -->
-      <!-- Decorative underline -->
       <div
-        class="w-16 h-1 bg-linear-to-r from-[#0e54d8] to-[#00b050] rounded-full mx-auto mt-4"
+        class="w-16 h-1 bg-linear-to-r from-[#0e54d8] to-[#60a5fa] rounded-full mx-auto mt-4"
       ></div>
     </div>
 
-    <!-- Services grid -->
     <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-8">
-      <!-- Service Card 3: Tally Cloud -->
       <div
-        class="bg-amber-50 rounded-lg overflow-hidden shadow-lg shadow-emerald-200 transition-all ease-in-out duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
+        class="bg-white rounded-lg overflow-hidden border-[1.5px] border-[#dbeafe] shadow-[0_6px_24px_rgba(14,84,216,0.08)] transition-all ease-in-out duration-300 hover:scale-105 hover:border-[#93c5fd] hover:shadow-[0_16px_40px_rgba(14,84,216,0.18)] cursor-pointer"
       >
         <div
-          class="bg-[linear-gradient(135deg,#fef3c7,#fde68a)] p-8 text-center h-45 flex items-center justify-center"
+          class="bg-[linear-gradient(135deg,#0e54d8,#3b82f6)] p-8 text-center h-45 flex items-center justify-center"
         >
-          <div class="text-[4rem]">&#x2601;&#xFE0F;</div>
+          <div
+            class="text-[4rem] drop-shadow-[0_4px_12px_rgba(14,84,216,0.35)]"
+          >
+            &#x2601;&#xFE0F;
+          </div>
         </div>
         <div class="p-6">
+          <div
+            class="inline-flex items-center gap-1.5 text-[#0e54d8] text-[0.65rem] font-bold uppercase tracking-wider mb-2"
+          >
+            <span>&#x1F512;</span> Cloud Hosting
+          </div>
           <h3 class="text-[1.05rem] font-extrabold text-[#0f172a] mb-2">
             Tally Prime Cloud Solution
           </h3>
@@ -344,8 +292,8 @@
             worry-free updates.
           </p>
           <a
-            href="/services/tally-prime-cloud/"
-            class="inline-flex items-center gap-1.5 text-[#0e54d8] text-[0.8rem] font-bold no-underline uppercase tracking-wider"
+            href="/tally-prime-cloud/"
+            class="group inline-flex items-center gap-1.5 text-[#0e54d8] text-[0.8rem] font-bold no-underline uppercase tracking-wider hover:text-[#2563eb]"
             aria-label="Learn more about Tally Prime Cloud Solution"
           >
             Learn More
@@ -356,6 +304,7 @@
               stroke="currentColor"
               stroke-width="2.5"
               viewBox="0 0 24 24"
+              class="transition-transform duration-300 group-hover:translate-x-1"
             >
               <path d="M5 12h14" />
               <path d="m12 5 7 7-7 7" />
@@ -364,16 +313,24 @@
         </div>
       </div>
 
-      <!-- Service Card 4: Tally ERP -->
       <div
-        class="bg-amber-50 rounded-lg overflow-hidden shadow-lg shadow-emerald-200 transition-all ease-in-out duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
+        class="bg-white rounded-lg overflow-hidden border-[1.5px] border-[#dbeafe] shadow-[0_6px_24px_rgba(14,84,216,0.08)] transition-all ease-in-out duration-300 hover:scale-105 hover:border-[#93c5fd] hover:shadow-[0_16px_40px_rgba(14,84,216,0.18)] cursor-pointer"
       >
         <div
-          class="bg-[linear-gradient(135deg,#ede9fe,#ddd6fe)] p-8 text-center h-45 flex items-center justify-center"
+          class="bg-[linear-gradient(135deg,#1d4ed8,#60a5fa)] p-8 text-center h-45 flex items-center justify-center"
         >
-          <div class="text-[4rem]">&#x1F4CA;</div>
+          <div
+            class="text-[4rem] drop-shadow-[0_4px_12px_rgba(29,78,216,0.35)]"
+          >
+            &#x1F4CA;
+          </div>
         </div>
         <div class="p-6">
+          <div
+            class="inline-flex items-center gap-1.5 text-[#1d4ed8] text-[0.65rem] font-bold uppercase tracking-wider mb-2"
+          >
+            <span>&#x2699;&#xFE0F;</span> ERP Suite
+          </div>
           <h3 class="text-[1.05rem] font-extrabold text-[#0f172a] mb-2">
             Tally Prime ERP Solution
           </h3>
@@ -382,8 +339,8 @@
             ongoing support for your Tally ERP.
           </p>
           <a
-            href="/services/simplified-business-with-tally-erp/"
-            class="inline-flex items-center gap-1.5 text-[#0e54d8] text-[0.8rem] font-bold no-underline uppercase tracking-wider"
+            href="/tally-prime"
+            class="group inline-flex items-center gap-1.5 text-[#1d4ed8] text-[0.8rem] font-bold no-underline uppercase tracking-wider hover:text-[#2563eb]"
             aria-label="Learn more about Tally Prime ERP Solution"
           >
             Learn More
@@ -394,6 +351,7 @@
               stroke="currentColor"
               stroke-width="2.5"
               viewBox="0 0 24 24"
+              class="transition-transform duration-300 group-hover:translate-x-1"
             >
               <path d="M5 12h14" />
               <path d="m12 5 7 7-7 7" />
@@ -401,17 +359,24 @@
           </a>
         </div>
       </div>
-
-      <!-- Service Card 1: Web App Dev -->
       <div
-        class="bg-amber-50 rounded-lg overflow-hidden shadow-lg shadow-emerald-200 transition-all ease-in-out duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
+        class="bg-white rounded-lg overflow-hidden border-[1.5px] border-[#dbeafe] shadow-[0_6px_24px_rgba(14,84,216,0.08)] transition-all ease-in-out duration-300 hover:scale-105 hover:border-[#93c5fd] hover:shadow-[0_16px_40px_rgba(14,84,216,0.18)] cursor-pointer"
       >
         <div
-          class="bg-[linear-gradient(135deg,#e0f2fe,#dbeafe)] p-8 text-center h-45 flex items-center justify-center"
+          class="bg-[linear-gradient(135deg,#2563eb,#93c5fd)] p-8 text-center h-45 flex items-center justify-center"
         >
-          <div class="text-[4rem]">&#x1F4BB;</div>
+          <div
+            class="text-[4rem] drop-shadow-[0_4px_12px_rgba(37,99,235,0.35)]"
+          >
+            &#x1F4BB;
+          </div>
         </div>
         <div class="p-6">
+          <div
+            class="inline-flex items-center gap-1.5 text-[#2563eb] text-[0.65rem] font-bold uppercase tracking-wider mb-2"
+          >
+            <span>&#x1F680;</span> Web &amp; Apps
+          </div>
           <h3 class="text-[1.05rem] font-extrabold text-[#0f172a] mb-2">
             Web Application Development
           </h3>
@@ -420,8 +385,8 @@
             built for speed and conversions.
           </p>
           <a
-            href="/services/web-application-development/"
-            class="inline-flex items-center gap-1.5 text-[#0e54d8] text-[0.8rem] font-bold no-underline uppercase tracking-wider"
+            href="/web-application-development/"
+            class="group inline-flex items-center gap-1.5 text-[#2563eb] text-[0.8rem] font-bold no-underline uppercase tracking-wider hover:text-[#1d4ed8]"
             aria-label="Learn more about Web Application Development"
           >
             Learn More
@@ -432,6 +397,7 @@
               stroke="currentColor"
               stroke-width="2.5"
               viewBox="0 0 24 24"
+              class="transition-transform duration-300 group-hover:translate-x-1"
             >
               <path d="M5 12h14" />
               <path d="m12 5 7 7-7 7" />
@@ -439,17 +405,24 @@
           </a>
         </div>
       </div>
-
-      <!-- Service Card 2: Digital Marketing -->
       <div
-        class="bg-amber-50 rounded-lg overflow-hidden shadow-lg shadow-emerald-200 transition-all ease-in-out duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
+        class="bg-white rounded-lg overflow-hidden border-[1.5px] border-[#dbeafe] shadow-[0_6px_24px_rgba(14,84,216,0.08)] transition-all ease-in-out duration-300 hover:scale-105 hover:border-[#93c5fd] hover:shadow-[0_16px_40px_rgba(14,84,216,0.18)] cursor-pointer"
       >
         <div
-          class="bg-[linear-gradient(135deg,#dcfce7,#d1fae5)] p-8 text-center h-45 flex items-center justify-center"
+          class="bg-[linear-gradient(135deg,#0ea5e9,#38bdf8)] p-8 text-center h-45 flex items-center justify-center"
         >
-          <div class="text-[4rem]">&#x1F3AF;</div>
+          <div
+            class="text-[4rem] drop-shadow-[0_4px_12px_rgba(14,165,233,0.35)]"
+          >
+            &#x1F3AF;
+          </div>
         </div>
         <div class="p-6">
+          <div
+            class="inline-flex items-center gap-1.5 text-[#0284c7] text-[0.65rem] font-bold uppercase tracking-wider mb-2"
+          >
+            <span>&#x1F4C8;</span> Growth Marketing
+          </div>
           <h3 class="text-[1.05rem] font-extrabold text-[#0f172a] mb-2">
             Digital Marketing
           </h3>
@@ -458,8 +431,8 @@
             campaigns that bring in qualified leads.
           </p>
           <a
-            href="/services/digital-marketing/"
-            class="inline-flex items-center gap-1.5 text-[#0e54d8] text-[0.8rem] font-bold no-underline uppercase tracking-wider"
+            href="/digital-marketing/"
+            class="group inline-flex items-center gap-1.5 text-[#0284c7] text-[0.8rem] font-bold no-underline uppercase tracking-wider hover:text-[#0369a1]"
             aria-label="Learn more about Digital Marketing"
           >
             Learn More
@@ -470,6 +443,7 @@
               stroke="currentColor"
               stroke-width="2.5"
               viewBox="0 0 24 24"
+              class="transition-transform duration-300 group-hover:translate-x-1"
             >
               <path d="M5 12h14" />
               <path d="m12 5 7 7-7 7" />
@@ -478,8 +452,6 @@
         </div>
       </div>
     </div>
-
-    <!-- View all services link -->
     <div class="text-center mt-12">
       <a
         href="/services/"
@@ -501,39 +473,28 @@
       </a>
     </div>
   </div>
-  <!-- /wp:group -->
 </div>
-<!-- /wp:group -->
+<!-- Our Service Section Ends -->
 
-<!-- ===== TEAM ===== -->
-<!-- wp:group {"style":{"spacing":{"padding":{"top":"5rem","bottom":"5rem"}}}} -->
+<!-- Team Section Start -->
 <div class="wp-block-group bg-[#ecfdf5] pt-20 pb-20" id="team">
-  <!-- wp:group {"className":"max-w-7xl mx-auto px-6","layout":{"type":"constrained"}} -->
   <div class="wp-block-group max-w-7xl mx-auto px-6">
-    <!-- Heading -->
     <div class="text-center mb-14">
-      <!-- wp:heading {"level":2,"align":"center"} -->
       <h2
         class="has-text-align-center text-[clamp(1.875rem,4vw,2.5rem)] font-black text-[#0f172a] mb-3 tracking-tight"
       >
         Meet Our Team
       </h2>
-      <!-- /wp:heading -->
-      <!-- wp:paragraph {"align":"center"} -->
       <p
         class="has-text-align-center text-[#64748b] text-[1.05rem] max-w-130 mx-auto"
       >
         Get to know the talented people behind our success.
       </p>
-      <!-- /wp:paragraph -->
       <div
         class="w-16 h-1 bg-linear-to-r from-[#00b050] to-[#0e54d8] rounded-full mx-auto mt-4"
       ></div>
     </div>
-
-    <!-- Team grid -->
     <div class="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-8">
-      <!-- Team Member 1 -->
       <div
         class="bg-gray-50 rounded-lg text-center p-6 shadow-lg transition-all ease-in-out duration-300 hover:scale-105 cursor-pointer"
       >
@@ -594,7 +555,6 @@
         </div>
       </div>
 
-      <!-- Team Member 2 -->
       <div
         class="bg-gray-50 rounded-lg text-center p-6 shadow-lg transition-all ease-in-out duration-300 hover:scale-105 cursor-pointer"
       >
@@ -636,7 +596,6 @@
         </div>
       </div>
 
-      <!-- Team Member 3 -->
       <div
         class="bg-gray-50 rounded-lg text-center p-6 shadow-lg transition-all ease-in-out duration-300 hover:scale-105 cursor-pointer"
       >
@@ -698,39 +657,28 @@
       </div>
     </div>
   </div>
-  <!-- /wp:group -->
 </div>
-<!-- /wp:group -->
+<!-- Team Section Ends -->
 
-<!-- ===== TESTIMONIALS ===== -->
-<!-- wp:group {"style":{"spacing":{"padding":{"top":"5rem","bottom":"5rem"}}}} -->
+<!-- Testimonials Section Start -->
 <div class="wp-block-group bg-[#eff6ff] pt-20 pb-20" id="testimonials">
-  <!-- wp:group {"className":"max-w-7xl mx-auto px-6","layout":{"type":"constrained"}} -->
   <div class="wp-block-group max-w-7xl mx-auto px-6">
-    <!-- Heading -->
     <div class="text-center mb-14">
-      <!-- wp:heading {"level":2,"align":"center"} -->
       <h2
         class="has-text-align-center text-[clamp(1.875rem,4vw,2.5rem)] font-black text-[#0f172a] mb-3 tracking-tight"
       >
         What Our Clients Say
       </h2>
-      <!-- /wp:heading -->
-      <!-- wp:paragraph {"align":"center"} -->
       <p
         class="has-text-align-center text-[#64748b] text-[1.05rem] max-w-130 mx-auto"
       >
         Here's what our clients have to say about our services.
       </p>
-      <!-- /wp:paragraph -->
       <div
         class="w-16 h-1 bg-linear-to-r from-[#0e54d8] to-[#00b050] rounded-full mx-auto mt-4"
       ></div>
     </div>
-
-    <!-- Testimonials grid -->
     <div class="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-8">
-      <!-- Testimonial 1 -->
       <div
         class="bg-white rounded-2xl p-8 shadow-[0_4px_24px_rgba(14,84,216,0.1)] border-[1.5px] border-[#dbeafe] relative overflow-hidden"
       >
@@ -742,12 +690,10 @@
             >&#9733;&#9733;&#9733;&#9733;&#9733;</span
           >
         </div>
-        <!-- wp:paragraph -->
         <p class="text-[#334155] text-[0.9rem] leading-relaxed italic mb-6">
           &ldquo;Proper way solution team is super expert. They simplified my
           business.&rdquo;
         </p>
-        <!-- /wp:paragraph -->
         <div class="flex items-center gap-3 pt-4 border-t border-[#e2e8f0]">
           <div
             class="w-11 h-11 bg-[linear-gradient(135deg,#0e54d8,#60a5fa)] rounded-full flex items-center justify-center text-white font-extrabold text-[0.85rem] shrink-0"
@@ -765,7 +711,6 @@
         </div>
       </div>
 
-      <!-- Testimonial 2 -->
       <div
         class="bg-white rounded-2xl p-8 shadow-[0_4px_24px_rgba(14,84,216,0.1)] border-[1.5px] border-[#dbeafe] relative overflow-hidden"
       >
@@ -777,11 +722,9 @@
             >&#9733;&#9733;&#9733;&#9733;&#9733;</span
           >
         </div>
-        <!-- wp:paragraph -->
         <p class="text-[#334155] text-[0.9rem] leading-relaxed italic mb-6">
           &ldquo;They provide a top notch Tally accounting services.&rdquo;
         </p>
-        <!-- /wp:paragraph -->
         <div class="flex items-center gap-3 pt-4 border-t border-[#e2e8f0]">
           <div
             class="w-11 h-11 bg-[linear-gradient(135deg,#00b050,#34d399)] rounded-full flex items-center justify-center text-white font-extrabold text-[0.85rem] shrink-0"
@@ -799,7 +742,6 @@
         </div>
       </div>
 
-      <!-- Testimonial 3 -->
       <div
         class="bg-white rounded-2xl p-8 shadow-[0_4px_24px_rgba(14,84,216,0.1)] border-[1.5px] border-[#dbeafe] relative overflow-hidden"
       >
@@ -811,11 +753,9 @@
             >&#9733;&#9733;&#9733;&#9733;&#9733;</span
           >
         </div>
-        <!-- wp:paragraph -->
         <p class="text-[#334155] text-[0.9rem] leading-relaxed italic mb-6">
           &ldquo;Tally prime is super accounting software.&rdquo;
         </p>
-        <!-- /wp:paragraph -->
         <div class="flex items-center gap-3 pt-4 border-t border-[#e2e8f0]">
           <div
             class="w-11 h-11 bg-[linear-gradient(135deg,#7c3aed,#6366f1)] rounded-full flex items-center justify-center text-white font-extrabold text-[0.85rem] shrink-0"
@@ -832,12 +772,10 @@
       </div>
     </div>
   </div>
-  <!-- /wp:group -->
 </div>
-<!-- /wp:group -->
+<!-- Testimonials Section Ends -->
 
-<!-- ===== BLOG PREVIEW ===== -->
-<!-- wp:group {"style":{"spacing":{"padding":{"top":"5rem","bottom":"5rem"}}}} -->
+<!-- Blog Section Start -->
 <div class="wp-block-group bg-[#f8fafc] pt-20 pb-20">
   <!-- wp:group {"className":"max-w-7xl mx-auto px-6","layout":{"type":"constrained"}} -->
   <div class="wp-block-group max-w-7xl mx-auto px-6">
@@ -915,37 +853,29 @@
   </div>
   <!-- /wp:group -->
 </div>
-<!-- /wp:group -->
+<!-- Blog Section Ends -->
 
-<!-- ===== FEATURES / READY TO GET STARTED ===== -->
-<!-- wp:group {"style":{"spacing":{"padding":{"top":"5rem","bottom":"5rem"}}}} -->
+<!-- Ready To Get Started Section Start -->
 <div class="wp-block-group bg-[#f1f5f9] pt-20 pb-20">
-  <!-- wp:group {"className":"max-w-7xl mx-auto px-6","layout":{"type":"constrained"}} -->
   <div class="wp-block-group max-w-7xl mx-auto px-6">
     <!-- Heading -->
     <div class="text-center mb-14">
-      <!-- wp:heading {"level":2,"align":"center"} -->
       <h2
         class="has-text-align-center text-[clamp(1.875rem,4vw,2.5rem)] font-black text-[#0f172a] mb-3 tracking-tight"
       >
         Ready to Get Started?
       </h2>
-      <!-- /wp:heading -->
-      <!-- wp:paragraph {"align":"center"} -->
       <p
         class="has-text-align-center text-[#64748b] text-[1.05rem] max-w-150 mx-auto"
       >
         Take the first step towards transforming your business. Contact us today
         for a free consultation.
       </p>
-      <!-- /wp:paragraph -->
     </div>
 
-    <!-- Features grid -->
     <div
       class="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6 mb-12"
     >
-      <!-- Feature 1 -->
       <div
         class="bg-white rounded-2xl p-7 text-center shadow-[0_2px_16px_rgba(0,0,0,0.06)] border-[1.5px] border-[#e2e8f0] transition-all duration-300"
       >

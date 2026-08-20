@@ -1,0 +1,708 @@
+<div class="bg-white text-slate-800 antialiased">
+  <!-- Hero -->
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 -z-10">
+      <div
+        class="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-brand-100 blur-3xl"
+      ></div>
+      <div
+        class="absolute top-16 -right-20 h-72 w-72 rounded-full bg-brand-200 blur-3xl"
+      ></div>
+    </div>
+
+    <div class="mx-auto max-w-7xl px-4 py-14 sm:py-18">
+      <div class="grid lg:grid-cols-12 gap-10 items-center">
+        <div class="lg:col-span-7">
+          <p
+            class="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700"
+          >
+            <span class="h-2 w-2 rounded-full bg-brand-600"></span>
+            Built for results
+          </p>
+
+          <h1
+            class="mt-4 text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900"
+          >
+            Professional services that move your business forward
+          </h1>
+
+          <p class="mt-5 text-base sm:text-lg text-slate-600 max-w-xl">
+            Choose a solution from our service lineup. We combine clear
+            communication, reliable delivery, and measurable outcomes.
+          </p>
+
+          <div class="mt-7 flex flex-col sm:flex-row gap-3">
+            <a
+              href="#services"
+              class="inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-3 text-sm sm:text-base font-semibold text-white hover:bg-brand-700"
+            >
+              View services
+            </a>
+            <a
+              href="#contact"
+              class="inline-flex items-center justify-center rounded-xl border border-slate-200 px-5 py-3 text-sm sm:text-base font-semibold text-slate-800 hover:bg-slate-50"
+            >
+              Talk to an expert
+            </a>
+          </div>
+
+          <div class="mt-8 grid sm:grid-cols-3 gap-4">
+            <div class="rounded-2xl border border-slate-100 p-4 bg-white/70">
+              <div class="text-brand-700 font-extrabold text-xl">24h</div>
+              <div class="text-sm text-slate-600">Quote turnaround</div>
+            </div>
+            <div class="rounded-2xl border border-slate-100 p-4 bg-white/70">
+              <div class="text-brand-700 font-extrabold text-xl">99%</div>
+              <div class="text-sm text-slate-600">On-time delivery</div>
+            </div>
+            <div class="rounded-2xl border border-slate-100 p-4 bg-white/70">
+              <div class="text-brand-700 font-extrabold text-xl">100+</div>
+              <div class="text-sm text-slate-600">Happy clients</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5">
+          <div
+            class="rounded-3xl border border-slate-100 bg-white/80 shadow-sm p-6 sm:p-7"
+          >
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900">
+              Quick service request
+            </h2>
+            <p class="mt-2 text-sm text-slate-600">
+              Tell us what you need and we’ll respond with next steps.
+            </p>
+
+            <form class="mt-5 grid gap-3" action="#" method="post">
+              <div class="grid sm:grid-cols-2 gap-3">
+                <label class="block">
+                  <span class="text-sm font-semibold text-slate-700"
+                    >First name</span
+                  >
+                  <input
+                    type="text"
+                    name="first_name"
+                    required
+                    class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600"
+                    placeholder="John"
+                  />
+                </label>
+                <label class="block">
+                  <span class="text-sm font-semibold text-slate-700"
+                    >Last name</span
+                  >
+                  <input
+                    type="text"
+                    name="last_name"
+                    required
+                    class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600"
+                    placeholder="Doe"
+                  />
+                </label>
+              </div>
+
+              <label class="block">
+                <span class="text-sm font-semibold text-slate-700">Email</span>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600"
+                  placeholder="you@example.com"
+                />
+              </label>
+
+              <label class="block">
+                <span class="text-sm font-semibold text-slate-700"
+                  >What service do you need?</span
+                >
+                <select
+                  name="service"
+                  class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600"
+                >
+                  <option value="Consulting">Consulting</option>
+                  <option value="Implementation">Implementation</option>
+                  <option value="Support">Support</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+
+              <label class="block">
+                <span class="text-sm font-semibold text-slate-700"
+                  >Message</span
+                >
+                <textarea
+                  name="message"
+                  rows="3"
+                  class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600"
+                  placeholder="Briefly describe your project..."
+                ></textarea>
+              </label>
+
+              <button
+                type="submit"
+                class="mt-1 inline-flex items-center justify-center rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2"
+              >
+                Send request
+              </button>
+
+              <p class="text-xs text-slate-500">
+                By submitting, you agree to be contacted about your request.
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services grid -->
+  <section id="services" class="mx-auto max-w-7xl px-4 py-10 sm:py-14">
+    <div class="flex items-end justify-between gap-6 flex-wrap">
+      <div>
+        <p class="text-sm font-semibold text-brand-700">Services</p>
+        <h2
+          class="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-slate-900"
+        >
+          What we offer
+        </h2>
+      </div>
+
+      <div class="text-sm text-slate-600 max-w-md">
+        Click a service to reveal details (sample UI). Replace copy with your
+        actual offerings.
+      </div>
+    </div>
+
+    <div class="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <!-- Card 1 -->
+      <div
+        class="group rounded-3xl border border-slate-100 bg-white p-6 hover:shadow-sm transition-shadow"
+      >
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div
+              class="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700"
+            >
+              <span aria-hidden="true">⚡</span> Fast delivery
+            </div>
+            <h3 class="mt-3 text-lg font-bold text-slate-900">Consulting</h3>
+            <p class="mt-2 text-sm text-slate-600">
+              Strategy, planning, and roadmap creation tailored to your goals.
+            </p>
+          </div>
+          <div
+            class="h-11 w-11 rounded-2xl bg-brand-600 text-white grid place-items-center font-bold"
+          >
+            C
+          </div>
+        </div>
+
+        <ul class="mt-5 space-y-2 text-sm text-slate-600">
+          <li class="flex gap-2">
+            <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span>
+            Discovery & requirements
+          </li>
+          <li class="flex gap-2">
+            <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span> Process
+            & solution design
+          </li>
+          <li class="flex gap-2">
+            <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span>
+            Timeline & success metrics
+          </li>
+        </ul>
+
+        <button
+          class="mt-6 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+          type="button"
+          onclick="toggleService('svc-consulting')"
+        >
+          Learn more
+        </button>
+
+        <div
+          id="svc-consulting"
+          class="hidden mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700"
+        >
+          Typical deliverables: kickoff workshop, implementation plan, and a
+          prioritized action roadmap.
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div
+        class="group rounded-3xl border border-slate-100 bg-white p-6 hover:shadow-sm transition-shadow"
+      >
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div
+              class="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700"
+            >
+              <span aria-hidden="true">🧩</span> Tailored setup
+            </div>
+            <h3 class="mt-3 text-lg font-bold text-slate-900">
+              Implementation
+            </h3>
+            <p class="mt-2 text-sm text-slate-600">
+              Build, migrate, and deploy solutions with dependable execution.
+            </p>
+          </div>
+          <div
+            class="h-11 w-11 rounded-2xl bg-brand-600 text-white grid place-items-center font-bold"
+          >
+            I
+          </div>
+        </div>
+
+        <ul class="mt-5 space-y-2 text-sm text-slate-600">
+          <li class="flex gap-2">
+            <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span>
+            Configuration & integration
+          </li>
+          <li class="flex gap-2">
+            <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span> Data
+            migration planning
+          </li>
+          <li class="flex gap-2">
+            <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span> QA,
+            testing & go-live
+          </li>
+        </ul>
+
+        <button
+          class="mt-6 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+          type="button"
+          onclick="toggleService('svc-implementation')"
+        >
+          Learn more
+        </button>
+
+        <div
+          id="svc-implementation"
+          class="hidden mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700"
+        >
+          We manage the delivery lifecycle from kickoff through release
+          readiness, with clear milestones.
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div
+        class="group rounded-3xl border border-slate-100 bg-white p-6 hover:shadow-sm transition-shadow"
+      >
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div
+              class="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700"
+            >
+              <span aria-hidden="true">🔧</span> Ongoing support
+            </div>
+            <h3 class="mt-3 text-lg font-bold text-slate-900">
+              Support & Maintenance
+            </h3>
+            <p class="mt-2 text-sm text-slate-600">
+              Keep systems reliable with proactive monitoring and updates.
+            </p>
+          </div>
+          <div
+            class="h-11 w-11 rounded-2xl bg-brand-600 text-white grid place-items-center font-bold"
+          >
+            S
+          </div>
+        </div>
+
+        <ul class="mt-5 space-y-2 text-sm text-slate-600">
+          <li class="flex gap-2">
+            <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span>
+            Performance monitoring
+          </li>
+          <li class="flex gap-2">
+            <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span> Bug
+            fixes & improvements
+          </li>
+          <li class="flex gap-2">
+            <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span>
+            Training & documentation
+          </li>
+        </ul>
+
+        <button
+          class="mt-6 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+          type="button"
+          onclick="toggleService('svc-support')"
+        >
+          Learn more
+        </button>
+
+        <div
+          id="svc-support"
+          class="hidden mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700"
+        >
+          Designed for stability: regular check-ins, prioritized tickets, and
+          transparent status updates.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why choose us -->
+  <section class="mx-auto max-w-7xl px-4 py-10 sm:py-14">
+    <div class="grid lg:grid-cols-12 gap-8 items-center">
+      <div class="lg:col-span-5">
+        <p class="text-sm font-semibold text-brand-700">
+          Why Properway Solution
+        </p>
+        <h2
+          class="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-slate-900"
+        >
+          Clear process. Reliable delivery. Real outcomes.
+        </h2>
+        <p class="mt-4 text-slate-600">
+          Replace this section with your real differentiators: certifications,
+          years in business, industries served, or measurable results.
+        </p>
+
+        <div class="mt-6 space-y-4">
+          <div class="flex gap-4">
+            <div
+              class="h-11 w-11 rounded-2xl bg-brand-600 text-white grid place-items-center font-bold"
+            >
+              1
+            </div>
+            <div>
+              <div class="font-bold text-slate-900">Discovery that matters</div>
+              <div class="text-sm text-slate-600">
+                We define scope, constraints, and success metrics early.
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-4">
+            <div
+              class="h-11 w-11 rounded-2xl bg-brand-600 text-white grid place-items-center font-bold"
+            >
+              2
+            </div>
+            <div>
+              <div class="font-bold text-slate-900">
+                Milestones you can track
+              </div>
+              <div class="text-sm text-slate-600">
+                Weekly updates and transparent delivery stages.
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-4">
+            <div
+              class="h-11 w-11 rounded-2xl bg-brand-600 text-white grid place-items-center font-bold"
+            >
+              3
+            </div>
+            <div>
+              <div class="font-bold text-slate-900">Quality built in</div>
+              <div class="text-sm text-slate-600">
+                Testing, reviews, and documentation for confidence.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-7">
+        <div class="rounded-3xl border border-slate-100 bg-white p-6 sm:p-8">
+          <h3 class="text-lg font-bold text-slate-900">
+            Service packages (example)
+          </h3>
+          <p class="mt-2 text-sm text-slate-600">
+            Swap these for real pricing and inclusions.
+          </p>
+
+          <div class="mt-6 grid md:grid-cols-3 gap-4">
+            <div class="rounded-3xl border border-slate-200 p-5">
+              <div class="text-sm font-semibold text-brand-700">Starter</div>
+              <div class="mt-2 text-3xl font-black text-slate-900">$499</div>
+              <div class="mt-1 text-sm text-slate-600">
+                For small improvements
+              </div>
+              <ul class="mt-4 space-y-2 text-sm text-slate-700">
+                <li class="flex gap-2">
+                  <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span> 1
+                  project
+                </li>
+                <li class="flex gap-2">
+                  <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span>
+                  Basic QA
+                </li>
+                <li class="flex gap-2">
+                  <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span>
+                  Email support
+                </li>
+              </ul>
+              <a
+                href="#contact"
+                class="mt-5 inline-flex w-full justify-center rounded-2xl bg-white border border-slate-200 px-4 py-2.5 text-sm font-bold hover:bg-slate-50"
+              >
+                Choose Starter
+              </a>
+            </div>
+
+            <div class="rounded-3xl border border-brand-200 bg-brand-50 p-5">
+              <div class="text-sm font-semibold text-brand-700">Popular</div>
+              <div class="mt-2 text-3xl font-black text-slate-900">$1,299</div>
+              <div class="mt-1 text-sm text-slate-600">Best for most teams</div>
+              <ul class="mt-4 space-y-2 text-sm text-slate-700">
+                <li class="flex gap-2">
+                  <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span> 2
+                  projects
+                </li>
+                <li class="flex gap-2">
+                  <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span>
+                  QA + testing
+                </li>
+                <li class="flex gap-2">
+                  <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span>
+                  Priority support
+                </li>
+              </ul>
+              <a
+                href="#contact"
+                class="mt-5 inline-flex w-full justify-center rounded-2xl bg-brand-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-brand-700"
+              >
+                Choose Popular
+              </a>
+            </div>
+
+            <div class="rounded-3xl border border-slate-200 p-5">
+              <div class="text-sm font-semibold text-brand-700">Enterprise</div>
+              <div class="mt-2 text-3xl font-black text-slate-900">$2,499</div>
+              <div class="mt-1 text-sm text-slate-600">For advanced needs</div>
+              <ul class="mt-4 space-y-2 text-sm text-slate-700">
+                <li class="flex gap-2">
+                  <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span>
+                  Multi-phase plan
+                </li>
+                <li class="flex gap-2">
+                  <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span>
+                  Dedicated check-ins
+                </li>
+                <li class="flex gap-2">
+                  <span class="mt-1 h-2 w-2 rounded-full bg-brand-600"></span>
+                  Documentation pack
+                </li>
+              </ul>
+              <a
+                href="#contact"
+                class="mt-5 inline-flex w-full justify-center rounded-2xl bg-white border border-slate-200 px-4 py-2.5 text-sm font-bold hover:bg-slate-50"
+              >
+                Choose Enterprise
+              </a>
+            </div>
+          </div>
+
+          <p class="mt-5 text-xs text-slate-500">
+            Pricing shown is placeholder. Remove or update as needed.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="mx-auto max-w-7xl px-4 pb-12 sm:pb-16">
+    <div class="flex items-end justify-between gap-6 flex-wrap">
+      <div>
+        <p class="text-sm font-semibold text-brand-700">Testimonials</p>
+        <h2
+          class="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-slate-900"
+        >
+          Clients trust our delivery
+        </h2>
+      </div>
+    </div>
+
+    <div class="mt-8 grid md:grid-cols-3 gap-5">
+      <div class="rounded-3xl border border-slate-100 bg-white p-6">
+        <div class="flex items-center gap-3">
+          <div
+            class="h-11 w-11 rounded-2xl bg-brand-100 text-brand-700 grid place-items-center font-bold"
+          >
+            A
+          </div>
+          <div>
+            <div class="font-bold text-slate-900">Ayesha</div>
+            <div class="text-sm text-slate-600">Operations Lead</div>
+          </div>
+        </div>
+        <p class="mt-4 text-sm text-slate-700">
+          “Clear milestones and excellent communication. The result exceeded
+          expectations.”
+        </p>
+        <div
+          class="mt-4 flex gap-1 text-brand-700"
+          aria-label="5 out of 5 stars"
+        >
+          <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+        </div>
+      </div>
+
+      <div class="rounded-3xl border border-slate-100 bg-white p-6">
+        <div class="flex items-center gap-3">
+          <div
+            class="h-11 w-11 rounded-2xl bg-brand-100 text-brand-700 grid place-items-center font-bold"
+          >
+            M
+          </div>
+          <div>
+            <div class="font-bold text-slate-900">Mohammed</div>
+            <div class="text-sm text-slate-600">Project Manager</div>
+          </div>
+        </div>
+        <p class="mt-4 text-sm text-slate-700">
+          “Professional, fast, and thorough. They handled everything
+          end-to-end.”
+        </p>
+        <div
+          class="mt-4 flex gap-1 text-brand-700"
+          aria-label="5 out of 5 stars"
+        >
+          <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+        </div>
+      </div>
+
+      <div class="rounded-3xl border border-slate-100 bg-white p-6">
+        <div class="flex items-center gap-3">
+          <div
+            class="h-11 w-11 rounded-2xl bg-brand-100 text-brand-700 grid place-items-center font-bold"
+          >
+            S
+          </div>
+          <div>
+            <div class="font-bold text-slate-900">Sarah</div>
+            <div class="text-sm text-slate-600">Founder</div>
+          </div>
+        </div>
+        <p class="mt-4 text-sm text-slate-700">
+          “The roadmap and execution were spot on. We saw measurable improvement
+          quickly.”
+        </p>
+        <div
+          class="mt-4 flex gap-1 text-brand-700"
+          aria-label="5 out of 5 stars"
+        >
+          <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact / CTA -->
+  <section id="contact" class="mx-auto max-w-7xl px-4 pb-14 sm:pb-20">
+    <div
+      class="rounded-3xl border border-slate-100 bg-white shadow-sm p-6 sm:p-10"
+    >
+      <div class="grid lg:grid-cols-12 gap-8 items-center">
+        <div class="lg:col-span-7">
+          <p class="text-sm font-semibold text-brand-700">Contact</p>
+          <h2
+            class="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-slate-900"
+          >
+            Ready to get started?
+          </h2>
+          <p class="mt-4 text-slate-600">
+            Send your request and we’ll reply with proposed next steps.
+          </p>
+
+          <div class="mt-6 grid sm:grid-cols-2 gap-4">
+            <div class="rounded-2xl border border-slate-100 p-4">
+              <div class="text-sm font-semibold text-slate-900">Email</div>
+              <div class="text-sm text-slate-600">
+                hello@properwaysolution.com
+              </div>
+            </div>
+            <div class="rounded-2xl border border-slate-100 p-4">
+              <div class="text-sm font-semibold text-slate-900">Phone</div>
+              <div class="text-sm text-slate-600">+1 (555) 123-4567</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5">
+          <form class="grid gap-3" action="#" method="post">
+            <div class="grid sm:grid-cols-2 gap-3">
+              <label class="block">
+                <span class="text-sm font-semibold text-slate-700">Name</span>
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600"
+                  placeholder="Your name"
+                />
+              </label>
+              <label class="block">
+                <span class="text-sm font-semibold text-slate-700">Email</span>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600"
+                  placeholder="you@example.com"
+                />
+              </label>
+            </div>
+
+            <label class="block">
+              <span class="text-sm font-semibold text-slate-700"
+                >Service needed</span
+              >
+              <select
+                name="service_needed"
+                class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600"
+              >
+                <option>Consulting</option>
+                <option>Implementation</option>
+                <option>Support & Maintenance</option>
+                <option>Not sure yet</option>
+              </select>
+            </label>
+
+            <label class="block">
+              <span class="text-sm font-semibold text-slate-700">Message</span>
+              <textarea
+                name="contact_message"
+                rows="4"
+                required
+                class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600"
+                placeholder="Tell us about your goals..."
+              ></textarea>
+            </label>
+
+            <button
+              type="submit"
+              class="inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:ring-offset-2"
+            >
+              Submit request
+            </button>
+
+            <p class="text-xs text-slate-500">
+              Placeholder form action. Connect to your form handler or backend.
+            </p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    function toggleService(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle("hidden");
+    }
+
+    // Set current year
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</div>

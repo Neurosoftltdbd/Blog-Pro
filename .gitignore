@@ -1,5 +1,7 @@
 node_modules
 .vscode
+.agents
+.claude
 .DS_Store
 .idea
 .git

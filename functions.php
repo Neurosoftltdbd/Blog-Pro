@@ -66,11 +66,17 @@ require BLOGPRO_DIR . '/inc/llms.php';    // serve dynamic llms.txt
 require BLOGPRO_DIR . '/inc/web-mcp-schema.php'; // WebMCP tool schemas
 require BLOGPRO_DIR . '/inc/class-blogpro-nav-walker.php'; // Dropdown menu walker
 require BLOGPRO_DIR . '/inc/widgets.php';
+require BLOGPRO_DIR . '/inc/templates-loader.php'; // Custom Template Loader
 
 
 // WooCommerce integration if active
 if ( class_exists( 'WooCommerce' ) ) {
     require BLOGPRO_DIR . '/woocommerce/wcom-support.php';
+}
+
+// Elementor Optimisation
+if( class_exists( 'Elementor\Plugin' ) ) {
+    require BLOGPRO_DIR . '/inc/elementor-optimisation.php';
 }
 
 

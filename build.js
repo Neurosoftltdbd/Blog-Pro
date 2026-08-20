@@ -9,12 +9,33 @@ function log(section) {
   console.log(`\n=== ${section} ===`);
 }
 
-const zipName = `Blog-pro.zip`;
+const zipName = `blog-pro.zip`;
 // Create zip in the parent directory of the theme
 const zipPath = path.join(path.dirname(__dirname), zipName);
 
+// 0. Validate required production files exist
+log("Validating required files");
+const requiredFiles = ["style.css", "functions.php", "index.php"];
+for (const f of requiredFiles) {
+  if (!fs.existsSync(path.join(__dirname, f))) {
+    console.error(`Required file missing: ${f}`);
+    process.exit(1);
+  }
+}
+const compiledCss = path.join(__dirname, "assets", "css", "tailwind.css");
+if (!fs.existsSync(compiledCss)) {
+  console.error(
+    "assets/css/tailwind.css missing — run the Tailwind build first (npm run build)",
+  );
+  process.exit(1);
+}
+if (!fs.existsSync(path.join(__dirname, "readme.txt"))) {
+  console.warn("readme.txt not found — required for WordPress.org submission");
+}
+
 // 1. Bump the version number in style.css before building
 const styleCssPath = path.join(__dirname, "style.css");
+const styleCssOriginal = fs.readFileSync(styleCssPath, "utf8");
 
 function bumpVersion(filePath) {
   let content = fs.readFileSync(filePath, "utf8");
@@ -55,12 +76,13 @@ const excludeSet = new Set([
   "package.json",
   "input.css",
   "tailwind.config.js",
-  ".gitignore",
-  "readme.md",
-  "build.js",
   ".git",
   ".vscode",
   ".claude",
+  ".agents",
+  "Thumbs.db",
+  ".DS_Store",
+  "*.log",
 ]);
 
 function copyRecursive(src, dest) {
@@ -87,6 +109,9 @@ try {
   execSync(zipCommand, { stdio: "inherit" });
 } catch (err) {
   console.error("Zip creation failed:", err);
+  // Restore style.css if version bump already happened
+  fs.writeFileSync(styleCssPath, styleCssOriginal, "utf8");
+  fs.rmSync(tempDir, { recursive: true, force: true });
   process.exit(1);
 }
 

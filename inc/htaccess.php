@@ -15,15 +15,12 @@ define( 'BLOGPRO_HTACCESS_MARKER', 'Blog Pro Performance' );
 
 function blogpro_htaccess_rules() {
 	return array(
-		// Force HTTPS: redirect all http:// requests to https://. Covers the
-		// common termination setups — direct mod_ssl and behind a proxy/load
-		// balancer that sets X-Forwarded-Proto. The rules are guarded so they
-		// never loop (https already on, or the request is already trusted).
+		// Force HTTPS: redirect all http:// requests to https://. Covers both
+		// direct SSL and setups behind a proxy/load balancer.
 		'<IfModule mod_rewrite.c>',
 		"\tRewriteEngine On",
-		"\tRewriteCond %{HTTPS} !=on [OR]",
-		"\tRewriteCond %{HTTP:X-Forwarded-Proto} !https",
 		"\tRewriteCond %{HTTPS} !=on",
+		"\tRewriteCond %{HTTP:X-Forwarded-Proto} !https",
 		"\tRewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]",
 		'</IfModule>',
 		'',

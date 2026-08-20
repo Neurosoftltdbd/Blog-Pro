@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <?php wp_head(); ?>
 </head>
-<body <?php body_class( 'bg-white' ); ?>>
+<body <?php body_class( 'bg-white' ); ?> >
 <?php wp_body_open(); ?>
 <a class="fixed left-[-9999px] top-0 bg-gray-900 text-white px-4 py-2.5 z-999 focus:left-2.5 focus:top-2.5 no-underline" href="#main"><?php esc_html_e( 'Skip to content', 'blog-pro' ); ?></a>
 
@@ -30,7 +30,7 @@
 			</div>
 
 <!-- Desktop menu -->
-		<nav class="primary-nav hidden md:flex" id="primary-menu" aria-label="<?php esc_attr_e( 'Primary', 'blog-pro' ); ?>">
+		<nav role="navigation" class="primary-nav hidden md:flex" id="primary-menu" aria-label="<?php esc_attr_e( 'Primary', 'blog-pro' ); ?>">
 			<?php
 			$menu_classes = 'flex flex-col md:flex-row md:space-x-8 space-y-4 md:space-y-0 w-full text-gray-700 font-medium [&_a]:transition-colors [&_a:hover]:text-indigo-600 [&_li:hover]:font-bold [&_li]:transition-all [&_li]:easy-in-out [&_li]:duration-300';
 			if ( has_nav_menu( 'primary' ) ) {

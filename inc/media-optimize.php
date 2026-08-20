@@ -478,6 +478,28 @@ function blogpro_responsive_content_images( $content ) {
 add_filter( 'the_content', 'blogpro_responsive_content_images', 10 );
 
 /**
+ * Whole-site responsive pass: rewrite every frontend <img> to resizer
+ * URLs — covers theme templates (block-template HTML wrapped by
+ * templates-loader), Elementor widget output, widgets, header/footer.
+ * Skips admin / logged-in / Elementor editor. Idempotent: images already
+ * using /blogpro-img/ are left untouched.
+ */
+function blogpro_responsive_buffer_images( $buffer ) {
+	if ( is_admin() || is_user_logged_in() ) {
+		return $buffer;
+	}
+	if ( did_action( 'elementor/loaded' ) && ! empty( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
+		return $buffer;
+	}
+	return blogpro_responsive_content_images( $buffer );
+}
+
+function blogpro_responsive_buffer_start() {
+	ob_start( 'blogpro_responsive_buffer_images' );
+}
+add_action( 'template_redirect', 'blogpro_responsive_buffer_start' );
+
+/**
  * Responsive <img> served by the resizer above. Emits a srcset of
  * widths up to the original, height auto — one upload, no size queue.
  */
