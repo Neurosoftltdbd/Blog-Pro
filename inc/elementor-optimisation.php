@@ -213,10 +213,31 @@ function blogpro_elementor_get_used_widget_types() {
 }
 
 /**
+ * Is the header or footer an Elementor theme-builder document?
+ * When yes, the site chrome itself is built with Elementor — its widget
+ * styles must never be dropped, so the optimization is skipped entirely.
+ */
+function blogpro_elementor_has_theme_locations() {
+	if ( ! function_exists( 'elementor_theme_do_location' ) || ! did_action( 'elementor/loaded' ) || ! class_exists( '\ElementorPro\Modules\ThemeBuilder\Module' ) ) {
+		return false;
+	}
+	foreach ( array( 'header', 'footer' ) as $location ) {
+		$docs = \ElementorPro\Modules\ThemeBuilder\Module::instance()->get_conditions_manager()->get_documents_for_location( $location );
+		if ( ! empty( $docs ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
  * Dequeue widget-* styles not used by any widget on the page, plus
  * e-animation-*, e-apple-webkit, e-sticky, and swiper/e-swiper when
  * nothing on the page needs them. Runs after Elementor's own widget-style
  * enqueues (priority 10) so the cascade is stable.
+ *
+ * Skipped entirely when the header/footer are Elementor theme-builder
+ * documents — chrome styles are never touched.
  */
 function blogpro_elementor_dequeue_unused_widget_styles() {
 	if ( ! blogpro_elementor_optimize_allowed() ) {
@@ -226,6 +247,11 @@ function blogpro_elementor_dequeue_unused_widget_styles() {
 		return;
 	}
 	if ( ! blogpro_elementor_needs_assets() ) {
+		return;
+	}
+
+	// Header/footer built with Elementor — keep everything (site chrome).
+	if ( blogpro_elementor_has_theme_locations() ) {
 		return;
 	}
 
@@ -300,34 +326,6 @@ function blogpro_elementor_dequeue_unused_widget_styles() {
 	}
 }
 add_action( 'elementor/frontend/after_enqueue_styles', 'blogpro_elementor_dequeue_unused_widget_styles', 20 );
-
-/**
- * Defer Elementor runtime scripts that are safe to defer — webpack
- * runtimes, frontend-modules, swiper, sticky. The theme's generic
- * script_loader_tag filter (functions.php) emits defer when the data
- * flag is set. elementor-frontend / elementor-pro-frontend are NOT
- * deferred (parse-time dependency contract).
- */
-function blogpro_defer_elementor_scripts() {
-	if ( ! blogpro_elementor_optimize_allowed() ) {
-		return;
-	}
-	$handles = array(
-		'elementor-webpack-runtime',
-		'elementor-pro-webpack-runtime',
-		'elementor-frontend-modules',
-		'swiper',
-		'e-sticky',
-	);
-	foreach ( $handles as $handle ) {
-		if ( wp_script_is( $handle, 'registered' ) ) {
-			wp_script_add_data( $handle, 'defer', true );
-		}
-	}
-}
-add_action( 'elementor/frontend/after_enqueue_styles', 'blogpro_defer_elementor_scripts', 21 );
-add_action( 'elementor/frontend/before_enqueue_scripts', 'blogpro_defer_elementor_scripts', 20 );
-add_action( 'wp_enqueue_scripts', 'blogpro_defer_elementor_scripts', 100 );
 
 /**
  * Late cleanup on wp_footer: Pro registers some assets after

@@ -14,12 +14,14 @@ while ( have_posts() ) : the_post();
 				<?php echo blogpro_responsive_img( get_post_thumbnail_id(), array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover aspect-video rounded-lg', 'sizes' => '(max-width: 896px) 100vw, 896px', 'loading' => 'eager' ) ); ?>
 			</div>
 		<?php endif; ?>
-		<div class="text-sm font-semibold text-indigo-600 uppercase tracking-widest py-4"><?php blogpro_posted_on(); ?></div>
+		<div class="text-sm font-semibold text-indigo-600 tracking-widest py-4"><?php blogpro_posted_on(); ?></div>
 
 
-		<div class="prose prose-lg md:prose-xl prose-indigo max-w-none mx-auto mb-16 text-gray-800 leading-relaxed">
+		<div class="prose prose-lg md:prose-xl prose-indigo max-w-none mx-auto mb-16 text-gray-800 leading-relaxed [&_h1]:text-3xl [&_h1]:font-extrabold [&_h1]:mt-6 [&_h1]:mb-3 [&_h1]:tracking-tight [&_h2]:text-2xl [&_h2]:font-extrabold [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:border-b-2 [&_h2]:border-slate-200 [&_h2]:pb-2 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:mt-6 [&_h3]:mb-2 [&_h4]:text-lg [&_h4]:font-semibold [&_h4]:mt-5 [&_h4]:mb-2 [&_a]:text-indigo-600 [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:text-indigo-800 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-4 [&_li]:my-1.5 [&_blockquote]:border-l-4 [&_blockquote]:border-indigo-500 [&_blockquote]:bg-indigo-50 [&_blockquote]:py-3 [&_blockquote]:px-5 [&_blockquote]:my-6 [&_blockquote]:italic [&_blockquote]:text-slate-600 [&_blockquote]:rounded-r-lg [&_table]:w-full [&_table]:border-collapse [&_table]:my-6 [&_th]:border [&_th]:border-slate-200 [&_th]:bg-slate-50 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_td]:border [&_td]:border-slate-200 [&_td]:px-3 [&_td]:py-2 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_pre]:bg-slate-900 [&_pre]:text-slate-100 [&_pre]:p-4 [&_pre]:rounded-xl [&_pre]:overflow-x-auto [&_pre]:my-6 [&_code]:bg-indigo-100 [&_code]:text-indigo-700 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit [&_hr]:border-slate-200 [&_hr]:my-10 [&_figure]:my-6 [&_figcaption]:text-sm [&_figcaption]:text-slate-500 [&_figcaption]:text-center [&_figcaption]:mt-2 [&_iframe]:max-w-full [&_p]:py-4">
 			<?php the_content(); ?>
 		</div>
+
+		<?php blogpro_faq_block(); // FAQ accordion — items from the post's FAQ metabox ?>
 
 		<?php
 		$tags = get_the_tags();

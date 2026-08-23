@@ -1,0 +1,19 @@
+/* FAQ block — editor-only scaffolding. Frontend styles are Tailwind
+   utilities in render.php (compiled into assets/css/tailwind.css). */
+
+.bp-faq__item--edit {
+	border: 1px dashed #d1d5db;
+	border-radius: 0.5rem;
+	padding: 0.75rem;
+	margin-top: 0.75rem;
+}
+
+.bp-faq__item--edit + .components-button {
+	margin-bottom: 0.75rem;
+}
+
+.bp-faq__header .rich-text {
+	font-size: 1.5rem;
+	font-weight: 700;
+	color: #111827;
+}

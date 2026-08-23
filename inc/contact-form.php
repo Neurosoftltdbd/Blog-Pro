@@ -1,8 +1,7 @@
 <?php
 /**
- * Handles the theme's built-in contact form (page-contact.php) using
- * wp_mail() — no plugin needed. Includes a nonce and a honeypot field
- * for basic spam protection.
+ * Handle contact form submissions — save to DB as custom post type
+ * (view under Dashboard → Blog Pro → Contact) and mail the admin.
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
@@ -29,13 +28,34 @@ function blogpro_handle_contact_form() {
 		return;
 	}
 
+	$post_id = wp_insert_post( array(
+		'post_type'    => 'blogpro_contact',
+		'post_status'  => 'private',
+		'post_title'   => sprintf( '%s — %s', $name, $email ),
+		'post_content' => $message,
+		'meta_input'   => array(
+			'_blogpro_contact_name'    => $name,
+			'_blogpro_contact_email'   => $email,
+			'_blogpro_contact_message' => $message,
+		),
+	) );
+
+	if ( ! $post_id || is_wp_error( $post_id ) ) {
+		set_transient( 'blogpro_contact_status_' . blogpro_visitor_key(), 'error', 60 );
+		return;
+	}
+
 	$to      = get_option( 'admin_email' );
 	$subject = sprintf( '[%s] New contact form message from %s', get_bloginfo( 'name' ), $name );
 	$body    = "Name: $name\nEmail: $email\n\nMessage:\n$message";
 	$headers = array( 'Reply-To: ' . $name . ' <' . $email . '>' );
 
-	$sent = wp_mail( $to, $subject, $body, $headers );
-	set_transient( 'blogpro_contact_status_' . blogpro_visitor_key(), $sent ? 'success' : 'error', 60 );
+	// Best-effort email. The DB record is the source of truth (visible under
+	// Dashboard → Blog Pro → Contact), so a mail failure (e.g. no sendmail
+	// configured on localhost) must not surface as "something went wrong".
+	wp_mail( $to, $subject, $body, $headers );
+
+	set_transient( 'blogpro_contact_status_' . blogpro_visitor_key(), 'success', 60 );
 }
 add_action( 'init', 'blogpro_handle_contact_form' );
 
