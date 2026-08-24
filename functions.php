@@ -66,9 +66,11 @@ require BLOGPRO_DIR . '/inc/llms.php';    // serve dynamic llms.txt
 require BLOGPRO_DIR . '/inc/web-mcp-schema.php'; // WebMCP tool schemas
 require BLOGPRO_DIR . '/inc/class-blogpro-nav-walker.php'; // Dropdown menu walker
 require BLOGPRO_DIR . '/inc/widgets.php';
+require BLOGPRO_DIR . '/widgets/class-blogpro-widgets-loader.php'; // custom widgets
 require BLOGPRO_DIR . '/inc/templates-loader.php'; // Custom Template Loader
 require BLOGPRO_DIR . '/inc/internal-linking.php'; // auto internal linking
 require BLOGPRO_DIR . '/blocks/class-blogpro-block.php'; // FAQ accordion component
+require BLOGPRO_DIR . '/inc/faq-optimisation.php'; // avoids duplicate FAQ output
 require BLOGPRO_DIR . '/admin/class-blogpro-admin-menu.php'; // branded dashboard sidebar
 
 

@@ -1,0 +1,13 @@
+/* TOC block — editor-only scaffolding. Frontend uses Tailwind in render.php. */
+
+.bp-toc__header .rich-text {
+	font-size: 1.5rem;
+	font-weight: 700;
+	color: #111827;
+}
+
+.bp-toc__hint {
+	color: #9ca3af;
+	font-style: italic;
+	font-size: 0.875rem;
+}

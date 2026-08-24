@@ -1,0 +1,25 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "blog-pro/toc",
+  "title": "Table of Contents",
+  "icon": "list-view",
+  "category": "widgets",
+  "description": "Linked list of the post's H2/H3 headings.",
+  "keywords": ["toc", "table of contents", "index"],
+  "textdomain": "blog-pro",
+  "editorScript": "file:./index.js",
+  "viewScript": "file:./view.js",
+  "editorStyle": "file:./style.css",
+  "render": "file:./render.php",
+  "attributes": {
+    "title": {
+      "type": "string",
+      "default": "Table of Contents"
+    }
+  },
+  "supports": {
+    "html": false,
+    "align": ["wide", "full"]
+  }
+}

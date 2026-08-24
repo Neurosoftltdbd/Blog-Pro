@@ -3,7 +3,7 @@
 
 <footer class="w-full bg-gray-900 text-gray-200">
 	<div class="w-full max-w-7xl mx-auto px-4 py-12">
-		<div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-left mb-12">
+		<div class="grid grid-cols-1 md:grid-cols-4 gap-12 text-left mb-12">
 			<?php for ( $i = 1; $i <= 4; $i++ ) : ?>
 				<div class="footer-column-<?php echo $i; ?>">
 					<?php

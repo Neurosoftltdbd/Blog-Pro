@@ -14,12 +14,119 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
- * Register the block from metadata.
+ * Register all theme blocks from metadata.
  */
 function blogpro_register_faq_block() {
 	register_block_type( BLOGPRO_DIR . '/blocks/faq' );
 }
 add_action( 'init', 'blogpro_register_faq_block' );
+
+function blogpro_register_toc_block() {
+	register_block_type( BLOGPRO_DIR . '/blocks/toc' );
+}
+add_action( 'init', 'blogpro_register_toc_block' );
+
+/* ---------------------------------------------------------------------
+ * TOC shared machinery
+ *
+ * Collects H2/H3 headings from the raw post content (cached per post per
+ * request), assigns slugged anchor IDs, and injects both the id and
+ * scroll-mt-24 (sticky header offset) into the rendered headings via a
+ * the_content filter. The blog-pro/toc render.php reads the same cache,
+ * so its links always match.
+ * ------------------------------------------------------------------- */
+function blogpro_toc_headings() {
+	static $cache = array();
+
+	$post_id = get_the_ID();
+	if ( ! $post_id ) {
+		return array();
+	}
+	if ( isset( $cache[ $post_id ] ) ) {
+		return $cache[ $post_id ];
+	}
+
+	$content = (string) get_post_field( 'post_content', $post_id );
+	preg_match_all( '/<h([23])([^>]*)>(.*?)<\/h\1>/is', $content, $matches, PREG_SET_ORDER );
+
+	$heads = array();
+	$seen  = array();
+	foreach ( $matches as $m ) {
+		if ( preg_match( '/\bid=/i', $m[2] ) ) {
+			continue; // already anchors — leave them alone
+		}
+		$text = trim( wp_strip_all_tags( html_entity_decode( $m[3], ENT_QUOTES, get_bloginfo( 'charset' ) ) ) );
+		if ( '' === $text ) {
+			continue;
+		}
+		$slug  = sanitize_title( $text );
+		if ( '' === $slug ) {
+			$slug = 'section';
+		}
+		$base = $slug;
+		$n    = 1;
+		while ( isset( $seen[ $slug ] ) ) {
+			$n++;
+			$slug = $base . '-' . $n;
+		}
+		$seen[ $slug ] = true;
+
+		$heads[] = array(
+			'level' => (int) $m[1],
+			'text'  => $text,
+			'id'    => $slug,
+		);
+	}
+
+	$cache[ $post_id ] = $heads;
+	return $heads;
+}
+
+/**
+ * Inject anchor ids + smooth-scroll offset into post/page headings.
+ *
+ * @param string $content
+ * @return string
+ */
+function blogpro_toc_annotate_headings( $content ) {
+	if ( '' === trim( (string) $content ) || ! is_singular( array( 'post', 'page' ) ) || ! in_the_loop() ) {
+		return $content;
+	}
+
+	$heads = blogpro_toc_headings();
+	if ( ! $heads ) {
+		return $content;
+	}
+
+	$idx   = 0;
+	$count = count( $heads );
+
+	return preg_replace_callback( '/<h([23])([^>]*)>(.*?)<\/h\1>/is', function ( $m ) use ( &$idx, $heads, $count ) {
+		if ( preg_match( '/\bid=/i', $m[2] ) ) {
+			return $m[0]; // already has an id (e.g. TOC's own title) — keep as-is
+		}
+		$text = trim( wp_strip_all_tags( html_entity_decode( $m[3], ENT_QUOTES, get_bloginfo( 'charset' ) ) ) );
+		if ( '' === $text ) {
+			return $m[0];
+		}
+		if ( $idx >= $count ) {
+			return $m[0];
+		}
+
+		$heading = $heads[ $idx++ ];
+		$attrs   = $m[2];
+
+		// Merge scroll-mt-24 into an existing class attribute or add one.
+		if ( preg_match( '/class=(["\'])(.*?)\1/i', $attrs, $cm ) ) {
+			$attrs = str_replace( $cm[0], 'class=' . $cm[1] . 'scroll-mt-24 ' . $cm[2] . $cm[1], $attrs );
+		} else {
+			$attrs .= ' class="scroll-mt-24"';
+		}
+
+		return '<h' . $m[1] . ' id="' . esc_attr( $heading['id'] ) . '"' . $attrs . '>' . $m[3] . '</h' . $m[1] . '>';
+	}, $content );
+}
+add_filter( 'the_content', 'blogpro_toc_annotate_headings', 12 );
 
 /* ---------------------------------------------------------------------
  * Legacy per-post FAQ metabox (Question => Answer lines)
@@ -65,6 +172,14 @@ function blogpro_faq_block( $post_id = null ) {
 	if ( ! $post_id ) {
 		return;
 	}
+
+	// If the post content already has a blog-pro/faq block, it wins —
+	// don't render the legacy metabox FAQ on top of it (no duplicates).
+	// Filterable so themes/plugins can override the decision.
+	if ( ! apply_filters( 'blogpro_faq_auto_append', true, $post_id ) ) {
+		return;
+	}
+
 	$items = blogpro_faq_for_post( $post_id );
 	if ( ! $items ) {
 		return;
