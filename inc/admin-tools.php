@@ -18,20 +18,15 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-function blogpro_optimize_images_menu() {
-	add_media_page(
-		__( 'Optimize Images', 'blog-pro' ),
-		__( 'Optimize Images', 'blog-pro' ),
-		'upload_files',
-		'blogpro-optimize-images',
-		'blogpro_render_optimize_images_page'
-	);
-}
-add_action( 'admin_menu', 'blogpro_optimize_images_menu' );
+// The Optimize Images menu lives under Blog Pro → Optimize Images
+// (registered in admin/class-blogpro-admin-menu.php). The page render
+// callback is defined here.
 
 function blogpro_optimize_images_enqueue( $hook ) {
-	if ( 'media_page_blogpro-optimize-images' !== $hook ) return;
-	wp_enqueue_script( 'blogpro-optimize-images', BLOGPRO_URI . '/js/admin-optimize-images.js', array(), BLOGPRO_VERSION, true );
+	// Hook name for a submenu of 'blogpro-dashboard' (sanitized to
+	// 'blog-pro'): 'blog-pro_page_' . menu_slug.
+	if ( 'blog-pro_page_blogpro-optimize-images' !== $hook ) return;
+	wp_enqueue_script( 'blogpro-optimize-images', BLOGPRO_URI . '/assets/js/admin-optimize-images.js', array(), BLOGPRO_VERSION, true );
 	wp_localize_script( 'blogpro-optimize-images', 'blogproOptimize', array(
 		'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 		'nonce'   => wp_create_nonce( 'blogpro_optimize_images' ),
@@ -247,3 +242,93 @@ function blogpro_ajax_optimize_batch() {
 	) );
 }
 add_action( 'wp_ajax_blogpro_optimize_batch', 'blogpro_ajax_optimize_batch' );
+
+/* ---------------------------------------------------------------------
+ * Cleanup submenu — under Blog Pro → Cleanup.
+ * Handles orphaned files and unused intermediate sizes.
+ * ------------------------------------------------------------------- */
+
+function blogpro_cleanup_menu() {
+	add_submenu_page(
+		'blogpro-dashboard',
+		__( 'Cleanup', 'blog-pro' ),
+		__( 'Cleanup', 'blog-pro' ),
+		'manage_options',
+		'blogpro-cleanup',
+		'blogpro_render_cleanup_page',
+		999
+	);
+}
+add_action( 'admin_menu', 'blogpro_cleanup_menu', 1000 );
+
+function blogpro_render_cleanup_page() {
+	if ( ! current_user_can( 'manage_options' ) ) return;
+
+	$stats = null;
+	if ( isset( $_GET['blogpro_cleanup'] ) && check_admin_referer( 'blogpro_cleanup' ) ) {
+		$rev_stats = blogpro_cleanup_revisions();
+		$img_stats = blogpro_cleanup_unused_image_sizes();
+		$stats     = array_merge( $rev_stats, $img_stats );
+		update_option( 'blogpro_last_cleanup', current_time( 'mysql' ) );
+	}
+	$last = get_option( 'blogpro_last_cleanup' );
+	?>
+	<div class="wrap">
+		<h1><?php esc_html_e( 'Cleanup', 'blog-pro' ); ?></h1>
+		<p><?php esc_html_e( 'Deletes stale post revisions and orphaned intermediate image sizes (and their WebP twins) that this theme does not use. Also removes orphaned .webp / .avif files whose source no longer exists.', 'blog-pro' ); ?></p>
+		<?php if ( $stats ) : ?>
+			<div class="notice notice-success"><p>
+				<?php
+				printf(
+					esc_html__( 'Done — %1$d revisions, %2$d files removed (%3$s).', 'blog-pro' ),
+					(int) $stats['revisions'],
+					(int) $stats['images'],
+					size_format( (int) $stats['bytes'] )
+				);
+				?>
+			</p></div>
+		<?php endif; ?>
+		<?php if ( $last ) : ?>
+			<p><?php printf( esc_html__( 'Last run: %s', 'blog-pro' ), esc_html( $last ) ); ?></p>
+		<?php endif; ?>
+		<p>
+			<a class="button button-primary" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=blogpro-cleanup&blogpro_cleanup=1' ), 'blogpro_cleanup' ) ); ?>">
+				<?php esc_html_e( 'Run cleanup now', 'blog-pro' ); ?>
+			</a>
+		</p>
+		<hr style="margin:24px 0">
+		<h2><?php esc_html_e( 'Orphaned .webp / .avif Files', 'blog-pro' ); ?></h2>
+		<p><?php esc_html_e( 'Scan the uploads directory and remove .webp and .avif files whose source image (.jpg, .png) no longer exists, and sweep the blogpro-cache folder for stale resized images.', 'blog-pro' ); ?></p>
+		<p>
+			<button type="button" class="button" id="blogpro-cleanup-start"><?php esc_html_e( 'Cleanup Orphans', 'blog-pro' ); ?></button>
+		</p>
+		<p id="blogpro-cleanup-status" style="display:none"></p>
+		<script>
+		(function(){
+			var btn = document.getElementById('blogpro-cleanup-start');
+			var sts = document.getElementById('blogpro-cleanup-status');
+			if (!btn) return;
+			btn.addEventListener('click', function(){
+				btn.disabled = true;
+				btn.textContent = 'Scanning…';
+				sts.style.display = 'block';
+				sts.textContent = 'Scanning…';
+				var body = new URLSearchParams({action:'blogpro_cleanup_orphans', nonce:'<?php echo wp_create_nonce( 'blogpro_optimize_images' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>'});
+				fetch('<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>', {method:'POST', credentials:'same-origin', body:body})
+					.then(function(r){return r.json()})
+					.then(function(res){
+						btn.disabled = false;
+						btn.textContent = 'Cleanup Orphans';
+						sts.textContent = res.success ? res.data.message : 'Cleanup failed. Please try again.';
+					})
+					.catch(function(){
+						btn.disabled = false;
+						btn.textContent = 'Cleanup Orphans';
+						sts.textContent = 'Something went wrong. Please try again.';
+					});
+			});
+		})();
+		</script>
+	</div>
+	<?php
+}

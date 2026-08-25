@@ -67,7 +67,7 @@ get_header();
 					<div class="absolute inset-0 flex flex-col justify-end p-8 bg-linear-to-t from-black via-black/50 to-transparent text-white">
 						<span class="inline-block px-3 py-1 bg-indigo-600 text-white text-sm font-semibold rounded-full mb-3 w-fit"><?php $cats = get_the_category(); if($cats) echo esc_html($cats[0]->name); ?></span>
 						<h2 class="text-lg md:text-3xl font-bold leading-tight line-clamp-2 md:line-clamp-none"><a href="<?php the_permalink(); ?>" class="text-white hover:text-indigo-200 transition-colors no-underline"><?php the_title(); ?></a></h2>
-						<div class="text-sm text-white/70 mt-2"><?php echo esc_html( get_the_date() ); ?></div>
+						<div class="text-sm text-white/90 mt-2"><?php echo esc_html( get_the_date() ); ?></div>
 					</div>
 				</div>
 				<?php $slide_idx++; endwhile; wp_reset_postdata(); ?>
@@ -103,7 +103,7 @@ get_header();
 					</a>
 					<div class="flex-1 min-w-0">
 						<h4 class="text-sm font-semibold text-gray-900 leading-snug mb-1 line-clamp-2"><a href="<?php the_permalink(); ?>" class="text-gray-900 hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h4>
-						<span class="text-xs text-gray-500"><?php echo esc_html( get_the_date() ); ?></span>
+						<span class="text-xs text-gray-700"><?php echo esc_html( get_the_date() ); ?></span>
 					</div>
 				</li>
 				<?php endwhile; wp_reset_postdata(); ?>
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					<?php endif; ?>
 				</a>
 				<div class="p-4">
-					<div class="text-sm text-gray-500 mb-2"><?php echo esc_html( get_the_date() ); ?> &middot; <?php echo esc_html( blogpro_reading_time() ); ?></div>
+					<div class="text-sm text-gray-700 mb-2"><?php echo esc_html( get_the_date() ); ?> &middot; <?php echo esc_html( blogpro_reading_time() ); ?></div>
 					<h3 class="text-sm font-bold text-gray-900 leading-snug line-clamp-2"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h3>
 					
 				</div>
@@ -233,7 +233,7 @@ if ( $categories ) :
 						<?php endif; ?>
 					</a>
 					<div class="p-4 flex flex-col flex-1">
-						<div class="text-sm text-gray-500 mb-2"><?php echo esc_html( get_the_date() ); ?> &middot; <?php echo esc_html( blogpro_reading_time() ); ?></div>
+						<div class="text-sm text-gray-700 mb-2"><?php echo esc_html( get_the_date() ); ?> &middot; <?php echo esc_html( blogpro_reading_time() ); ?></div>
 						<h3 class="text-sm font-bold text-gray-900 leading-snug line-clamp-2"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h3>
 						<p class="text-sm text-gray-600 mt-2 line-clamp-2 flex-1"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 18 ) ); ?></p>
 						<div class="mt-3">

@@ -89,8 +89,9 @@ add_action( 'init', 'blogpro_dequeue_embed' );
 /* 9. Reduce post revisions stored (less DB bloat -> faster queries over time).
       Best set in wp-config.php; documented here as a constant fallback. */
 if ( ! defined( 'WP_POST_REVISIONS' ) ) {
-	define( 'WP_POST_REVISIONS', 5 );
+	define( 'WP_POST_REVISIONS', false );
 }
+
 
 /* 10. Disable the REST API's core discovery links for non-logged-in users on
        archives (keeps our custom, purpose-built endpoint as the primary API). */
@@ -111,3 +112,30 @@ add_action( 'send_headers', function () {
 		header( 'X-Theme: Blog-Pro' );
 	}
 } );
+
+/* 14. Cleanup helper — deletes all but the newest revision per post.
+       Called manually from Admin → Blog Pro → Cleanup (no cron). */
+function blogpro_cleanup_revisions() {
+	global $wpdb;
+	$stats = array( 'revisions' => 0, 'bytes' => 0 );
+
+	$revisions = $wpdb->get_col(
+		"SELECT ID FROM {$wpdb->posts}
+		 WHERE post_type = 'revision'
+		   AND post_parent <> 0
+		   AND ID NOT IN (
+			   SELECT MAX(ID) FROM {$wpdb->posts}
+			   WHERE post_type = 'revision' AND post_parent <> 0
+			   GROUP BY post_parent
+		   )"
+	);
+	foreach ( $revisions as $rev_id ) {
+		if ( wp_delete_post( (int) $rev_id, true ) ) {
+			$stats['revisions']++;
+		}
+	}
+
+	return $stats;
+}
+
+

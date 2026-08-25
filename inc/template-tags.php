@@ -12,7 +12,12 @@ function blogpro_reading_time( $post_id = null ) {
 function blogpro_posted_on() {
 	echo '<span class="text-gray-500 text-sm">' . esc_html( get_the_date() ) . '</span>';
 	echo ' &#10625; <span class="text-gray-500 text-sm">' . esc_html( blogpro_reading_time() ) . '</span>';
-	echo ' &#10625; <span class="text-gray-500 text-sm">' . esc_html__( 'by', 'blog-pro' ) . ' <a href="' . esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ) . '" class="text-indigo-600 hover:text-indigo-800 font-medium no-underline">' . esc_html( get_the_author() ) . '</a></span>';
+	echo ' &#10625; <span class="text-gray-500 text-sm">' . esc_html__( 'By', 'blog-pro' ) . ' <a href="' . esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ) . '" class="text-indigo-600 hover:text-indigo-800 font-medium no-underline">' . esc_html( get_the_author() ) . '</a></span>';
+	$categories = get_the_category();
+	if ( ! empty( $categories ) ) {
+		$category = $categories[0];
+		echo ' &#10625; <span class="text-gray-500 text-sm">' . esc_html__( 'On', 'blog-pro' ) . ' <a href="' . esc_url( get_category_link( $category ) ) . '" class="text-indigo-600 hover:text-indigo-800 font-medium no-underline">' . esc_html( $category->name ) . '</a></span>';
+	}
 }
 
 function blogpro_pagination() {
@@ -73,3 +78,5 @@ function blogpro_featured_query( $limit = 4 ) {
 	}
 	return $q;
 }
+
+// Social share moved to inc/social-share.php (networks registry + admin settings).

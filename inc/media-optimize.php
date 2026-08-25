@@ -192,13 +192,20 @@ add_filter( 'wp_get_attachment_image_attributes', 'blogpro_add_img_attributes', 
 
 /* The single LCP image (post header thumbnail) should NOT be lazy —
    it should load eagerly with high priority so it paints first. */
-function blogpro_lcp_image_attributes( $attr ) {
-	if ( is_singular() ) {
-		$attr['loading']      = 'eager';
-		$attr['fetchpriority'] = 'high';
+function blogpro_lcp_image_attributes( $attr, $attachment = null ) {
+	// LCP only: the featured image of the singular post in the main loop.
+	// Every wp_get_attachment_image() on the page passes through here —
+	// galleries and content images must stay lazy/normal priority.
+	if ( is_singular() && in_the_loop() && is_main_query() && $attachment ) {
+		$post_id = get_queried_object_id();
+		if ( $attachment instanceof WP_Post && (int) get_post_thumbnail_id( $post_id ) === (int) $attachment->ID ) {
+			$attr['loading']       = 'eager';
+			$attr['fetchpriority'] = 'high';
+		}
 	}
 	return $attr;
 }
+add_filter( 'wp_get_attachment_image_attributes', 'blogpro_lcp_image_attributes', 9, 2 );
 // add_filter( 'post_thumbnail_html', function ( $html ) {
 // 	if ( is_singular() ) {
 // 		$html = str_replace( ' loading="lazy"', ' loading="eager" fetchpriority="high"', $html );
@@ -468,6 +475,22 @@ function blogpro_responsive_content_images( $content ) {
 			} else {
 				$img = str_replace( ' srcset="', ' sizes="(max-width: 820px) 100vw, 820px" srcset="', $img );
 			}
+
+			// Inject intrinsic width/height when the markup lacks them (legacy
+			// imports, some builders) — reserves layout space, kills CLS.
+			if ( ! preg_match( '/\b(width|height)=["\']\d+["\']/i', $img ) ) {
+				$dims = @wp_getimagesize( $path );
+				if ( $dims ) {
+					$w = (int) $dims[0];
+					$h = (int) $dims[1];
+					if ( ! preg_match( '/\bwidth=["\']\d+["\']/i', $img ) && $w > 0 ) {
+						$img = preg_replace( '/<img\b/i', '<img width="' . $w . '"', $img, 1 );
+					}
+					if ( ! preg_match( '/\bheight=["\']\d+["\']/i', $img ) && $h > 0 ) {
+						$img = preg_replace( '/<img\b/i', '<img height="' . $h . '"', $img, 1 );
+					}
+				}
+			}
 			return $img;
 		},
 		$content
@@ -491,6 +514,11 @@ function blogpro_responsive_buffer_images( $buffer ) {
 	if ( did_action( 'elementor/loaded' ) && ! empty( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
 		return $buffer;
 	}
+	// Skip non-HTML responses (robots.txt, sitemaps, feeds, images).
+	// if ( 0 !== stripos( ltrim( $buffer ), '<!doctype' ) && 0 !== stripos( ltrim( $buffer ), '<html' ) ) {
+	// 	return $buffer;
+	// }
+	
 	return blogpro_responsive_content_images( $buffer );
 }
 
@@ -533,8 +561,12 @@ function blogpro_responsive_img( $attachment_id, $args = array() ) {
 		'decoding' => 'async',
 	);
 
+	// Eager images are assumed to be the LCP candidate (featured/hero) —
+	// fetchpriority=high pulls them ahead of every other request.
+	$fetchpriority = ( 'eager' === $attrs['loading'] ) ? ' fetchpriority="high"' : '';
+
 	return sprintf(
-		'<img src="%s" srcset="%s" width="%d" height="%d" sizes="%s" alt="%s" loading="%s" decoding="async" class="%s">',
+		'<img src="%s" srcset="%s" width="%d" height="%d" sizes="%s" alt="%s" loading="%s" decoding="async"%s class="%s">',
 		esc_url( $base . $widths[0] . '.webp' ),
 		$srcset,
 		$attrs['width'],
@@ -542,6 +574,77 @@ function blogpro_responsive_img( $attachment_id, $args = array() ) {
 		esc_attr( $attrs['sizes'] ),
 		esc_attr( $attrs['alt'] ),
 		esc_attr( $attrs['loading'] ),
+		$fetchpriority,
 		esc_attr( $attrs['class'] )
 	);
+}
+
+/* ---------------------------------------------------------------------
+ * Cleanup — remove leftover intermediate sizes this theme doesn't use.
+ *
+ * The `intermediate_image_sizes` filter above stops WP from generating
+ * medium / medium_large / 1536 / 2048 for NEW uploads, but sizes created
+ * before the theme (or by a previous theme/plugin) still sit in metadata
+ * and on disk. This pass strips them from every attachment — including
+ * their WebP twins — and prunes the metadata. Weekly, admin-context cron.
+ * ------------------------------------------------------------------- */
+
+/**
+ * Image sizes this theme actually uses and must keep.
+ *
+ * @return string[]
+ */
+function blogpro_keep_image_sizes() {
+	$keep = array( 'thumbnail' );
+	foreach ( wp_get_additional_image_sizes() as $name => $size ) {
+		if ( isset( $size['crop'] ) && ! empty( $size['crop'] ) ) {
+			$keep[] = $name; // cropped sizes are used by layout/theme widgets
+		}
+	}
+	return array_unique( $keep );
+}
+
+/**
+ * One pass: remove unused intermediate sizes from every image attachment.
+ * Returns stats for reporting.
+ *
+ * @return array
+ */
+function blogpro_cleanup_unused_image_sizes() {
+	global $wpdb;
+	$stats = array( 'images' => 0, 'bytes' => 0 );
+
+	$keep        = blogpro_keep_image_sizes();
+	$attachments = $wpdb->get_col(
+		"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_mime_type LIKE 'image/%'"
+	);
+
+	foreach ( $attachments as $att_id ) {
+		$meta = wp_get_attachment_metadata( (int) $att_id );
+		if ( empty( $meta['sizes'] ) || empty( $meta['file'] ) ) {
+			continue;
+		}
+		$att_file = get_attached_file( (int) $att_id );
+		if ( ! $att_file ) {
+			continue;
+		}
+		$dir = trailingslashit( dirname( $att_file ) );
+
+		foreach ( $meta['sizes'] as $name => $size ) {
+			if ( in_array( $name, $keep, true ) ) {
+				continue;
+			}
+			$file = $dir . $size['file'];
+			foreach ( array( $file, $dir . pathinfo( $file, PATHINFO_FILENAME ) . '.webp' ) as $target ) {
+				if ( $target && file_exists( $target ) && @unlink( $target ) ) {
+					$stats['bytes'] += filesize( $target ) ?: 0;
+					$stats['images']++;
+				}
+			}
+			unset( $meta['sizes'][ $name ] );
+		}
+		wp_update_attachment_metadata( (int) $att_id, $meta );
+	}
+
+	return $stats;
 }

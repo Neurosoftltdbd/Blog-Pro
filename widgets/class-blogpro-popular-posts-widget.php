@@ -41,7 +41,7 @@ class BlogPro_Popular_Posts_Widget extends WP_Widget {
 						<div class="text-sm text-gray-100 leading-snug mb-1 line-clamp-2">
 							<a href="<?php the_permalink(); ?>" class="text-gray-100 hover:text-indigo-200 transition-colors no-underline"><?php the_title(); ?></a>
 						</div>
-						<span class="text-xs text-gray-500"><?php echo esc_html( get_the_date() ); ?> &middot; <?php echo esc_html( number_format_i18n( get_comments_number() ) ); ?> <?php esc_html_e( 'comments', 'blog-pro' ); ?></span>
+						<span class="text-xs text-gray-200"><?php echo esc_html( get_the_date() ); ?> &middot; <?php echo esc_html( number_format_i18n( get_comments_number() ) ); ?> <?php esc_html_e( 'comments', 'blog-pro' ); ?></span>
 					</div>
 				</li>
 			<?php $i++; endwhile; wp_reset_postdata(); ?>

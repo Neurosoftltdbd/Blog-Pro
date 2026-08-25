@@ -64,8 +64,8 @@ if ( post_password_required() ) return;
 
 		comment_form( array(
 			'class_form'         => 'bg-gray-50 border border-gray-100 rounded-2xl p-8 space-y-5',
-			'title_reply_before' => '<h2 id="reply-title" class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">',
-			'title_reply_after'  => '</h2>',
+			'title_reply_before' => '<h3 id="reply-title" class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">',
+			'title_reply_after'  => '</h3>',
 			'title_reply'        => __( 'Leave a Comment', 'blog-pro' ),
 			'comment_notes_before' => '<p class="text-sm text-gray-500 -mt-2">' . esc_html__( 'Your email address will not be published.', 'blog-pro' ) . '</p>',
 			'comment_notes_after'  => '',

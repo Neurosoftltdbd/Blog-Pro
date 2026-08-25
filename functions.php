@@ -59,6 +59,7 @@ require BLOGPRO_DIR . '/inc/rest-api.php';       // custom REST endpoints
 require BLOGPRO_DIR . '/inc/media-optimize.php'; // image/video optimization
 require BLOGPRO_DIR . '/inc/force-wp-to-webp.php'; // serve WebP masters through core image APIs
 require BLOGPRO_DIR . '/inc/template-tags.php';  // helper functions for templates
+require BLOGPRO_DIR . '/inc/social-share.php';   // social share networks + settings
 require BLOGPRO_DIR . '/inc/contact-form.php';   // no-plugin contact form handler
 require BLOGPRO_DIR . '/inc/htaccess.php';       // writes caching rules into .htaccess on activation
 require BLOGPRO_DIR . '/inc/admin-tools.php';    // bulk-optimize images uploaded before theme activation
@@ -122,7 +123,7 @@ function blogpro_assets() {
 	wp_style_add_data( 'blogpro-tailwind', 'preload', true );
 	wp_style_add_data( 'blogpro-tailwind', 'onload', "this.rel='stylesheet'" );
 
-    wp_enqueue_script( 'blogpro-main', BLOGPRO_URI . '/js/main.js', array(), BLOGPRO_VERSION, true );
+    wp_enqueue_script( 'blogpro-main', BLOGPRO_URI . '/assets/js/main.js', array(), BLOGPRO_VERSION, true );
     wp_script_add_data( 'blogpro-main', 'defer', true );
 
     if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {

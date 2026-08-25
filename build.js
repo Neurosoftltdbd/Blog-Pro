@@ -83,6 +83,9 @@ const excludeSet = new Set([
   "Thumbs.db",
   ".DS_Store",
   "*.log",
+  "skills-lock.json",
+  ".gitignore",
+  ".htaccess-blogpro",
 ]);
 
 function copyRecursive(src, dest) {
@@ -100,12 +103,16 @@ function copyRecursive(src, dest) {
 }
 
 log("Copying theme files into temporary folder");
-copyRecursive(__dirname, tempDir);
+// Always wrap in lowercase 'blog-pro/' — WordPress theme folders must be
+// lowercase; the dev folder is 'Blog-Pro' (case-sensitive servers break).
+const themeDir = path.join(tempDir, "blog-pro");
+fs.mkdirSync(themeDir, { recursive: true });
+copyRecursive(__dirname, themeDir);
 
-// 4. Create the zip archive with files at the root (no wrapping folder)
+// 4. Create the zip archive (files under blog-pro/ wrapping folder)
 log("Creating zip archive");
 try {
-  const zipCommand = `powershell -NoProfile -Command "Set-Location -LiteralPath '${tempDir}'; Compress-Archive -Path * -DestinationPath '${zipPath}' -Force"`;
+  const zipCommand = `powershell -NoProfile -Command "Set-Location -LiteralPath '${tempDir}'; Compress-Archive -Path '${themeDir}' -DestinationPath '${zipPath}' -Force"`;
   execSync(zipCommand, { stdio: "inherit" });
 } catch (err) {
   console.error("Zip creation failed:", err);

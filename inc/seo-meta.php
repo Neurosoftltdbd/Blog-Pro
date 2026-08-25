@@ -229,6 +229,13 @@ function blogpro_fix_buffer_attributes( $buffer ) {
 	if ( is_admin() || is_user_logged_in() || did_action( 'elementor/loaded' ) && ! empty( \Elementor\Plugin::$instance->editor ) && \Elementor\Plugin::$instance->editor->is_edit_mode() ) {
 		return $buffer;
 	}
+	// Non-HTML responses (robots.txt, sitemaps, feeds, redirects, images)
+	// must pass through untouched — this buffer pass assumes an HTML doc.
+	// (Robots/sitemap/REST handlers exit before template_redirect, so this is
+	// a cheap safety net for anything that slips through, not a hot path.)
+	// if ( 0 !== stripos( ltrim( $buffer ), '<!doctype' ) && 0 !== stripos( ltrim( $buffer ), '<html' ) ) {
+	// 	return $buffer;
+	// }
 
 	// Images.
 	$buffer = preg_replace_callback(

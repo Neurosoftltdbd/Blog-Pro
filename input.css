@@ -55,6 +55,17 @@
     @apply bg-gradient-to-r from-brand-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent;
   }
 
+  /* Copy-link toast — created by JS, announced via role="status" */
+  .share-toast {
+    @apply fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-lg bg-gray-900 text-white text-sm font-medium shadow-lg opacity-0 pointer-events-none transition-opacity duration-300;
+  }
+
+  /* Visible state toggled by JS (opacity-100 lives here because JS is not
+     scanned by @source, so the utility would otherwise be purged). */
+  .share-toast.is-visible {
+    @apply opacity-100;
+  }
+
   /* Desktop dropdown menu styles */
   .primary-nav .group .sub-menu {
     @apply absolute top-full left-0 mt-1 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50;

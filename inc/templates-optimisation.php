@@ -10,6 +10,11 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
  */
 
 function blogpro_minify_html_output_buffer_callback( $buffer ) {
+	// Non-HTML responses (robots.txt, sitemaps, feeds, redirects) must not
+	// be minified — regex passes would corrupt plain text and can fatal.
+	// if ( 0 !== stripos( ltrim( $buffer ), '<!doctype' ) && 0 !== stripos( ltrim( $buffer ), '<html' ) ) {
+	// 	return $buffer;
+	// }
 	$search = array(
 		'/\>[^\S ]+/s',     // strip whitespaces after tags, except space
 		'/[^\S ]+\</s',     // strip whitespaces before tags, except space
