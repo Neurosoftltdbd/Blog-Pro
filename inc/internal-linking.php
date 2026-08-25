@@ -282,7 +282,7 @@ function blogpro_il_render_metabox( $post ) {
 		</label>
 	</p>
 	<p class="description"><?php esc_html_e( 'One rule per line: keyword or phrase => URL', 'blog-pro' ); ?></p>
-	<textarea name="blogpro_il_rules" rows="5" class="widefat" placeholder="wordpress seo => /wordpress-seo-guide/"><?php echo esc_textarea( (string) get_post_meta( $post->ID, '_blogpro_il_rules', true ) ); ?></textarea>
+	<textarea name="blogpro_il_rules" rows="5" class="widefat" placeholder="WordPress SEO => /wordpress-seo-guide/"><?php echo esc_textarea( (string) get_post_meta( $post->ID, '_blogpro_il_rules', true ) ); ?></textarea>
 	<?php
 }
 

@@ -147,7 +147,7 @@ class Blogpro_Nav_Walker extends Walker_Nav_Menu {
 	 * Builds the mobile-only submenu toggle button (hidden on desktop).
 	 */
 	private function build_mobile_toggle() {
-		$button  = '<button class="submenu-toggle md:hidden p-2 ml-2 -mr-2" aria-expanded="false" aria-label="' . esc_attr__( 'Toggle submenu', 'blogpro' ) . '">';
+		$button  = '<button class="submenu-toggle md:hidden p-2 ml-2 -mr-2" aria-expanded="false" aria-label="' . esc_attr__( 'Toggle submenu', 'blog-pro' ) . '">';
 		$button .= $this->chevron_icon( 'h-5 w-5 text-gray-600' );
 		$button .= '</button>';
 

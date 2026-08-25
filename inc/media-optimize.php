@@ -266,7 +266,7 @@ add_filter( 'intermediate_image_sizes', function ( $sizes ) {
 } );
 
 add_filter( 'image_size_names_choose', function( $sizes ) {
-	$sizes['blogpro-featured'] = __( 'Blog Pro Featured' );
+	$sizes['blogpro-featured'] = __( 'Blog Pro Featured', 'blog-pro' );
 	return $sizes;
 } );
 
