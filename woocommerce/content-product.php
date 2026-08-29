@@ -22,9 +22,9 @@ if ( empty( $product ) || ! $product->is_visible() ) return;
         <a href="<?php the_permalink(); ?>">
             <?php
             // Product thumbnail
-            $image_size = 'blogpro-card';
+            // $image_size = 'blogpro-card';
             if ( has_post_thumbnail() ) {
-                echo wp_get_attachment_image( get_post_thumbnail_id(), $image_size, false, [
+                echo wp_get_attachment_image( get_post_thumbnail_id(), false, [
                     'class' => 'w-full h-56 object-cover',
                     'loading' => 'lazy',
                     'alt' => get_the_title(),
@@ -43,7 +43,7 @@ if ( empty( $product ) || ! $product->is_visible() ) return;
         ?>
     </div>
 
-    <div class="product-content p-4 flex flex-col flex-grow">
+    <div class="product-content p-4 flex flex-col grow">
         <div class="product-meta mb-2">
             <?php
             /**

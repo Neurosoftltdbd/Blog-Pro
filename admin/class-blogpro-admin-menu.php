@@ -353,6 +353,8 @@ function blogpro_render_about_page() {
 	<div class="wrap">
 		<h1><?php esc_html_e( 'About Blog Pro', 'blog-pro' ); ?></h1>
 		<p><?php echo esc_html( wp_get_theme()->get( 'Name' ) ) . ' ' . esc_html( wp_get_theme()->get( 'Version' ) ); ?></p>
+		<p>Blog Pro is a modern, lightweight, and feature-rich WordPress theme designed for speed and simplicity. It comes packed with powerful features to help you build a stunning blog or website with ease.</p>
+		
 	</div>
 	<?php
 }

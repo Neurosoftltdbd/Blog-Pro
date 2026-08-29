@@ -27,11 +27,32 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * @return bool
  */
 function blogpro_faq_block_in_content( $post_id ) {
-	$content = strtolower( (string) get_post_field( 'post_content', $post_id ) );
-	return false !== strpos( $content, '<!-- wp:blog-pro/faq' ) ||
-	       false !== strpos( $content, 'faq-group' ) ||
-	       false !== strpos( $content, 'faq-accordion' );
+	$content = (string) get_post_field( 'post_content', $post_id );
+
+	// Block formats (case-insensitive)
+	if ( preg_match( '/<!--\s*wp:(blog-pro|rank-math|yoast)\/faq/i', $content ) ) {
+		return true;
+	}
+
+	// Hand-written HTML FAQ classes (case-insensitive)
+	if ( preg_match( '/\bclass\s*=\s*["\'][^"\']*\b(faq-group|faq-accordion-group|faq-accordion|accordion-group|faq)\b/i', $content ) ) {
+		return true;
+	}
+
+	return false;
 }
+
+// $content = strtolower( (string) get_post_field( 'post_content', $post_id ) );
+// 	return false !== strpos( $content, '<!-- wp:blog-pro/faq' ) ||
+// 	       false !== strpos( $content, '<!-- wp:rank-math/faq' ) ||
+// 	       false !== strpos( $content, '<!-- wp:yoast/faq' ) ||
+// 	       false !== strpos( $content, 'faq-group' ) ||
+// 	       false !== strpos( $content, 'faq-accordion-group' ) ||
+// 	       false !== strpos( $content, 'accordion-group' ) ||
+// 	       false !== strpos( $content, 'faq-accordion' ) ||
+// 	       false !== strpos( $content, 'faq' );
+
+
 
 /**
  * the_content filter — append the metabox FAQ when appropriate.
