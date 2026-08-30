@@ -62,7 +62,12 @@ function blogpro_get_meta_title() {
 	if ( is_author() ) {
 		return sprintf( __( 'Posts by %s | %s', 'blog-pro' ), get_the_author(), get_bloginfo( 'name' ) );
 	}
-	return wp_get_archive_title() . ' | ' . get_bloginfo( 'name' );
+	// is_post_type_archive() covers /shop/, /product/, and any CPT
+	// archive that hasn't matched an earlier branch above.
+	if ( function_exists( 'get_the_archive_title' ) ) {
+		return get_the_archive_title() . ' | ' . get_bloginfo( 'name' );
+	}
+	return get_bloginfo( 'name' );
 }
 
 function blogpro_get_canonical_url() {

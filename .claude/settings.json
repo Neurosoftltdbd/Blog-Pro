@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(curl -s \"https://chromestatus.com/api/features?q=WebMCP\")"
+      "Bash(curl -s \"https://chromestatus.com/api/features?q=WebMCP\")",
+      "Bash(cd \"f:/xampp/htdocs/wordpress/wp-content/plugins/woocommerce\" && ls assets/js/frontend/ 2>/dev/null | head; echo \"---\"; grep -rn \"flex-control-thumbs\\\\|woocommerce-product-gallery__wrapper\\\\|data-columns\" assets/js/frontend/*.js 2>/dev/null | head -5; echo \"---init---\"; grep -n \"product-gallery\" includes/class-wc-frontend-scripts.php | head -10)",
+      "Read(//f/xampp/htdocs/wordpress/wp-content/plugins/woocommerce/**)"
     ]
   }
 }

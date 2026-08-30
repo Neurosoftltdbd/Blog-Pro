@@ -11,7 +11,7 @@ do_action( 'woocommerce_before_cart' ); ?>
 <form class="woocommerce-cart-form" action="<?php echo esc_url( wc_get_cart_url() ); ?>" method="post">
     <?php do_action( 'woocommerce_before_cart_table' ); ?>
 
-    <table class="w-full text-left" cellspacing="0">
+    <table class="shop_table shop_table_responsive cart woocommerce-cart-form__contents w-full text-left" cellspacing="0">
         <thead>
             <tr class="border-b border-gray-200">
                 <th class="pb-3 font-medium text-gray-700"><?php esc_html_e( 'Product', 'blog-pro' ); ?></th>
@@ -33,18 +33,41 @@ do_action( 'woocommerce_before_cart' ); ?>
                     $product_permalink = apply_filters( 'woocommerce_cart_item_permalink', $_product->is_visible() ? $_product->get_permalink( $cart_item ) : '', $cart_item, $cart_item_key );
                     ?>
                     <tr class="woocommerce-cart-form__cart-item <?php echo esc_attr( apply_filters( 'woocommerce_cart_item_class', 'cart_item', $cart_item, $cart_item_key ) ); ?>">
-                        <td class="product-name py-4 border-b border-gray-100">
+                        <td class="product-name py-4 border-b border-gray-100" data-title="<?php esc_attr_e( 'Product', 'woocommerce' ); ?>">
+                            <div class="flex items-start gap-3">
                             <?php
-                            $thumbnail = apply_filters( 'woocommerce_cart_item_thumbnail', $_product->get_image(), $cart_item, $cart_item_key );
+                            /**
+                             * Cart item thumbnail — uses the theme's WebP
+                             * resizer via blogpro_responsive_img. The default
+                             * $_product->get_image() returns a single-size
+                             * WC image, which the media-opt's picture wrapper
+                             * will serve as WebP but without a responsive
+                             * srcset — so a 3G phone still downloads the
+                             * full-size original. The resizer emits the full
+                             * 320/480/768/1024/1280/1600 srcset that the
+                             * sizes attribute below can pick from.
+                             */
+                            $thumb_id  = $_product->get_image_id();
+                            $thumb_alt = $_product->get_name();
+                            $thumbnail = $thumb_id
+                                ? blogpro_responsive_img( $thumb_id, array(
+                                    'class' => 'w-20 h-20 object-cover rounded-lg border border-gray-100',
+                                    'alt'   => esc_attr( $thumb_alt ),
+                                    'sizes' => '80px',
+                                ) )
+                                : wc_placeholder_img( 'woocommerce_thumbnail' );
+                            $thumbnail = apply_filters( 'woocommerce_cart_item_thumbnail', $thumbnail, $cart_item, $cart_item_key );
+
                             if ( $product_permalink ) {
-                                printf( '<a href="%s">%s</a>', esc_url( $product_permalink ), $thumbnail );
+                                printf( '<a href="%s" class="block shrink-0">%s</a>', esc_url( $product_permalink ), $thumbnail );
                             } else {
-                                echo $thumbnail;
+                                echo '<span class="block shrink-0">' . $thumbnail . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                             }
                             ?>
+                            <div class="mt-2">
                             <?php
                             if ( $product_permalink ) {
-                                printf( '<a href="%s" class="block mt-2 font-medium text-indigo-600 hover:text-indigo-800">%s</a>', esc_url( $product_permalink ), $_product->get_name() );
+                                printf( '<a href="%s" class="block font-medium text-indigo-600 hover:text-indigo-800">%s</a>', esc_url( $product_permalink ), $_product->get_name() );
                             } else {
                                 echo wp_kses_post( apply_filters( 'woocommerce_cart_item_name', $_product->get_name(), $cart_item, $cart_item_key ) );
                             }
@@ -54,15 +77,17 @@ do_action( 'woocommerce_before_cart' ); ?>
                             // Meta data
                             echo wc_get_formatted_cart_item_data( $cart_item );
                             ?>
+                            </div>
+                            </div>
                         </td>
 
-                        <td class="product-price py-4 border-b border-gray-100">
+                        <td class="product-price py-4 border-b border-gray-100" data-title="<?php esc_attr_e( 'Price', 'woocommerce' ); ?>">
                             <?php
                             echo apply_filters( 'woocommerce_cart_item_price', WC()->cart->get_product_price( $_product ), $cart_item, $cart_item_key );
                             ?>
                         </td>
 
-                        <td class="product-quantity py-4 border-b border-gray-100">
+                        <td class="product-quantity py-4 border-b border-gray-100" data-title="<?php esc_attr_e( 'Quantity', 'woocommerce' ); ?>">
                             <?php
                             if ( $_product->is_sold_individually() ) {
                                 $product_quantity = sprintf( '1 <input type="hidden" name="cart[%s][qty]" value="1" />', $cart_item_key );
@@ -79,13 +104,13 @@ do_action( 'woocommerce_before_cart' ); ?>
                             ?>
                         </td>
 
-                        <td class="product-subtotal py-4 border-b border-gray-100">
+                        <td class="product-subtotal py-4 border-b border-gray-100" data-title="<?php esc_attr_e( 'Subtotal', 'woocommerce' ); ?>">
                             <?php
                             echo apply_filters( 'woocommerce_cart_item_subtotal', WC()->cart->get_product_subtotal( $_product, $cart_item['quantity'] ), $cart_item, $cart_item_key );
                             ?>
                         </td>
 
-                        <td class="product-remove py-4 border-b border-gray-100">
+                        <td class="product-remove py-4 border-b border-gray-100" data-title="<?php esc_attr_e( 'Remove item', 'woocommerce' ); ?>">
                             <?php
                             echo apply_filters(
                                 'woocommerce_cart_item_remove_link',
@@ -109,7 +134,7 @@ do_action( 'woocommerce_before_cart' ); ?>
             <?php do_action( 'woocommerce_cart_contents' ); ?>
 
             <tr>
-                <td colspan="6" class="actions py-4">
+                <td colspan="5" class="actions py-4">
                     <?php if ( wc_coupons_enabled() ) { ?>
                         <div class="coupon inline-block mr-4">
                             <label for="coupon_code" class="sr-only"><?php esc_html_e( 'Coupon code', 'blog-pro' ); ?></label>
