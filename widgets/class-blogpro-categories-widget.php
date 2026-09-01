@@ -33,10 +33,15 @@ class BlogPro_Categories_Widget extends WP_Widget {
 				'hierarchical'    => true,
 			) );
 		} else {
+			$limit  = isset( $instance['limit'] ) ? absint( $instance['limit'] ) : 10;
+			if ( $limit < 1 ) {
+				$limit = 10;
+			}
 			$cats = get_categories( array(
 				'orderby'    => 'count',
 				'order'      => 'DESC',
 				'hide_empty' => true,
+				'number'     => $limit,
 			) );
 			if ( ! $cats ) {
 				echo '<p class="text-gray-50">' . esc_html__( 'No categories found.', 'blog-pro' ) . '</p>';
@@ -64,10 +69,18 @@ class BlogPro_Categories_Widget extends WP_Widget {
 		$title    = isset( $instance['title'] ) ? $instance['title'] : '';
 		$dropdown = ! empty( $instance['dropdown'] );
 		$counts   = ! empty( $instance['counts'] );
+		$limit    = isset( $instance['limit'] ) ? absint( $instance['limit'] ) : 10;
+		if ( $limit < 1 ) {
+			$limit = 10;
+		}
 		?>
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>"><?php esc_html_e( 'Title:', 'blog-pro' ); ?></label>
 			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>">
+		</p>
+		<p>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'limit' ) ); ?>"><?php esc_html_e( 'Number of categories:', 'blog-pro' ); ?></label>
+			<input class="tiny-text" id="<?php echo esc_attr( $this->get_field_id( 'limit' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'limit' ) ); ?>" type="number" min="1" max="100" value="<?php echo esc_attr( $limit ); ?>">
 		</p>
 		<p>
 			<input type="checkbox" id="<?php echo esc_attr( $this->get_field_id( 'dropdown' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'dropdown' ) ); ?>" value="1" <?php checked( $dropdown ); ?>>
@@ -81,8 +94,13 @@ class BlogPro_Categories_Widget extends WP_Widget {
 	}
 
 	public function update( $new_instance, $old_instance ) {
+		$limit = isset( $new_instance['limit'] ) ? absint( $new_instance['limit'] ) : 10;
+		if ( $limit < 1 ) {
+			$limit = 10;
+		}
 		return array(
 			'title'    => sanitize_text_field( $new_instance['title'] ?? '' ),
+			'limit'    => $limit,
 			'dropdown' => ! empty( $new_instance['dropdown'] ) ? 1 : 0,
 			'counts'   => ! empty( $new_instance['counts'] ) ? 1 : 0,
 		);

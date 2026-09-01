@@ -4,4 +4,4 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-the_title( '<h1 class="product_title entry-title text-2xl md:text-3xl font-bold text-gray-900 leading-tight">', '</h1>' );
+the_title( '<h1 class="product_title entry-title text-3xl md:text-4xl font-bold tracking-tight text-gray-900 leading-tight text-balance">', '</h1>' );

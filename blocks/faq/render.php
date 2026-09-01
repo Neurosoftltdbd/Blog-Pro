@@ -12,6 +12,22 @@ $title     = isset( $attributes['title'] ) ? $attributes['title'] : __( 'Frequen
 $items     = isset( $attributes['items'] ) && is_array( $attributes['items'] ) ? $attributes['items'] : array();
 $openFirst = ! empty( $attributes['openFirst'] );
 
+// Deduplicate by question (case-insensitive, first occurrence wins) so a
+// pasted/merged block can never render the same question twice.
+$seen = array();
+foreach ( $items as $item_index => $item ) {
+	if ( ! isset( $item['question'] ) ) {
+		continue;
+	}
+	$key = mb_strtolower( trim( wp_strip_all_tags( (string) $item['question'] ) ) );
+	if ( '' === $key || isset( $seen[ $key ] ) ) {
+		unset( $items[ $item_index ] );
+	} else {
+		$seen[ $key ] = true;
+	}
+}
+$items = array_values( $items );
+
 if ( ! $items ) {
 	return; // nothing to show — no markup
 }

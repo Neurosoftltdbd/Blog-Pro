@@ -1,36 +1,39 @@
 <?php
 /**
- * WooCommerce Breadcrumb Template
+ * WooCommerce Breadcrumb Template — Tailwind styling.
  *
- * Replaces WC's stock breadcrumb renderer with a Tailwind-styled
- * nav element. Uses WC_Breadcrumb::get_breadcrumb() (the supported
- * public API since WC 3.7+) — the older wc_get_breadcrumb() helper
- * was removed and calling it now throws an "undefined function"
- * fatal that takes the whole shop page down.
+ * WC core (woocommerce_breadcrumb()) builds the trail and passes it to
+ * this template as $breadcrumb, along with wrap/delimiter args from the
+ * woocommerce_breadcrumb_defaults filter. We honour those args so
+ * plugins that filter the trail or delimiters keep working, and render
+ * the wrapper with Tailwind classes ourselves.
+ *
+ * @see woocommerce_breadcrumb()
+ * @var array $breadcrumb
+ * @var string $delimiter
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-if ( ! class_exists( 'WC_Breadcrumb' ) ) return;
-
-$breadcrumb = ( new WC_Breadcrumb() )->get_breadcrumb();
-
 if ( empty( $breadcrumb ) ) return;
+
+$delimiter = isset( $delimiter ) ? $delimiter : '&nbsp;/&nbsp;';
 ?>
 
-<nav class="woocommerce-breadcrumb mb-6" aria-label="<?php esc_attr_e( 'Breadcrumb', 'blog-pro' ); ?>">
-    <ol class="flex items-center flex-wrap gap-2 text-sm text-gray-500">
-        <?php foreach ( $breadcrumb as $key => $crumb ) : ?>
-            <li class="flex items-center">
-                <?php if ( ! empty( $crumb[1] ) && $key !== array_key_last( $breadcrumb ) ) : ?>
-                    <a href="<?php echo esc_url( $crumb[1] ); ?>" class="text-indigo-600 hover:text-indigo-800 font-medium"><?php echo esc_html( $crumb[0] ); ?></a>
-                <?php else : ?>
-                    <span class="text-gray-700 font-medium"><?php echo esc_html( $crumb[0] ); ?></span>
-                <?php endif; ?>
-
-                <?php if ( $key !== array_key_last( $breadcrumb ) ) : ?>
-                    <span class="mx-2 text-gray-300">/</span>
-                <?php endif; ?>
-            </li>
-        <?php endforeach; ?>
-    </ol>
+<nav class="woocommerce-breadcrumb mb-6 text-sm text-gray-500" aria-label="<?php esc_attr_e( 'Breadcrumb', 'blog-pro' ); ?>">
+	<ol class="flex items-center flex-wrap gap-1.5 m-0 p-0 list-none">
+		<?php
+		$count = count( $breadcrumb );
+		foreach ( $breadcrumb as $key => $crumb ) :
+			$is_last = ( $count === $key + 1 );
+			?>
+			<li class="flex items-center gap-1.5">
+				<?php if ( ! empty( $crumb[1] ) && ! $is_last ) : ?>
+					<a href="<?php echo esc_url( $crumb[1] ); ?>" class="text-indigo-600 hover:text-indigo-800 font-medium no-underline transition-colors"><?php echo esc_html( $crumb[0] ); ?></a>
+					<span class="text-gray-300 select-none" aria-hidden="true">/</span>
+				<?php else : ?>
+					<span class="text-gray-700 font-medium" <?php echo $is_last ? 'aria-current="page"' : ''; ?>><?php echo esc_html( $crumb[0] ); ?></span>
+				<?php endif; ?>
+			</li>
+		<?php endforeach; ?>
+	</ol>
 </nav>

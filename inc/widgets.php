@@ -48,7 +48,7 @@ function blogpro_footer_default_content( $column ) {
 					'after_title'   => '</h4>',
 				), array(
 					'title'  => __( 'Categories', 'blog-pro' ),
-					'counts' => 1,
+					'counts' => 10,
 				) );
 			}
 			break;

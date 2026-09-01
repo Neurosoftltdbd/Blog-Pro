@@ -3,28 +3,30 @@
  * Product Card (Loop) — redesigned.
  *
  * Renders inside <ul id="blogpro-products"> from archive-product.php.
- * The same template serves the strip/list view — the <li> carries
- * .blogpro-card-grid / .blogpro-card-list modifiers, and layout is
- * driven purely by CSS grid template classes on the <ul>.
+ * The same template serves the list view — the <li> carries
+ * .product-card and the grid container carries .blogpro-view-list,
+ * with layout driven by CSS in wcom-support.php.
  *
- * Layout (grid):
  *   ┌──────────────────────────────┐
- *   │ image (4:3, hover scale)     │ ← blogpro_responsive_img (WebP srcset)
- *   │  [Sale] [Featured] [OOS]     │
+ *   │ image (4:3, hover zoom/swap) │ ← blogpro_responsive_img (WebP srcset,
+ *   │  [Sale][New][OOS]            │    intrinsic width/height → zero CLS)
  *   ├──────────────────────────────┤
- *   │ category · rating badge      │
+ *   │ category · ★ rating          │
  *   │ Product Title                │
- *   │ price / old price            │
- *   │ [Add to cart]  (full width)  │
+ *   │ price (was → now)            │
+ *   │ [Add to cart]                │
  *   └──────────────────────────────┘
  *
- * Robustness:
- *  - Image is wrapped in <a> with predictable hover area; the
- *    add-to-cart is always reachable (not only on hover) so touch
- *    users and keyboard users can act — hover-only CTAs are a known
- *    mobile UX failure mode.
- *  - The whole card is not a single link (nested anchors are invalid
- *    HTML) — title link + image link only.
+ * Robustness / UX:
+ *  - Add-to-cart is always visible (hover-only CTAs fail on touch).
+ *  - No nested anchors: image + title link separately.
+ *  - Hover image swap uses the gallery's first image when present;
+ *    falls back to a scale-zoom on the main image.
+ *  - "New" badge = published within the last 30 days.
+ *
+ * NOTE: blogpro_responsive_img() always emits the attachment's
+ * intrinsic width/height (the CSS w-full h-full overrides display
+ * size) — extra width/height args would be ignored, so don't add them.
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
@@ -32,10 +34,14 @@ global $product;
 
 if ( empty( $product ) || ! $product->is_visible() ) return;
 
-/** Sizes for the responsive srcset. 4-col card ≈ 280px, 2-col ≈ 600px. */
-$card_sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw';
+/** Sizes for the responsive srcset: sidebar grid ≈ 3 cols on lg. */
+$card_sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw';
 
-/** Build the badge stack (sale + out-of-stock + featured). */
+/* Secondary (hover) image — first gallery attachment. */
+$gallery_ids = $product->get_gallery_image_ids();
+$hover_id    = $gallery_ids ? $gallery_ids[0] : 0;
+
+/** Badge stack (sale + out-of-stock + featured + new). */
 $badges = array();
 if ( $product->is_on_sale() ) {
 	$badges[] = '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-red-500 text-white shadow-sm">' . esc_html__( 'Sale', 'blog-pro' ) . '</span>';
@@ -45,6 +51,11 @@ if ( ! $product->is_in_stock() ) {
 }
 if ( $product->is_featured() ) {
 	$badges[] = '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-amber-400 text-amber-950 shadow-sm">' . esc_html__( 'Featured', 'blog-pro' ) . '</span>';
+}
+/* "New" — published in the last 30 days. */
+$published_ts = $product->get_date_created() ? $product->get_date_created()->getTimestamp() : 0;
+if ( $published_ts && ( time() - $published_ts ) < 30 * DAY_IN_SECONDS ) {
+	$badges[] = '<span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-emerald-500 text-white shadow-sm">' . esc_html__( 'New', 'blog-pro' ) . '</span>';
 }
 
 /** Primary category for the small label under the image. */
@@ -77,7 +88,7 @@ $rating_count = (int) $product->get_rating_count();
 
 		<a href="<?php the_permalink(); ?>"
 		   class="block w-full h-full"
-		   aria-label="<?php echo esc_attr( get_the_title() ); ?>"
+		   aria-hidden="true"
 		   tabindex="-1">
 			<?php if ( has_post_thumbnail() ) : ?>
 				<?php
@@ -87,10 +98,21 @@ $rating_count = (int) $product->get_rating_count();
 				 * intrinsic width/height (kills CLS), async decode, lazy load.
 				 */
 				echo blogpro_responsive_img( get_post_thumbnail_id(), array(
-					'class' => 'w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105',
-					'alt'   => esc_attr( get_the_title() ),
-					'sizes' => $card_sizes,
+					'class'   => 'w-full h-full object-cover transition-all duration-500 ease-out group-hover:scale-105' . ( $hover_id ? ' group-hover:opacity-0' : '' ),
+					'alt'     => esc_attr( get_the_title() ),
+					'sizes'   => $card_sizes,
+					'loading' => 'lazy',
 				) );
+
+				if ( $hover_id ) {
+					// Second image fades in on hover (decorative — empty alt).
+					echo blogpro_responsive_img( $hover_id, array(
+						'class'   => 'absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100',
+						'alt'     => '',
+						'sizes'   => $card_sizes,
+						'loading' => 'lazy',
+					) );
+				}
 				?>
 			<?php else : ?>
 				<div class="w-full h-full flex items-center justify-center text-gray-300">
@@ -112,20 +134,14 @@ $rating_count = (int) $product->get_rating_count();
 			</p>
 		<?php endif; ?>
 
-		<?php
-		/**
-		 * woocommerce_shop_loop_item_title hook
-		 * (renders the product title linked to the product page)
-		 */
-		?>
 		<h2 class="text-base font-semibold text-gray-900 leading-snug mb-1.5 line-clamp-2 text-pretty">
 			<a href="<?php the_permalink(); ?>" class="no-underline text-inherit hover:text-indigo-600 transition-colors"><?php the_title(); ?></a>
 		</h2>
 
 		<?php if ( $rating_count > 0 ) : ?>
 			<div class="flex items-center gap-1.5 mb-2" aria-label="<?php
-				/* translators: %s: average rating */
-				echo esc_attr( sprintf( __( 'Rated %s out of 5 from %d reviews', 'blog-pro' ), $product->get_average_rating(), $rating_count ) );
+				/* translators: 1: average rating, 2: review count */
+				echo esc_attr( sprintf( __( 'Rated %1$s out of 5 from %2$d reviews', 'blog-pro' ), $product->get_average_rating(), $rating_count ) );
 			?>">
 				<?php echo wc_get_rating_html( $product->get_average_rating(), $rating_count ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				<span class="text-xs text-gray-400">(<?php echo esc_html( $rating_count ); ?>)</span>
@@ -133,12 +149,6 @@ $rating_count = (int) $product->get_rating_count();
 		<?php endif; ?>
 
 		<div class="mt-auto pt-2">
-			<?php
-			/**
-			 * woocommerce_after_shop_loop_item_title hook
-			 * (renders the price)
-			 */
-			?>
 			<div class="text-lg font-bold text-gray-900 pricing">
 				<?php echo wp_kses_post( $product->get_price_html() ); ?>
 			</div>

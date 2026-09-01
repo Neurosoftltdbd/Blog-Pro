@@ -79,12 +79,13 @@ require BLOGPRO_DIR . '/inc/templates-loader.php'; // Custom Template Loader
 require BLOGPRO_DIR . '/inc/internal-linking.php'; // auto internal linking
 require BLOGPRO_DIR . '/blocks/class-blogpro-block.php'; // FAQ accordion component
 require BLOGPRO_DIR . '/inc/faq-optimisation.php'; // avoids duplicate FAQ output
+require BLOGPRO_DIR . '/admin/seo-checker.php';    // automated on-page SEO auditor (Tools → SEO Checker)
 require BLOGPRO_DIR . '/admin/class-blogpro-admin-menu.php'; // branded dashboard sidebar
 
 
 // WooCommerce integration if active
 if ( class_exists( 'WooCommerce' ) ) {
-    require BLOGPRO_DIR . '/woocommerce/wcom-support.php';
+    require BLOGPRO_DIR . '/woocommerce/woocommerce-support.php';
 }
 
 // Elementor Optimisation
