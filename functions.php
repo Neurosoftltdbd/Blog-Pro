@@ -61,7 +61,10 @@ require BLOGPRO_DIR . '/inc/performance.php';   // speed optimizations
 require BLOGPRO_DIR . '/inc/seo-meta.php';       // dynamic meta tags
 require BLOGPRO_DIR . '/inc/schema.php';         // JSON-LD structured data
 require BLOGPRO_DIR . '/inc/sitemap.php';        // XML sitemap
+require BLOGPRO_DIR . '/inc/pws.php';            // Progressive Web App
 require BLOGPRO_DIR . '/inc/robots.php';         // robots.txt
+require BLOGPRO_DIR . '/inc/verification.php';   // webmaster site verification tags
+require BLOGPRO_DIR . '/inc/users-info.php';     // custom user profile photo
 require BLOGPRO_DIR . '/inc/rest-api.php';       // custom REST endpoints
 require BLOGPRO_DIR . '/inc/media-optimize.php'; // image/video optimization
 require BLOGPRO_DIR . '/inc/force-wp-to-webp.php'; // serve WebP masters through core image APIs

@@ -10,6 +10,17 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
+/**
+ * Trim description to optimal length.
+ */
+function blogpro_trim_description( $text, $max_words = 25, $max_chars = 160 ) {
+    $trimmed = wp_trim_words( $text, $max_words, '…' );
+    if ( mb_strlen( $trimmed ) > $max_chars ) {
+        $trimmed = mb_substr( $trimmed, 0, $max_chars - 1 ) . '…';
+    }
+    return $trimmed;
+}
+
 function blogpro_get_meta_description() {
 	if ( is_singular() ) {
 		global $post;
@@ -18,12 +29,12 @@ function blogpro_get_meta_description() {
 
 		$excerpt = has_excerpt( $post->ID ) ? get_the_excerpt( $post ) : wp_strip_all_tags( $post->post_content );
 		$excerpt = wp_strip_all_tags( $excerpt );
-		return wp_trim_words( $excerpt, 32, '…' );
+		return blogpro_trim_description( $excerpt );
 	}
 
 	if ( is_category() || is_tag() || is_tax() ) {
 		$desc = term_description();
-		if ( $desc ) return wp_trim_words( wp_strip_all_tags( $desc ), 32, '…' );
+		if ( $desc ) return blogpro_trim_description( wp_strip_all_tags( $desc ) );
 		return sprintf( __( 'Browse all posts about %s.', 'blog-pro' ), single_term_title( '', false ) );
 	}
 
@@ -34,49 +45,72 @@ function blogpro_get_meta_description() {
 
 	if ( is_author() ) {
 		$bio = get_the_author_meta( 'description' );
-		return $bio ? wp_trim_words( $bio, 32, '…' ) : sprintf( __( 'Posts by %s.', 'blog-pro' ), get_the_author() );
+		return $bio ? blogpro_trim_description( $bio ) : sprintf( __( 'Posts by %s.', 'blog-pro' ), get_the_author() );
 	}
 
 	return get_bloginfo( 'description' );
 }
 
+function blogpro_trim_title( $title, $max_chars = 60 ) {
+	if ( mb_strlen( $title ) > $max_chars ) {
+		$title = mb_substr( $title, 0, $max_chars - 1 ) . '…';
+	}
+	return $title;
+}
+
 function blogpro_get_meta_title() {
+	$title = '';
 	if ( is_singular() ) {
 		global $post;
 		$custom = get_post_meta( $post->ID, '_blogpro_meta_title', true );
 		if ( $custom ) return $custom;
-		return get_the_title() . ' | ' . get_bloginfo( 'name' );
+		$title = get_the_title() . ' | ' . get_bloginfo( 'name' );
 	}
 	if ( is_home() || is_front_page() ) {
-		return get_bloginfo( 'name' ) . ' | ' . get_bloginfo( 'description' );
+		$title = get_bloginfo( 'name' ) . ' | ' . get_bloginfo( 'description' );
 	}
 	if ( is_category() || is_tag() || is_tax() ) {
-		return single_term_title( '', false ) . ' | ' . get_bloginfo( 'name' );
+		$title = single_term_title( '', false ) . ' | ' . get_bloginfo( 'name' );
 	}
 	if ( is_search() ) {
-		return sprintf( __( 'Search results for "%s" | %s', 'blog-pro' ), get_search_query(), get_bloginfo( 'name' ) );
+		$title = sprintf( __( 'Search results for "%s" | %s', 'blog-pro' ), get_search_query(), get_bloginfo( 'name' ) );
 	}
 	if ( is_404() ) {
-		return __( 'Page not found', 'blog-pro' ) . ' | ' . get_bloginfo( 'name' );
+		$title = __( 'Page not found', 'blog-pro' ) . ' | ' . get_bloginfo( 'name' );
 	}
 	if ( is_author() ) {
-		return sprintf( __( 'Posts by %s | %s', 'blog-pro' ), get_the_author(), get_bloginfo( 'name' ) );
+		$title = sprintf( __( 'Posts by %s | %s', 'blog-pro' ), get_the_author(), get_bloginfo( 'name' ) );
 	}
 	// is_post_type_archive() covers /shop/, /product/, and any CPT
 	// archive that hasn't matched an earlier branch above.
-	if ( function_exists( 'get_the_archive_title' ) ) {
-		return get_the_archive_title() . ' | ' . get_bloginfo( 'name' );
+	if ( ! $title && function_exists( 'get_the_archive_title' ) ) {
+		$title = get_the_archive_title() . ' | ' . get_bloginfo( 'name' );
 	}
-	return get_bloginfo( 'name' );
+	if ( ! $title ) {
+		$title = get_bloginfo( 'name' );
+	}
+	return blogpro_trim_title( $title );
 }
 
 function blogpro_get_canonical_url() {
-	if ( is_singular() ) return get_permalink();
-	if ( is_home() || is_front_page() ) return home_url( '/' );
-	if ( is_category() || is_tag() || is_tax() ) return get_term_link( get_queried_object() );
-	if ( is_author() ) return get_author_posts_url( get_queried_object_id() );
-	global $wp;
-	return home_url( add_query_arg( array(), $wp->request ) );
+	if ( is_singular() ) {
+		$url = get_permalink();
+	} elseif ( is_home() || is_front_page() ) {
+		$url = home_url( '/' );
+	} elseif ( is_category() || is_tag() || is_tax() ) {
+		$url = get_term_link( get_queried_object() );
+	} elseif ( is_author() ) {
+		$url = get_author_posts_url( get_queried_object_id() );
+	} else {
+		global $wp;
+		$url = home_url( add_query_arg( array(), $wp->request ) );
+	}
+	// Force HTTPS (site uses HTTPS) and strip trailing slash except for homepage
+	$url = set_url_scheme( $url, 'https' );
+	if ( ! ( is_home() || is_front_page() ) ) {
+		$url = untrailingslashit( $url );
+	}
+	return $url;
 }
 
 function blogpro_get_social_image() {
@@ -84,7 +118,25 @@ function blogpro_get_social_image() {
 		return wp_get_attachment_image_url( get_post_thumbnail_id(), 'blogpro-hero' );
 	}
 	$site_icon = get_site_icon_url( 512 );
-	return $site_icon ? $site_icon : '';
+	if ( $site_icon ) {
+		return $site_icon;
+	}
+	// fallback: custom logo or theme default
+	$custom_logo = get_theme_mod( 'custom_logo' );
+	if ( $custom_logo ) {
+		return wp_get_attachment_image_url( $custom_logo, 'full' );
+	}
+	// allow filter for a default image
+	$default = apply_filters( 'blogpro_default_og_image', '' );
+	if ( $default && file_exists( str_replace( BLOGPRO_URI, BLOGPRO_DIR, $default ) ) ) {
+		return $default;
+	}
+	// fallback: theme's banner.png
+	$banner_path = BLOGPRO_DIR . '/assets/images/banner.png';
+	if ( file_exists( $banner_path ) ) {
+		return BLOGPRO_URI . '/assets/images/banner.png';
+	}
+	return '';
 }
 
 function blogpro_output_meta_tags() {
@@ -92,6 +144,7 @@ function blogpro_output_meta_tags() {
 	$canonical   = esc_url( blogpro_get_canonical_url() );
 	$title       = esc_attr( blogpro_get_meta_title() );
 	$image       = blogpro_get_social_image();
+	if ( ! $image ) $image = BLOGPRO_URI . '/assets/images/banner.png';
 	$site_name   = esc_attr( get_bloginfo( 'name' ) );
 
 	echo "\n<!-- Blog Pro SEO meta -->\n";
@@ -109,6 +162,7 @@ function blogpro_output_meta_tags() {
 
 	// Open Graph
 	echo '<meta property="og:type" content="' . ( is_singular( 'post' ) ? 'article' : 'website' ) . '">' . "\n";
+	echo '<meta property="og:locale" content="' . esc_attr( get_locale() ) . '">' . "\n";
 	echo '<meta property="og:title" content="' . $title . '">' . "\n";
 	echo '<meta property="og:description" content="' . $description . '">' . "\n";
 	echo '<meta property="og:url" content="' . $canonical . '">' . "\n";

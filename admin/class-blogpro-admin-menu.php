@@ -76,6 +76,15 @@ function blogpro_admin_menu_brand() {
 
 	add_submenu_page(
 		'blogpro-dashboard',
+		__( 'Site Verification', 'blog-pro' ),
+		__( 'Verification', 'blog-pro' ),
+		'manage_options',
+		'blogpro-verification',
+		'blogpro_render_verification_page'
+	);
+
+	add_submenu_page(
+		'blogpro-dashboard',
 		__( 'About Blog Pro', 'blog-pro' ),
 		__( 'About', 'blog-pro' ),
 		'read',

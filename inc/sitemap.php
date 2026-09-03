@@ -59,9 +59,20 @@ function blogpro_maybe_render_sitemap() {
 
 	header( 'Content-Type: application/xml; charset=UTF-8' );
 
+	// Check cache
+	$cached = get_transient( 'blogpro_sitemap_xml' );
+	if ( $cached !== false ) {
+		echo $cached;
+		exit;
+	}
+
+	ob_start();
+
 	$urls = array();
 
-	$home_entry = array( 'loc' => home_url( '/' ), 'lastmod' => get_lastpostmodified( 'GMT' ), 'priority' => '1.0' );
+	$lastmod_timestamp = get_lastpostmodified( 'U' );
+	$lastmod = $lastmod_timestamp ? date( 'c', $lastmod_timestamp ) : '';
+	$home_entry = array( 'loc' => home_url( '/' ), 'lastmod' => $lastmod, 'priority' => '1.0' );
 	if ( has_custom_logo() ) {
 		$logo_url = wp_get_attachment_image_url( get_theme_mod( 'custom_logo' ), 'full' );
 		if ( $logo_url ) {
@@ -134,6 +145,18 @@ function blogpro_maybe_render_sitemap() {
 		echo "\t</url>\n";
 	}
 	echo '</urlset>';
+
+	$xml = ob_get_clean();
+	set_transient( 'blogpro_sitemap_xml', $xml, DAY_IN_SECONDS );
+	echo $xml;
 	exit;
 }
-add_action( 'template_redirect', 'blogpro_maybe_render_sitemap' );
+// Priority 0: must run BEFORE core's redirect_canonical (default 10), which
+// treats /sitemap.xml as a page and 301s it to /sitemap.xml/ — crawlers then
+// index the redirected URL and the sitemap entry mismatches.
+add_action( 'template_redirect', 'blogpro_maybe_render_sitemap', 0 );
+
+// Invalidate cache when content changes
+add_action( 'save_post', function() { delete_transient( 'blogpro_sitemap_xml' ); } );
+add_action( 'edited_terms', function() { delete_transient( 'blogpro_sitemap_xml' ); } );
+add_action( 'customize_save_after', function() { delete_transient( 'blogpro_sitemap_xml' ); } );

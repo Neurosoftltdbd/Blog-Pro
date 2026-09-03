@@ -10,7 +10,7 @@
 <a class="fixed left-[-9999px] top-0 bg-gray-900 text-white px-4 py-2.5 z-999 focus:left-2.5 focus:top-2.5 no-underline" href="#main"><?php esc_html_e( 'Skip to content', 'blog-pro' ); ?></a>
 
 <header class="w-full h-15 bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
-	<div class="w-full max-w-7xl mx-auto flex justify-between items-center ">
+	<div class="w-full max-w-7xl h-full mx-auto flex justify-between items-center">
 		<div class="site-branding">
 			<?php
 			$logo_id = get_theme_mod( 'custom_logo' );
@@ -25,7 +25,7 @@
 					] ); ?>
 				</a>
 			<?php else : ?>
-				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" class="text-xl font-bold tracking-tighter text-indigo-600 hover:text-indigo-800 transition-colors no-underline"><?php bloginfo( 'name' ); ?></a>
+				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" class="text-xl font-bold tracking-tighter text-indigo-600 hover:text-indigo-800 transition-colors no-underline pl-2 md:pl-0"><?php bloginfo( 'name' ); ?></a>
 			<?php endif; ?>
 			</div>
 

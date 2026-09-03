@@ -63,10 +63,37 @@ function blogpro_serve_robots( $wp ) {
 		return;
 	}
 
-	$output = apply_filters( 'robots_txt', "User-agent: *\nDisallow: /", (bool) get_option( 'blog_public' ) );
+	// Build output defensively: a fatal inside any plugin's robots_txt filter
+	// would 500 the request for crawlers (cached browser copies still 200,
+	// hiding it). Fall back to a minimal valid file instead.
+	$output = '';
+	try {
+		$output = (string) apply_filters( 'robots_txt', "User-agent: *\nDisallow: /", (bool) get_option( 'blog_public' ) );
+	} catch ( \Throwable $e ) {
+		$output = '';
+	}
+	if ( trim( $output ) === '' ) {
+		$output = "User-agent: *\nDisallow: /wp-admin/\n";
+	}
+
+	status_header( 200 );
 	header( 'Content-Type: text/plain; charset=utf-8' );
 	header( 'Cache-Control: public, max-age=3600' );
 	echo $output; // phpcs:ignore WordPress.Security.EscapeOutput -- robots.txt output, escaped by design.
 	exit;
 }
 add_action( 'parse_request', 'blogpro_serve_robots' );
+
+/**
+ * Flush rewrite rules once when the theme is switched/updated, so the
+ * robots.txt rule exists without a manual Settings → Permalinks save.
+ * Cheap guard: only flushes if the rule marker is missing.
+ */
+function blogpro_robots_maybe_flush() {
+	global $wp_rewrite;
+	$rules = $wp_rewrite->rewrite_rules();
+	if ( ! isset( $rules['^robots\.txt$'] ) ) {
+		$wp_rewrite->flush_rules( false );
+	}
+}
+add_action( 'after_switch_theme', 'blogpro_robots_maybe_flush' );
