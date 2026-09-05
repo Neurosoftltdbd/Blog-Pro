@@ -14,7 +14,7 @@ get_header();
 			<?php printf( esc_html__( 'Search results for: %s', 'blog-pro' ), '<em>' . esc_html( get_search_query() ) . '</em>' ); ?>
 		</h1>
 		<?php if ( have_posts() ) : ?>
-			<p class="mt-4 text-gray-500"><?php printf( esc_html( _n( '%s result found', '%s results found', (int) $wp_query->found_posts, 'blog-pro' ) ), esc_html( number_format_i18n( (int) $wp_query->found_posts ) ) ); ?></p>
+			<p class="mt-4 text-gray-700"><?php printf( esc_html( _n( '%s result found', '%s results found', (int) $wp_query->found_posts, 'blog-pro' ) ), esc_html( number_format_i18n( (int) $wp_query->found_posts ) ) ); ?></p>
 		<?php endif; ?>
 	</div>
 
@@ -28,9 +28,9 @@ get_header();
 				<?php endif; ?>
 			</a>
 			<div class="flex flex-col flex-1 p-6">
-				<div class="text-sm text-gray-500 mb-3"><?php blogpro_posted_on(); ?></div>
+				<div class="text-sm text-gray-700 mb-3"><?php blogpro_posted_on(); ?></div>
 				<h2 class="text-lg font-bold text-gray-900 leading-snug mb-2 line-clamp-2"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h2>
-				<p class="text-gray-600 leading-relaxed text-sm line-clamp-3"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 20 ) ); ?></p>
+				<p class="text-gray-700 leading-relaxed text-sm line-clamp-3"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 20 ) ); ?></p>
 
 				<div class="mt-auto pt-4">
 					<a href="<?php the_permalink(); ?>" class="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors no-underline">

@@ -16,6 +16,14 @@ define( 'BLOGPRO_VERSION', '1.0.0' );
 define( 'BLOGPRO_DIR', get_template_directory() );
 define( 'BLOGPRO_URI', get_template_directory_uri() );
 
+/* Remove default canonical tag */
+add_action('init', function() {
+    remove_action('wp_head', 'rel_canonical');
+});
+
+add_filter('wp_revisions_to_keep', '__return_false', 10, 2);
+
+
 /* ---------------------------------------------------------------------
  * 1. Theme setup
  * ------------------------------------------------------------------- */

@@ -524,7 +524,19 @@ function blogpro_faq_replace_with_block( $content, $items ) {
 		$content
 	);
 
-	$spans = blogpro_faq_group_spans( $content );
+	        // Additional: remove any heading that contains FAQ text and precedes .faq-group
+        $content = preg_replace_callback(
+            '/(<h[234][^>]*>\s*(.*?)\s*<\/h[234]>)\s*(?=\s*(?:<!--\s*wp:html\s*-->)?\s*<div\b[^>]*\bclass\s*=\s*["\'][^"\']*\bfaq-group\b)/is',
+            function($m) {
+                $text = wp_strip_all_tags($m[2]);
+                if (preg_match('/frequently\s*asked\s*questions?|faq(s?)/i', $text)) {
+                    return ''; // remove heading
+                }
+                return $m[0]; // keep
+            },
+            $content
+        );
+        $spans = blogpro_faq_group_spans( $content );
 	$n     = count( $spans );
 	if ( ! $n ) {
 		return array( $content, 0 );

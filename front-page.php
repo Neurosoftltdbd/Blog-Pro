@@ -60,7 +60,14 @@ get_header();
 				<?php $slide_idx = 0; while ( $slider_query->have_posts() ) : $slider_query->the_post(); $is_active = $slide_idx === 0; ?>
 				<div class="slide absolute inset-0 w-full h-full opacity-0 z-1 transition-opacity duration-500 " style="opacity: <?php echo $is_active ? 1 : 0; ?>; z-index: <?php echo $is_active ? 2 : 1; ?>;">
 					<?php if ( has_post_thumbnail() ) : ?>
-						<?php echo blogpro_responsive_img( get_post_thumbnail_id(), array( 'class' => 'w-full h-full object-cover', 'sizes' => '(max-width: 1024px) 100vw, 66vw' ) ); ?>
+						<?php
+$img_attrs = array( 'class' => 'w-full h-full object-cover', 'sizes' => '(max-width: 1024px) 100vw, 66vw' );
+if ( $slide_idx == 0 ) {
+    $img_attrs['fetchpriority'] = 'high';
+    $img_attrs['loading'] = 'eager';
+}
+echo blogpro_responsive_img( get_post_thumbnail_id(), $img_attrs );
+?>
 					<?php else : ?>
 						<div class="w-full h-full bg-linear-to-br from-indigo-100 to-purple-100"></div>
 					<?php endif; ?>
@@ -103,7 +110,7 @@ get_header();
 					</a>
 					<div class="flex-1 min-w-0">
 						<h4 class="text-sm font-semibold text-gray-900 leading-snug mb-1 line-clamp-2"><a href="<?php the_permalink(); ?>" class="text-gray-900 hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h4>
-						<span class="text-xs text-gray-700"><?php echo esc_html( get_the_date() ); ?></span>
+						<span class="text-xs text-gray-800"><?php echo esc_html( get_the_date() ); ?></span>
 					</div>
 				</li>
 				<?php endwhile; wp_reset_postdata(); ?>
@@ -175,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
 					<?php endif; ?>
 				</a>
 				<div class="p-4">
-					<div class="text-sm text-gray-700 mb-2"><?php echo esc_html( get_the_date() ); ?> &middot; <?php echo esc_html( blogpro_reading_time() ); ?></div>
+					<div class="text-sm text-gray-800 mb-2"><?php echo esc_html( get_the_date() ); ?> &middot; <?php echo esc_html( blogpro_reading_time() ); ?></div>
 					<h3 class="text-sm font-bold text-gray-900 leading-snug line-clamp-2"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h3>
 					
 				</div>
@@ -233,7 +240,7 @@ if ( $categories ) :
 						<?php endif; ?>
 					</a>
 					<div class="p-4 flex flex-col flex-1">
-						<div class="text-sm text-gray-700 mb-2"><?php echo esc_html( get_the_date() ); ?> &middot; <?php echo esc_html( blogpro_reading_time() ); ?></div>
+						<div class="text-sm text-gray-800 mb-2"><?php echo esc_html( get_the_date() ); ?> &middot; <?php echo esc_html( blogpro_reading_time() ); ?></div>
 						<h3 class="text-sm font-bold text-gray-900 leading-snug line-clamp-2"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h3>
 						<p class="text-sm text-gray-600 mt-2 line-clamp-2 flex-1"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 18 ) ); ?></p>
 						<div class="mt-3">
@@ -250,6 +257,8 @@ endif;
 ?>
 </section>
 <div class="w-full text-center py-12">
-    <a href="<?php echo esc_url( home_url("/blog/") ); ?>" class="button-primary px-6 py-3 rounded-full font-semibold">Read All Posts</a>
+    <h3>
+		<a href="<?php echo esc_url( home_url("/blog/") ); ?>" class="button-primary px-6 py-3 rounded-full font-semibold">Read All Posts</a>
+	</h3>
 </div>
 <?php get_footer(); ?>
