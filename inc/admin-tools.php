@@ -33,8 +33,8 @@ function blogpro_optimize_images_enqueue( $hook ) {
 		'batch'   => 4,
 		'i18n'    => array(
 			'start'    => __( 'Optimizing…', 'blog-pro' ),
-			'done'     => __( 'Done — all images are optimized.', 'blog-pro' ),
-			'progress' => __( 'Optimized %1$d of %2$d images (%3$d new WebP files created)…', 'blog-pro' ),
+			'done'     => __( 'Done — all images are optimized. Empty alt/title/caption/description fields were filled from file names.', 'blog-pro' ),
+			'progress' => __( 'Optimized %1$d of %2$d images (%3$d new WebP files created, %4$d updated)…', 'blog-pro' ),
 			'error'    => __( 'Something went wrong. You can click Start again to resume — already-optimized images are skipped automatically.', 'blog-pro' ),
 		),
 	) );
@@ -220,7 +220,8 @@ function blogpro_ajax_optimize_batch() {
 		'fields'         => 'ids',
 	) );
 
-	$webp_created = 0;
+	$webp_created  = 0;
+	$fields_filled = 0;
 	foreach ( $ids as $id ) {
 		$file = get_attached_file( $id );
 		if ( $file && file_exists( $file ) ) {
@@ -233,11 +234,26 @@ function blogpro_ajax_optimize_batch() {
 			}
 			$webp_created += blogpro_convert_attachment_to_webp( $id, $metadata );
 		}
+
+		// Fill alt / title / caption / description from the file name when
+		// still empty. Same helper the upload hook uses — idempotent, so
+		// manually-set fields are never overwritten.
+		$before = get_post_meta( $id, '_wp_attachment_image_alt', true )
+			. '|' . (string) get_post_field( 'post_title', $id )
+			. '|' . (string) get_post_field( 'post_excerpt', $id )
+			. '|' . (string) get_post_field( 'post_content', $id );
+		blogpro_auto_image_fields( $id );
+		$after = get_post_meta( $id, '_wp_attachment_image_alt', true )
+			. '|' . (string) get_post_field( 'post_title', $id )
+			. '|' . (string) get_post_field( 'post_excerpt', $id )
+			. '|' . (string) get_post_field( 'post_content', $id );
+		if ( $before !== $after ) $fields_filled++;
 	}
 
 	wp_send_json_success( array(
 		'processed' => count( $ids ),
 		'webp'      => $webp_created,
+		'fields'    => $fields_filled,
 		'more'      => count( $ids ) === $batch,
 	) );
 }

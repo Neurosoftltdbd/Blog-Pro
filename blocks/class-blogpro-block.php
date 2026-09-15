@@ -26,6 +26,11 @@ function blogpro_register_toc_block() {
 }
 add_action( 'init', 'blogpro_register_toc_block' );
 
+function blogpro_register_contact_block() {
+    register_block_type( BLOGPRO_DIR . '/blocks/contact-form' );
+}
+add_action( 'init', 'blogpro_register_contact_block' );
+
 /* ---------------------------------------------------------------------
  * TOC shared machinery
  *
@@ -35,10 +40,34 @@ add_action( 'init', 'blogpro_register_toc_block' );
  * the_content filter. The blog-pro/toc render.php reads the same cache,
  * so its links always match.
  * ------------------------------------------------------------------- */
-function blogpro_toc_headings() {
+/**
+ * Byte ranges of every <details>…</details> element in $html (no nesting
+ * support — fine for accordion markup). Headings inside them (FAQ questions)
+ * are excluded from the TOC: hidden/collapsible content makes confusing
+ * anchors, and rendered block output nests them too so scanner and annotator
+ * stay aligned.
+ *
+ * @param string $html
+ * @return array[] each [start, end]
+ */
+function blogpro_toc_details_spans( $html ) {
+	$spans = array();
+	$off   = 0;
+	while ( ( $open = stripos( $html, '<details', $off ) ) !== false ) {
+		$close = stripos( $html, '</details>', $open );
+		if ( $close === false ) {
+			break;
+		}
+		$spans[] = array( $open, $close + 10 );
+		$off     = $close + 10;
+	}
+	return $spans;
+}
+
+function blogpro_toc_headings( $post_id = 0 ) {
 	static $cache = array();
 
-	$post_id = get_the_ID();
+	$post_id = $post_id ? (int) $post_id : get_the_ID();
 	if ( ! $post_id ) {
 		return array();
 	}
@@ -47,15 +76,22 @@ function blogpro_toc_headings() {
 	}
 
 	$content = (string) get_post_field( 'post_content', $post_id );
-	preg_match_all( '/<h([23])([^>]*)>(.*?)<\/h\1>/is', $content, $matches, PREG_SET_ORDER );
+	$spans   = blogpro_toc_details_spans( $content );
+	preg_match_all( '/<h([23])([^>]*)>(.*?)<\/h\1>/is', $content, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE );
 
 	$heads = array();
 	$seen  = array();
 	foreach ( $matches as $m ) {
-		if ( preg_match( '/\bid=/i', $m[2] ) ) {
+		$at = (int) $m[0][1];
+		foreach ( $spans as $span ) {
+			if ( $at >= $span[0] && $at < $span[1] ) {
+				continue 2; // heading inside an accordion (FAQ) — not a section
+			}
+		}
+		if ( preg_match( '/\bid=/i', $m[2][0] ) ) {
 			continue; // already anchors — leave them alone
 		}
-		$text = trim( wp_strip_all_tags( html_entity_decode( $m[3], ENT_QUOTES, get_bloginfo( 'charset' ) ) ) );
+		$text = trim( wp_strip_all_tags( html_entity_decode( $m[3][0], ENT_QUOTES, get_bloginfo( 'charset' ) ) ) );
 		if ( '' === $text ) {
 			continue;
 		}
@@ -72,7 +108,7 @@ function blogpro_toc_headings() {
 		$seen[ $slug ] = true;
 
 		$heads[] = array(
-			'level' => (int) $m[1],
+			'level' => (int) $m[1][0],
 			'text'  => $text,
 			'id'    => $slug,
 		);
@@ -98,23 +134,52 @@ function blogpro_toc_annotate_headings( $content ) {
 		return $content;
 	}
 
+	// Skip ranges must mirror blogpro_toc_headings(): accordions (FAQ
+	// questions, even hand-written in raw HTML) and TOC nav link lists
+	// (the automatic mobile card is injected before this pass).
+	$spans   = blogpro_toc_details_spans( $content );
+	if ( false !== stripos( $content, '<nav' ) ) {
+		$off = 0;
+		while ( ( $open = stripos( $content, '<nav', $off ) ) !== false ) {
+			$close = stripos( $content, '</nav>', $open );
+			if ( $close === false ) {
+				break;
+			}
+			$spans[] = array( $open, $close + 6 );
+			$off     = $close + 6;
+		}
+	}
+
 	$idx   = 0;
 	$count = count( $heads );
 
-	return preg_replace_callback( '/<h([23])([^>]*)>(.*?)<\/h\1>/is', function ( $m ) use ( &$idx, $heads, $count ) {
-		if ( preg_match( '/\bid=/i', $m[2] ) ) {
-			return $m[0]; // already has an id (e.g. TOC's own title) — keep as-is
+	// Offset-based rewrite (preg_replace_callback can't see byte offsets,
+	// needed for the accordion/nav skip ranges). Replace from the end so
+	// earlier offsets stay valid.
+	preg_match_all( '/<h([23])([^>]*)>(.*?)<\/h\1>/is', $content, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE );
+	$edits = array();
+	foreach ( $matches as $m ) {
+		$at = (int) $m[0][1];
+		$skip = false;
+		foreach ( $spans as $span ) {
+			if ( $at >= $span[0] && $at < $span[1] ) {
+				$skip = true;
+				break;
+			}
 		}
-		$text = trim( wp_strip_all_tags( html_entity_decode( $m[3], ENT_QUOTES, get_bloginfo( 'charset' ) ) ) );
-		if ( '' === $text ) {
-			return $m[0];
+		if ( $skip ) {
+			continue;
 		}
-		if ( $idx >= $count ) {
-			return $m[0];
+		if ( preg_match( '/\bid=/i', $m[2][0] ) ) {
+			continue; // already has an id (e.g. TOC's own title) — keep as-is
+		}
+		$text = trim( wp_strip_all_tags( html_entity_decode( $m[3][0], ENT_QUOTES, get_bloginfo( 'charset' ) ) ) );
+		if ( '' === $text || $idx >= $count ) {
+			continue;
 		}
 
 		$heading = $heads[ $idx++ ];
-		$attrs   = $m[2];
+		$attrs   = $m[2][0];
 
 		// Merge scroll-mt-24 into an existing class attribute or add one.
 		if ( preg_match( '/class=(["\'])(.*?)\1/i', $attrs, $cm ) ) {
@@ -123,8 +188,14 @@ function blogpro_toc_annotate_headings( $content ) {
 			$attrs .= ' class="scroll-mt-24"';
 		}
 
-		return '<h' . $m[1] . ' id="' . esc_attr( $heading['id'] ) . '"' . $attrs . '>' . $m[3] . '</h' . $m[1] . '>';
-	}, $content );
+		$replacement = '<h' . $m[1][0] . ' id="' . esc_attr( $heading['id'] ) . '"' . $attrs . '>' . $m[3][0] . '</h' . $m[1][0] . '>';
+		$edits[] = array( $at, strlen( $m[0][0] ), $replacement );
+	}
+
+	for ( $i = count( $edits ) - 1; $i >= 0; $i-- ) {
+		$content = substr_replace( $content, $edits[ $i ][2], $edits[ $i ][0], $edits[ $i ][1] );
+	}
+	return $content;
 }
 add_filter( 'the_content', 'blogpro_toc_annotate_headings', 12 );
 

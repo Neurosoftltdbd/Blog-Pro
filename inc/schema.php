@@ -86,6 +86,13 @@ function blogpro_schema_blogposting() {
 	if ( ! empty( $cats ) ) {
 		$schema['articleSection'] = wp_list_pluck( $cats, 'name' );
 	}
+	// TOC sections → hasPart (WebPageElement per heading anchor).
+	if ( function_exists( 'blogpro_toc_schema_parts' ) ) {
+		$parts = blogpro_toc_schema_parts( $post->ID );
+		if ( $parts ) {
+			$schema['hasPart'] = $parts;
+		}
+	}
 	return $schema;
 }
 

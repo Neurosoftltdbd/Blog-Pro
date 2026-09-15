@@ -248,6 +248,88 @@ add_filter( 'image_editor_output_format', function ( $formats ) {
 
 /* 6. Cap max upload dimensions so nobody accidentally serves a 6000px
       camera photo to a 600px card. */
+/**
+ * On upload: fill alt, title and caption from the file name.
+ * WordPress core does NOT set alt automatically from filename — we do it here.
+ * Runs late (add_attachment fires before metadata/generation) so every field
+ * is populated before the WebP pass and the media modal reads them.
+ */
+function blogpro_auto_image_fields( $attachment_id ) {
+	$file = get_attached_file( $attachment_id );
+	if ( ! $file ) return;
+
+	// Only images — leave PDFs, audio, video alone.
+	if ( 0 !== strpos( (string) get_post_mime_type( $attachment_id ), 'image/' ) ) return;
+
+	$meta = wp_get_attachment_metadata( $attachment_id );
+	$slug = isset( $meta['file'] ) ? $meta['file'] : $file;
+
+	// base name, minus any directory and extension, minus WP's "-1024x512" suffixes
+	$name = pathinfo( basename( $slug ), PATHINFO_FILENAME );
+	$name = preg_replace( '/[-_]\d+x\d+$/', '', $name );
+
+	// humanise: "bus_rental_dubai-2" → "Bus Rental Dubai 2"
+	$phrase = trim( preg_replace( '/[-_.]+/', ' ', preg_replace( '/[^A-Za-z0-9]+/', '-', $name ) ) );
+	$phrase = preg_replace( '/\s+/', ' ', $phrase );
+	if ( '' === $phrase ) return;
+
+	$alt = ucfirst( $phrase );
+
+	// alt — keep a manually-set value if one already exists
+	$cur_alt = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+	if ( '' === trim( (string) $cur_alt ) ) {
+		update_post_meta( $attachment_id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
+	}
+
+	// title + caption + description — WP's default title is the raw filename
+	// ("IMG_2048"), so replace it only while it still matches that; edited
+	// titles, captions and descriptions are left alone.
+	$post   = get_post( $attachment_id );
+	$update = array( 'ID' => $attachment_id );
+	if ( $post ) {
+		$raw_title = strtolower( pathinfo( basename( $file ), PATHINFO_FILENAME ) );
+		if ( '' === trim( (string) $post->post_title ) || strtolower( (string) $post->post_title ) === $raw_title ) {
+			$update['post_title'] = $alt;
+		}
+		// caption mirrors the content image caption, so only set it when empty
+		if ( '' === trim( (string) $post->post_excerpt ) ) {
+			$update['post_excerpt'] = $alt;
+		}
+		// description — WP leaves it empty; fill with the same phrase
+		if ( '' === trim( (string) $post->post_content ) ) {
+			$update['post_content'] = $alt;
+		}
+	}
+	if ( count( $update ) > 1 ) {
+		wp_update_post( $update );
+	}
+}
+add_action( 'add_attachment', 'blogpro_auto_image_fields', 99, 1 );
+
+/**
+ * Backfill alt/title/caption/description for images already in the library
+ * whose fields are still empty. Idempotent — filled fields are skipped.
+ *
+ * @return array stats: 'updated' => attachment count.
+ */
+function blogpro_backfill_image_fields() {
+	global $wpdb;
+	$stats   = array( 'updated' => 0 );
+	$att_ids = $wpdb->get_col(
+		"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_mime_type LIKE 'image/%'"
+	);
+	foreach ( $att_ids as $att_id ) {
+		$att_id = (int) $att_id;
+		$post   = get_post( $att_id );
+		if ( ! $post ) continue;
+		$has_alt = '' !== trim( (string) get_post_meta( $att_id, '_wp_attachment_image_alt', true ) );
+		if ( $has_alt && $post->post_content && $post->post_excerpt ) continue;
+		blogpro_auto_image_fields( $att_id );
+		$stats['updated']++;
+	}
+	return $stats;
+}
+
 add_filter( 'big_image_size_threshold', function () { return 1600; } );
 
 /* 7. Responsive `sizes` attribute tuned to this theme's actual layouts

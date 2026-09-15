@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "blog-pro/contact-form",
+  "title": "Contact Form",
+  "category": "widgets",
+  "icon": "email",
+  "description": "Simple contact form with name, email, message.",
+  "supports": {
+    "html": false
+  },
+  "editorScript": "file:./index.js",
+  "render": "file:./render.php"
+}

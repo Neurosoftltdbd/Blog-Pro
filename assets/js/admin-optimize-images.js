@@ -10,7 +10,7 @@
 		if ( ! startBtn ) return;
 
 		var cfg = window.blogproOptimize || {};
-		var offset = 0, total = 0, webpTotal = 0;
+		var offset = 0, total = 0, webpTotal = 0, fieldsTotal = 0;
 
 		function postForm( action, extra ) {
 			var body = new URLSearchParams( Object.assign( { action: action, nonce: cfg.nonce }, extra || {} ) );
@@ -23,15 +23,17 @@
 					status.textContent = cfg.i18n.error;
 					return;
 				}
-				offset    += res.data.processed;
-				webpTotal += res.data.webp;
+				offset      += res.data.processed;
+				webpTotal   += res.data.webp;
+				fieldsTotal += ( res.data.fields || 0 );
 
 				var pct = total > 0 ? Math.min( 100, Math.round( ( offset / total ) * 100 ) ) : 100;
 				bar.style.width = pct + '%';
 				status.textContent = cfg.i18n.progress
 					.replace( '%1$d', offset )
 					.replace( '%2$d', total )
-					.replace( '%3$d', webpTotal );
+					.replace( '%3$d', webpTotal )
+					.replace( '%4$d', fieldsTotal );
 
 				if ( res.data.more && offset < total ) {
 					runBatch();
@@ -53,6 +55,7 @@
 			wrap.style.display = 'block';
 			offset = 0;
 			webpTotal = 0;
+			fieldsTotal = 0;
 			bar.style.width = '0%';
 			status.textContent = cfg.i18n.start;
 
