@@ -280,85 +280,143 @@ add_filter( 'the_content', 'blogpro_internal_links', 15 );
 
 /**
  * Replace first occurrence of each phrase from $rules with a marker token,
- * then swap markers for real anchors. Text inside <a>/<pre>/<code>/<script>/
- * <style> and HTML comments is never touched; overlapping phrases cannot
- * double-link because markers break any later matches.
+ * then swap markers for real anchors. Links are only inserted inside
+ * <p>…</p> blocks. Other tags are transparent (no link-blocking).
  *
  * @param string $content
  * @param array  $rules      list of array{phrase: string, url: string}
  * @param int    $max_links
  * @return string
  */
-function blogpro_il_apply_links( $content, $rules, $max_links ) {
-	$url_count = array(); // url => times linked so far (per-URL cap below)
-	$markers   = array(); // token => anchor HTML
-	$segments  = preg_split( '/(<[^>]+>)/', $content, -1, PREG_SPLIT_DELIM_CAPTURE );
-	$depth     = array(); // tag stack to track never-link tags
-	// Same target URL may be linked up to 3 times across the post (in
-	// different sections), so a long article gets links spread through the
-	// body instead of one hit exhausting every rule in the intro.
-	$url_cap = (int) apply_filters( 'blogpro_internal_links_url_cap', 3 );
+	function blogpro_il_apply_links( $content, $rules, $max_links ) {
+	$segments = preg_split( '/(<[^>]+>)/', $content, -1, PREG_SPLIT_DELIM_CAPTURE );
 
-	foreach ( $segments as $i => $segment ) {
+	$url_cap  = (int) apply_filters( 'blogpro_internal_links_url_cap', 3 );
+	$para_cap = (int) apply_filters( 'blogpro_internal_links_paragraph_cap', 2 );
+	// Deterministic pseudo-randomness: seeded by post ID + rule count so
+	// the same post picks the same spots on every request (cache / crawler
+	// stable) while placement scatters through the WHOLE body instead of
+	// stacking at the top. Changes when the post's rules change.
+	$seed = (string) get_queried_object_id() . '#' . count( $rules );
+
+	// ---- Pass 1: collect EVERY legal occurrence ----
+	// Legal = inside <p>…</p>, outside existing <a>. All occurrences are
+	// collected (not just the first), so a phrase can anchor deep in the
+	// post rather than always at its first mention.
+	$p_depth = 0;
+	$a_depth = 0;
+	$para    = -1;
+	$raw     = array();
+	$offset  = 0;
+	foreach ( $segments as $i => $seg ) {
 		if ( 0 === ( $i % 2 ) ) {
-			// Text segment (only odd indexes are tags).
-			if ( empty( $depth ) ) {
-				foreach ( $rules as $idx => $rule ) {
-					if ( count( $markers ) >= $max_links ) {
-						break 2;
-					}
-					$key = $rule['url'];
-					if ( ! empty( $url_count[ $key ] ) && $url_count[ $key ] >= $url_cap ) {
-						continue; // this URL reached its per-post cap
-					}
-					$needle = blogpro_il_normalize_phrase( $rule['phrase'] );
-					if ( '' === $needle ) {
+			if ( $p_depth > 0 && 0 === $a_depth && '' !== $seg ) {
+				foreach ( $rules as $r_idx => $rule ) {
+					$ph = blogpro_il_normalize_phrase( $rule['phrase'] );
+					if ( '' === $ph ) {
 						continue;
 					}
-					$pattern = '/' . preg_quote( $needle, '/' ) . '/iu';
-					if ( preg_match( $pattern, $segment ) ) {
-						$token = '{{BPIL_' . $i . '_' . $idx . '}}';
-						$segment = preg_replace( $pattern, $token, $segment, 1 );
-						$segments[ $i ] = $segment;
-						$markers[ $token ] = sprintf(
-							'<a href="%s" class="bpil-link">%s</a>',
-							esc_url( $rule['url'] ),
-							esc_html( $rule['phrase'] )
-						);
-						$linked[ $key ] = true;
+					$pat = '/' . preg_quote( $ph, '/' ) . '/iu';
+					if ( preg_match_all( $pat, $seg, $mm, PREG_SET_ORDER | PREG_OFFSET_CAPTURE ) ) {
+						foreach ( $mm as $hit ) {
+							$raw[] = array(
+								'para'   => $para,
+								'r_idx'  => $r_idx,
+								'phrase' => $ph,
+								'url'    => $rule['url'],
+								'at'     => $offset + (int) $hit[0][1],
+								'len'    => strlen( $hit[0][0] ),
+								'text'   => $hit[0][0],
+							);
+						}
 					}
 				}
 			}
+			$offset += strlen( $seg );
 			continue;
 		}
-
-		// Track open state of skip tags.
-		if ( preg_match( '#^<!--#', $segment ) ) {
-			if ( false === strpos( $segment, '-->' ) ) {
-				$depth['comment'] = true;
-			}
-			continue;
+		if ( preg_match( '/^<p\b/i', $seg ) ) {
+			$p_depth++;
+			$para++;
+		} elseif ( preg_match( '/^<\/p>/i', $seg ) ) {
+			$p_depth = max( 0, $p_depth - 1 );
+		} elseif ( preg_match( '/^<a\b/i', $seg ) ) {
+			$a_depth++;
+		} elseif ( preg_match( '/^<\/a>/i', $seg ) ) {
+			$a_depth = max( 0, $a_depth - 1 );
 		}
-		if ( 0 === strpos( $segment, '-->' ) && isset( $depth['comment'] ) ) {
-			unset( $depth['comment'] );
-			continue;
-		}
-		if ( preg_match( '#^</#', $segment ) ) {
-			$tag = strtolower( preg_replace( '/[^a-z]/', '', $segment ) );
-			if ( isset( $depth[ $tag ] ) ) {
-				unset( $depth[ $tag ] );
-			}
-			continue;
-		}
-		if ( preg_match( '#^<([a-z][a-z0-9]*)#i', $segment, $m ) ) {
-			$tag = strtolower( $m[1] );
-			if ( in_array( $tag, array( 'a', 'pre', 'code', 'script', 'style' ), true ) ) {
-				$depth[ $tag ] = true;
-			}
-		}
+		$offset += strlen( $seg );
 	}
 
-	return strtr( implode( '', $segments ), $markers );
+	if ( ! $raw ) {
+		return $content;
+	}
+
+	// ---- Pass 2: deterministic random order, then greedy caps ----
+	// Hash-sort gives each occurrence a stable pseudo-random key
+	// (md5 → crc32). Shuffling BEFORE caps means which occurrences win is
+	// spread over the entire post, not biased to the top.
+	foreach ( $raw as $n => $c ) {
+		$raw[ $n ]['key'] = crc32( $seed . '|' . $c['r_idx'] . '|' . $c['at'] );
+	}
+	usort( $raw, function ( $a, $b ) {
+		return $a['key'] <=> $b['key'];
+	} );
+
+	$used_phrase = array();
+	$used_url    = array();
+	$used_para   = array();
+	$picked      = array();
+	foreach ( $raw as $c ) {
+		if ( count( $picked ) >= $max_links ) {
+			break;
+		}
+		if ( isset( $used_phrase[ $c['phrase'] ] ) ) {
+			continue; // one link per phrase, at its randomly-picked spot
+		}
+		if ( ! empty( $used_url[ $c['url'] ] ) && $used_url[ $c['url'] ] >= $url_cap ) {
+			continue;
+		}
+		if ( ! empty( $used_para[ $c['para'] ] ) && $used_para[ $c['para'] ] >= $para_cap ) {
+			continue; // paragraph keeps at most $para_cap links
+		}
+		$used_phrase[ $c['phrase'] ] = true;
+		$used_url[ $c['url'] ]       = ( empty( $used_url[ $c['url'] ] ) ? 0 : $used_url[ $c['url'] ] ) + 1;
+		$used_para[ $c['para'] ]     = ( empty( $used_para[ $c['para'] ] ) ? 0 : $used_para[ $c['para'] ] ) + 1;
+		$picked[]                    = $c;
+	}
+
+	// ---- Pass 3: apply right-to-left, skipping overlapping ranges ----
+	// Two rules can match at the same spot ("WordPress SEO" and "SEO
+	// guide"); nesting both anchors would corrupt markup. The already-
+	// applied (later) pick wins; the overlapping earlier one is dropped.
+	usort( $picked, function ( $a, $b ) {
+		return $b['at'] <=> $a['at'];
+	} );
+	$applied = array(); // [start, end] pairs already anchored
+	foreach ( $picked as $c ) {
+		$start = $c['at'];
+		$end   = $c['at'] + $c['len'];
+		$clash = false;
+		foreach ( $applied as $range ) {
+			if ( $start < $range[1] && $end > $range[0] ) {
+				$clash = true;
+				break;
+			}
+		}
+		if ( $clash ) {
+			continue;
+		}
+		$anchor = sprintf(
+			'<a href="%s" class="bpil-link">%s</a>',
+			esc_url( $c['url'] ),
+			esc_html( $c['text'] )
+		);
+		$content = substr_replace( $content, $anchor, $start, $c['len'] );
+		$applied[] = array( $start, $end );
+	}
+
+	return $content;
 }
 
 /* ---------------------------------------------------------------------
@@ -387,12 +445,16 @@ function blogpro_il_scan_content( $content, $rules, $max ) {
 	$found     = array();
 	$used_rules = array();
 	$segments  = preg_split( '/(<[^>]+>)/', $content, -1, PREG_SPLIT_DELIM_CAPTURE );
-	$depth     = array();
+	$a_depth   = 0;
 	$offset    = 0;
+
+	// Mirrors blogpro_il_apply_links(): candidates only come from inside
+	// <p>…</p> blocks and never from existing anchors.
+	$p_depth = 0;
 
 	foreach ( $segments as $i => $segment ) {
 		if ( 0 === ( $i % 2 ) ) {
-			if ( empty( $depth ) ) {
+			if ( $p_depth > 0 && 0 === $a_depth ) {
 				foreach ( $rules as $rule ) {
 					$url = esc_url( $rule['url'] );
 					if ( isset( $used_rules[ $rule['phrase'] ] ) || isset( $linked_urls[ $url ] ) ) {
@@ -421,30 +483,16 @@ function blogpro_il_scan_content( $content, $rules, $max ) {
 			continue;
 		}
 
-		// Tag bookkeeping mirrors blogpro_il_apply_links().
-		if ( preg_match( '#^<!--#', $segment ) ) {
-			if ( false === strpos( $segment, '-->' ) ) {
-				$depth['comment'] = true;
-			}
-			$offset += strlen( $segment );
-			continue;
-		}
-		if ( 0 === strpos( $segment, '-->' ) && isset( $depth['comment'] ) ) {
-			unset( $depth['comment'] );
-			$offset += strlen( $segment );
-			continue;
-		}
-		if ( preg_match( '#^</#', $segment ) ) {
-			$tag = strtolower( preg_replace( '/[^a-z]/', '', $segment ) );
-			unset( $depth[ $tag ] );
-			$offset += strlen( $segment );
-			continue;
-		}
-		if ( preg_match( '#^<([a-z][a-z0-9]*)#i', $segment, $mt ) ) {
-			$tag = strtolower( $mt[1] );
-			if ( in_array( $tag, array( 'a', 'pre', 'code', 'script', 'style' ), true ) ) {
-				$depth[ $tag ] = true;
-			}
+		// Tag bookkeeping mirrors blogpro_il_apply_links(): track <p>/<a>
+		// open-close so candidates come only from plain paragraph text.
+		if ( preg_match( '/^<p\b/i', $segment ) ) {
+			$p_depth++;
+		} elseif ( preg_match( '/^<\/p>/i', $segment ) ) {
+			$p_depth = max( 0, $p_depth - 1 );
+		} elseif ( preg_match( '/^<a\b/i', $segment ) ) {
+			$a_depth++;
+		} elseif ( preg_match( '/^<\/a>/i', $segment ) ) {
+			$a_depth = max( 0, $a_depth - 1 );
 		}
 		$offset += strlen( $segment );
 	}
