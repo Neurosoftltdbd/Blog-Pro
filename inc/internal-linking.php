@@ -15,7 +15,9 @@
  *
  * Both modes skip text already inside <a>, <pre>, <code>, <script> or
  * <style>, never link to the post itself, and stop after
- * blogpro_internal_links_max (default 3) links per post.
+ * blogpro_internal_links_max (default 12) links per post. Each phrase is
+ * only linked once; the same URL may appear up to 3 times across the post
+ * (different sections, different anchor text from the same rule family).
  *
  * NOTE: the_content only runs for classic/Gutenberg content. Elementor
  * and other page builders render their own output and bypass this filter.
@@ -29,7 +31,9 @@ if ( ! defined( 'ABSPATH' ) ) exit;
  * @return int
  */
 function blogpro_internal_links_max( $post_id ) {
-	return (int) apply_filters( 'blogpro_internal_links_max', 3, $post_id );
+	// Default raised 3 → 12 so a long article can actually distribute links
+	// through the body. Per-post cap is filterable.
+	return (int) apply_filters( 'blogpro_internal_links_max', 12, $post_id );
 }
 
 /**
@@ -286,10 +290,14 @@ add_filter( 'the_content', 'blogpro_internal_links', 15 );
  * @return string
  */
 function blogpro_il_apply_links( $content, $rules, $max_links ) {
-	$linked    = array(); // normalized URLs already linked in this content
+	$url_count = array(); // url => times linked so far (per-URL cap below)
 	$markers   = array(); // token => anchor HTML
 	$segments  = preg_split( '/(<[^>]+>)/', $content, -1, PREG_SPLIT_DELIM_CAPTURE );
 	$depth     = array(); // tag stack to track never-link tags
+	// Same target URL may be linked up to 3 times across the post (in
+	// different sections), so a long article gets links spread through the
+	// body instead of one hit exhausting every rule in the intro.
+	$url_cap = (int) apply_filters( 'blogpro_internal_links_url_cap', 3 );
 
 	foreach ( $segments as $i => $segment ) {
 		if ( 0 === ( $i % 2 ) ) {
@@ -300,8 +308,8 @@ function blogpro_il_apply_links( $content, $rules, $max_links ) {
 						break 2;
 					}
 					$key = $rule['url'];
-					if ( isset( $linked[ $key ] ) ) {
-						continue; // already linked to this URL
+					if ( ! empty( $url_count[ $key ] ) && $url_count[ $key ] >= $url_cap ) {
+						continue; // this URL reached its per-post cap
 					}
 					$needle = blogpro_il_normalize_phrase( $rule['phrase'] );
 					if ( '' === $needle ) {

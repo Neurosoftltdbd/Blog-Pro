@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "blog-pro/howto",
+  "title": "How-To Steps",
+  "icon": "list-view",
+  "category": "widgets",
+  "description": "Numbered step-by-step guide with HowTo structured data.",
+  "keywords": ["howto", "how to", "steps", "guide", "tutorial"],
+  "textdomain": "blog-pro",
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./style.css",
+  "render": "file:./render.php",
+  "attributes": {
+    "title": {
+      "type": "string",
+      "default": "How To"
+    },
+    "totalTime": {
+      "type": "string",
+      "default": ""
+    },
+    "steps": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "text": { "type": "string" }
+        }
+      }
+    }
+  },
+  "supports": {
+    "html": false,
+    "align": ["wide", "full"]
+  }
+}

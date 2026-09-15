@@ -117,4 +117,76 @@
       }
     });
   }
+
+  /* ------------------------------------------------------------------
+   * Back-to-top + reading progress bar (markup in footer.php).
+   * Both start hidden; a single passive scroll listener (rAF-throttled)
+   * drives them. Smooth scroll is skipped under prefers-reduced-motion.
+   * ---------------------------------------------------------------- */
+  var backTop = document.getElementById("blogpro-back-top");
+  var progressWrap = document.getElementById("blogpro-scroll-progress");
+  var progressBar = document.getElementById("blogpro-scroll-progress-bar");
+
+  if (backTop || progressBar) {
+    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var ticking = false;
+
+    var onScroll = function () {
+      ticking = false;
+      var doc = document.documentElement;
+      var top = window.scrollY || doc.scrollTop || 0;
+      var total = doc.scrollHeight - window.innerHeight;
+
+      if (backTop) {
+        var show = top > 600 && total > 200;
+        if (show === backTop.hidden) {
+          backTop.hidden = !show;
+          backTop.tabIndex = show ? 0 : -1;
+        }
+        if (show) {
+          backTop.classList.remove("opacity-0", "pointer-events-none", "translate-y-2");
+        } else {
+          backTop.classList.add("opacity-0", "pointer-events-none", "translate-y-2");
+        }
+      }
+
+      if (progressWrap && progressBar) {
+        var pct = total > 0 ? Math.min(100, Math.max(0, (top / total) * 100)) : 0;
+        if (pct > 2 && progressWrap.hidden) {
+          progressWrap.hidden = false;
+        } else if (pct <= 2 && !progressWrap.hidden) {
+          progressWrap.hidden = true;
+        }
+        progressBar.style.width = pct + "%";
+      }
+    };
+
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (!ticking) {
+          ticking = true;
+          window.requestAnimationFrame(onScroll);
+        }
+      },
+      { passive: true }
+    );
+    onScroll();
+
+    if (backTop) {
+      backTop.addEventListener("click", function (e) {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+        // Return focus to the skip-link target for keyboard users.
+        var main = document.getElementById("main");
+        if (main) {
+          main.setAttribute("tabindex", "-1");
+          main.focus({ preventScroll: true });
+        }
+        if (history.replaceState) {
+          history.replaceState(null, "", window.location.pathname + window.location.search);
+        }
+      });
+    }
+  }
 })();

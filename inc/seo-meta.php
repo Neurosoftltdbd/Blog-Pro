@@ -113,37 +113,118 @@ function blogpro_get_canonical_url() {
 	return $url;
 }
 
+/**
+ * Back-compat URL-only accessor — the fallback chain now lives in
+ * blogpro_social_image_data() (URL + real pixel dims in one pass).
+ */
 function blogpro_get_social_image() {
+	return blogpro_social_image_data()['url'];
+}
+
+/**
+ * Social image + its real pixel dimensions, in one pass.
+ *
+ * Uses wp_get_attachment_image_src('thumbnail') — the theme's pipeline keeps
+ * no intermediate crops (intermediate_image_sizes filter), so this resolves
+ * to the WebP master and core reports the true size in the same array, no
+ * extra disk probing. For fallbacks (site icon, logo, banner) the size is
+ * read from the file once and memoized.
+ *
+ * @return array{url:string,w:?(int),h:?(int)}
+ */
+function blogpro_social_image_data() {
+	static $cache = array();
+
 	if ( is_singular() && has_post_thumbnail() ) {
-		return wp_get_attachment_image_url( get_post_thumbnail_id(), 'blogpro-hero' );
+		$att_id = get_post_thumbnail_id();
+		$key    = 'thumb-' . $att_id;
+		if ( ! isset( $cache[ $key ] ) ) {
+			$src = wp_get_attachment_image_src( $att_id, 'thumbnail' );
+			$cache[ $key ] = $src
+				? array( 'url' => $src[0], 'w' => (int) $src[1], 'h' => (int) $src[2] )
+				: array( 'url' => '', 'w' => null, 'h' => null );
+		}
+		if ( $cache[ $key ]['url'] ) {
+			return $cache[ $key ];
+		}
 	}
+
 	$site_icon = get_site_icon_url( 512 );
 	if ( $site_icon ) {
-		return $site_icon;
+		return blogpro_social_image_probe( $cache, $site_icon );
 	}
-	// fallback: custom logo or theme default
 	$custom_logo = get_theme_mod( 'custom_logo' );
 	if ( $custom_logo ) {
-		return wp_get_attachment_image_url( $custom_logo, 'full' );
+		$src = wp_get_attachment_image_src( $custom_logo, 'full' );
+		if ( $src ) {
+			return blogpro_social_image_probe( $cache, $src[0], (int) $src[1], (int) $src[2] );
+		}
 	}
-	// allow filter for a default image
 	$default = apply_filters( 'blogpro_default_og_image', '' );
 	if ( $default && file_exists( str_replace( BLOGPRO_URI, BLOGPRO_DIR, $default ) ) ) {
-		return $default;
+		return blogpro_social_image_probe( $cache, $default );
 	}
-	// fallback: theme's banner.png
 	$banner_path = BLOGPRO_DIR . '/assets/images/banner.png';
 	if ( file_exists( $banner_path ) ) {
-		return BLOGPRO_URI . '/assets/images/banner.png';
+		return blogpro_social_image_probe( $cache, BLOGPRO_URI . '/assets/images/banner.png' );
 	}
-	return '';
+	return array( 'url' => '', 'w' => null, 'h' => null );
+}
+
+/**
+ * Memoized dimension lookup for a fallback image URL.
+ *
+ * @param array  $cache
+ * @param string $url
+ * @param ?int   $w
+ * @param ?int   $h
+ * @return array
+ */
+function blogpro_social_image_probe( &$cache, $url, $w = null, $h = null ) {
+	$key = 'url-' . $url;
+	if ( isset( $cache[ $key ] ) ) {
+		return $cache[ $key ];
+	}
+	if ( null === $w || null === $h ) {
+		$path = str_replace( array( content_url(), BLOGPRO_URI ), array( WP_CONTENT_DIR, BLOGPRO_DIR ), wp_parse_url( $url, PHP_URL_PATH ) ?: '' );
+		// subdirectory installs: try uploads basedir mapping too
+		if ( '' === $path || ! file_exists( $path ) ) {
+			$upload = wp_upload_dir();
+			$rel    = ltrim( str_replace( $upload['baseurl'], '', $url ), '/' );
+			$path   = ( $rel !== $url ) ? trailingslashit( $upload['basedir'] ) . $rel : '';
+		}
+		if ( $path && file_exists( $path ) ) {
+			$size = @wp_getimagesize( $path );
+			if ( $size ) {
+				$w = (int) $size[0];
+				$h = (int) $size[1];
+			}
+		}
+	}
+	$cache[ $key ] = array( 'url' => $url, 'w' => $w ?: null, 'h' => $h ?: null );
+	return $cache[ $key ];
+}
+
+/**
+ * Alt text for the social image — the featured image's own alt (auto-filled
+ * from the filename on upload), falling back to the post title.
+ *
+ * @return string
+ */
+function blogpro_social_image_alt() {
+	if ( is_singular() && has_post_thumbnail() ) {
+		$alt = trim( (string) get_post_meta( get_post_thumbnail_id(), '_wp_attachment_image_alt', true ) );
+		return $alt ? $alt : wp_strip_all_tags( get_the_title() );
+	}
+	return get_bloginfo( 'name' );
 }
 
 function blogpro_output_meta_tags() {
 	$description = esc_attr( blogpro_get_meta_description() );
 	$canonical   = esc_url( blogpro_get_canonical_url() );
 	$title       = esc_attr( blogpro_get_meta_title() );
-	$image       = blogpro_get_social_image();
+	$social      = blogpro_social_image_data();
+	$image       = $social['url'];
 	if ( ! $image ) $image = BLOGPRO_URI . '/assets/images/banner.png';
 	$site_name   = esc_attr( get_bloginfo( 'name' ) );
 
@@ -167,11 +248,25 @@ function blogpro_output_meta_tags() {
 	echo '<meta property="og:description" content="' . $description . '">' . "\n";
 	echo '<meta property="og:url" content="' . $canonical . '">' . "\n";
 	echo '<meta property="og:site_name" content="' . $site_name . '">' . "\n";
-	if ( $image ) echo '<meta property="og:image" content="' . esc_url( $image ) . '">' . "\n";
+	if ( $image ) {
+		echo '<meta property="og:image" content="' . esc_url( $image ) . '">' . "\n";
+		// Dimensions + alt help Facebook/X prefetch the right rendition and
+		// stop them reserving layout (bigger, less-cropped cards).
+		if ( $social['w'] && $social['h'] ) {
+			echo '<meta property="og:image:width" content="' . (int) $social['w'] . '">' . "\n";
+			echo '<meta property="og:image:height" content="' . (int) $social['h'] . '">' . "\n";
+		}
+		$img_alt = blogpro_social_image_alt();
+		if ( $img_alt ) {
+			echo '<meta property="og:image:alt" content="' . esc_attr( $img_alt ) . '">' . "\n";
+		}
+	}
 
 	if ( is_singular( 'post' ) ) {
 		echo '<meta property="article:published_time" content="' . esc_attr( get_the_date( 'c' ) ) . '">' . "\n";
 		echo '<meta property="article:modified_time" content="' . esc_attr( get_the_modified_date( 'c' ) ) . '">' . "\n";
+		echo '<meta property="article:author" content="' . esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ) . '">' . "\n";
+		echo '<meta property="article:publisher" content="' . esc_url( home_url( '/' ) ) . '">' . "\n";
 		foreach ( get_the_category() as $cat ) {
 			echo '<meta property="article:section" content="' . esc_attr( $cat->name ) . '">' . "\n";
 		}
@@ -181,7 +276,13 @@ function blogpro_output_meta_tags() {
 	echo '<meta name="twitter:card" content="' . ( $image ? 'summary_large_image' : 'summary' ) . '">' . "\n";
 	echo '<meta name="twitter:title" content="' . $title . '">' . "\n";
 	echo '<meta name="twitter:description" content="' . $description . '">' . "\n";
-	if ( $image ) echo '<meta name="twitter:image" content="' . esc_url( $image ) . '">' . "\n";
+	if ( $image ) {
+		echo '<meta name="twitter:image" content="' . esc_url( $image ) . '">' . "\n";
+		$img_alt = blogpro_social_image_alt();
+		if ( $img_alt ) {
+			echo '<meta name="twitter:image:alt" content="' . esc_attr( $img_alt ) . '">' . "\n";
+		}
+	}
 
 	echo "<!-- /Blog Pro SEO meta -->\n";
 }

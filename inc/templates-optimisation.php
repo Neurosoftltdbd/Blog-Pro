@@ -56,34 +56,11 @@ function blogpro_lazy_load_media( $content ) {
 		$content
 	);
 
-	// Lazy load iframes
-	$content = preg_replace_callback(
-		'/<iframe[^>]+>/i',
-		function( $matches ) {
-			$iframe = $matches[0];
-			if ( strpos( $iframe, 'loading=' ) === false ) {
-				$iframe = str_replace( '<iframe', '<iframe loading="lazy"', $iframe );
-			}
-			return $iframe;
-		},
-		$content
-	);
-
-	// Lazy load videos (preload="none" + loading="lazy")
-	$content = preg_replace_callback(
-		'/<video[^>]+>/i',
-		function( $matches ) {
-			$video = $matches[0];
-			if ( strpos( $video, 'preload=' ) === false ) {
-				$video = str_replace( '<video', '<video preload="none"', $video );
-			}
-			if ( strpos( $video, 'loading=' ) === false ) {
-				$video = str_replace( '<video', '<video loading="lazy"', $video );
-			}
-			return $video;
-		},
-		$content
-	);
+	// Iframes and <video> are handled by inc/video-optimisation.php
+	// (blogpro_lazy_iframes @15, blogpro_tidy_videos @20). Duplicating the
+	// pass here at priority 99 re-added loading="lazy" / preload="none"
+	// AFTER the video module had deliberately removed them — which is what
+	// stopped the first frame painting.
 
 	return $content;
 }

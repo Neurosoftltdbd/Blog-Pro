@@ -1,0 +1,40 @@
+/* HowTo block — editor-only scaffolding. Frontend uses Tailwind in render.php. */
+
+.bp-howto__header .rich-text {
+	font-size: 1.5rem;
+	font-weight: 700;
+	color: #111827;
+}
+
+.bp-howto__step {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+	padding: 12px 0;
+	border-bottom: 1px solid #f3f4f6;
+}
+
+.bp-howto__num {
+	flex-shrink: 0;
+	width: 32px;
+	height: 32px;
+	border-radius: 9999px;
+	background: #eef2ff;
+	color: #4338ca;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-top: 24px;
+}
+
+.bp-howto__fields {
+	flex: 1;
+	min-width: 0;
+}
+
+.bp-howto__actions {
+	display: flex;
+	gap: 4px;
+	margin-top: 24px;
+}

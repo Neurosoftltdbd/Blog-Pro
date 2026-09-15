@@ -31,6 +31,11 @@ function blogpro_register_contact_block() {
 }
 add_action( 'init', 'blogpro_register_contact_block' );
 
+function blogpro_register_howto_block() {
+	register_block_type( BLOGPRO_DIR . '/blocks/howto' );
+}
+add_action( 'init', 'blogpro_register_howto_block' );
+
 /* ---------------------------------------------------------------------
  * TOC shared machinery
  *

@@ -57,6 +57,14 @@ function blogpro_htaccess_rules() {
 		"\tAddType font/woff2 .woff2",
 		'</IfModule>',
 	);
+
+	/**
+	 * Filter the rules block so feature modules (e.g. inc/video-optimize.php)
+	 * can append their own directives without editing this list.
+	 *
+	 * @param string[] $rules
+	 */
+	return apply_filters( 'blogpro_htaccess_rules', $rules );
 }
 
 function blogpro_get_htaccess_path() {

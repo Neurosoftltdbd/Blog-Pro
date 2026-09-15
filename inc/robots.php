@@ -27,6 +27,28 @@ function blogpro_robots_txt( $output, $public ) {
 	$lines[] = 'Disallow: /search/';
 	$lines[] = 'Allow: /wp-admin/admin-ajax.php';
 	$lines[] = '';
+	// Explicit permission for AI answer engines. Being named (rather than
+	// inheriting "User-agent: *") is a crawl-intent signal these bots read,
+	// and it survives a future tightening of the global rules above.
+	$ai_bots = apply_filters( 'blogpro_robots_ai_bots', array(
+		'GPTBot',          // OpenAI training + ChatGPT browsing
+		'OAI-SearchBot',   // ChatGPT Search
+		'ChatGPT-User',    // in-product URL fetches
+		'ClaudeBot',       // Anthropic training crawler
+		'Claude-User',     // Claude browsing fetches
+		'PerplexityBot',
+		'Google-Extended', // Gemini / AI Overviews (training only; Googlebot covers indexing)
+		'DuckAssistBot',
+		'Applebot-Extended',
+		'cohere-ai',
+		'MistralAI',
+		'Bytespider',
+	) );
+	foreach ( $ai_bots as $bot ) {
+		$lines[] = 'User-agent: ' . $bot;
+		$lines[] = 'Allow: /';
+		$lines[] = '';
+	}
 	$lines[] = 'Sitemap: ' . home_url( '/sitemap.xml' );
 
 	return implode( "\n", $lines ) . "\n";

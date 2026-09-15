@@ -219,25 +219,9 @@ add_filter( 'post_thumbnail_html', function ( $html, $post_id ) {
 	return $html;
 }, 10, 2 );
 
-/* 3. Lazy-load iframes (YouTube/Vimeo embeds) and defer their weight. */
-function blogpro_lazy_iframes( $html ) {
-	if ( false === strpos( $html, 'loading=' ) ) {
-		$html = str_replace( '<iframe ', '<iframe loading="lazy" ', $html );
-	}
-	return $html;
-}
-add_filter( 'embed_oembed_html', 'blogpro_lazy_iframes', 10, 1 );
-add_filter( 'the_content', 'blogpro_lazy_iframes', 15 );
-
-/* 4. Self-hosted <video> — use metadata-only preload so the whole file
-      doesn't download until the visitor presses play. */
-function blogpro_video_preload( $html, $atts ) {
-	if ( false === strpos( $html, 'preload=' ) ) {
-		$html = str_replace( '<video ', '<video preload="metadata" ', $html );
-	}
-	return $html;
-}
-add_filter( 'wp_video_shortcode', 'blogpro_video_preload', 10, 2 );
+/* 3 & 4 moved to inc/video-optimisation.php — lazy embed iframes and
+   self-hosted <video> hardening (preload/mime/sizing/schema) all live
+   in the video module now. */
 
 /* 5. Strip bulky image metadata (EXIF/XMP) on upload to shrink file size
       without touching visible quality. */
