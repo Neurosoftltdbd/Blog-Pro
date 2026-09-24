@@ -113,7 +113,8 @@ function blogpro_schema_blogposting() {
 			$image = wp_get_attachment_image_url( get_post_thumbnail_id(), 'full' );
 		}
 	}
-	$word_count = str_word_count( wp_strip_all_tags( $post->post_content ) );
+	$word_count      = str_word_count( wp_strip_all_tags( $post->post_content ) );
+	$reading_minutes = max( 1, (int) ceil( $word_count / 200 ) );
 
 	$schema = array(
 		'@type'            => 'BlogPosting',
@@ -126,6 +127,9 @@ function blogpro_schema_blogposting() {
 		'author'           => blogpro_schema_person( $post->post_author ),
 		'publisher'        => array( '@id' => home_url( '/#organization' ) ),
 		'wordCount'        => $word_count,
+		'timeRequired'     => 'PT' . $reading_minutes . 'M',
+		'copyrightYear'    => (int) get_the_date( 'Y' ),
+		'copyrightHolder'  => array( '@id' => home_url( '/#organization' ) ),
 		'inLanguage'       => get_bloginfo( 'language' ),
 	);
 	if ( $image ) {

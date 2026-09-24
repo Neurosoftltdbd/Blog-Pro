@@ -68,12 +68,26 @@ add_filter( 'heartbeat_settings', function ( $settings ) {
 function blogpro_resource_hints() {
 	echo '<link rel="preconnect" href="' . esc_url( home_url() ) . '">' . "\n";
 
-	// Preload the LCP image on singular views (featured image) at highest priority.
+	// Preload the LCP image on singular views (featured image) with responsive srcset/sizes.
 	if ( is_singular() && has_post_thumbnail() ) {
-		$src = wp_get_attachment_image_url( get_post_thumbnail_id(), 'blogpro-hero' );
+		$thumb_id = get_post_thumbnail_id();
+		$src      = wp_get_attachment_image_url( $thumb_id, 'full' );
 		if ( $src ) {
-			echo '<link rel="preload" as="image" href="' . esc_url( $src ) . '" fetchpriority="high">' . "\n";
+			$srcset = wp_get_attachment_image_srcset( $thumb_id, 'full' );
+			$sizes  = '(max-width: 896px) 100vw, 896px';
+			$preload_tag = '<link rel="preload" as="image" href="' . esc_url( $src ) . '"';
+			if ( $srcset ) {
+				$preload_tag .= ' imagesrcset="' . esc_attr( $srcset ) . '" imagesizes="' . esc_attr( $sizes ) . '"';
+			}
+			$preload_tag .= ' fetchpriority="high">' . "\n";
+			echo $preload_tag;
 		}
+	}
+
+	// Gravatar preconnect for single posts with open or existing comments.
+	if ( is_singular() && ( comments_open() || get_comments_number() ) ) {
+		echo '<link rel="preconnect" href="https://secure.gravatar.com" crossorigin>' . "\n";
+		echo '<link rel="dns-prefetch" href="https://secure.gravatar.com">' . "\n";
 	}
 }
 add_action( 'wp_head', 'blogpro_resource_hints', 1 );
@@ -137,5 +151,42 @@ function blogpro_cleanup_revisions() {
 
 	return $stats;
 }
+
+/* 15. Speculation Rules API — instant prerender / prefetch for internal links.
+       Chromium 121+ standard providing near 0ms navigation times for visitors. */
+function blogpro_speculation_rules() {
+	if ( is_admin() || is_user_logged_in() ) {
+		return;
+	}
+	$rules = array(
+		'prerender' => array(
+			array(
+				'where' => array(
+					'and' => array(
+						array( 'href_matches' => '/*' ),
+						array(
+							'not' => array(
+								'href_matches' => array(
+									'/wp-admin/*',
+									'/wp-login.php*',
+									'/*\\?*preview*',
+									'/*\\?*action=*',
+									'/*feed*',
+									'/cart/*',
+									'/checkout/*',
+									'/my-account/*',
+								),
+							),
+						),
+					),
+				),
+				'eagerness' => 'moderate',
+			),
+		),
+	);
+	echo '<script type="speculationrules">' . wp_json_encode( $rules, JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
+}
+add_action( 'wp_footer', 'blogpro_speculation_rules', 50 );
+
 
 

@@ -96,7 +96,7 @@ while ( have_posts() ) : the_post();
 							<?php endif; ?>
 						</a>
 						<div class="p-2">
-							<div class="text-sm text-gray-700 mb-1"><?php echo esc_html( get_the_date() ); ?></div>
+							<div class="text-sm text-gray-700 mb-1"><?php echo esc_html( get_the_date() ); ?> &middot; <?php echo esc_html( blogpro_reading_time() ); ?></div>
 							<h3 class="text-base font-semibold text-gray-900 leading-snug line-clamp-2"><a href="<?php the_permalink(); ?>" class="hover:text-indigo-600 transition-colors no-underline"><?php the_title(); ?></a></h3>
 						</div>
 					</article>

@@ -244,6 +244,10 @@ function blogpro_output_meta_tags() {
 		header( 'Link: <' . esc_url_raw( $llms_url ) . '>; rel="llms-txt"', false );
 	}
 
+	// OpenSearch auto-discovery — allows browser address bars (Chrome/Edge/Firefox)
+	// to enable instant Tab-to-search for this website.
+	echo '<link rel="search" type="application/opensearchdescription+xml" href="' . esc_url( home_url( '/opensearch.xml' ) ) . '" title="' . $site_name . '">' . "\n";
+
 	// Robots directives
 	$noindex = false;
 	if ( is_search() || is_404() ) {
@@ -426,6 +430,51 @@ add_filter( 'pre_get_document_title', 'blogpro_get_meta_title' );
  * Remove the WordPress generator <meta> tag — no need to advertise WP version.
  */
 remove_action( 'wp_head', 'wp_generator' );
+
+/**
+ * OpenSearch description handler.
+ * Generates an OpenSearch 1.1 compliant XML document at /opensearch.xml
+ */
+function blogpro_opensearch_rewrite() {
+	add_rewrite_rule( '^opensearch\.xml$', 'index.php?blogpro_opensearch=1', 'top' );
+}
+add_action( 'init', 'blogpro_opensearch_rewrite' );
+
+add_filter( 'query_vars', function ( $vars ) {
+	$vars[] = 'blogpro_opensearch';
+	return $vars;
+} );
+
+function blogpro_serve_opensearch() {
+	if ( ! get_query_var( 'blogpro_opensearch' ) ) {
+		return;
+	}
+	header( 'Content-Type: application/opensearchdescription+xml; charset=utf-8' );
+	header( 'Cache-Control: public, max-age=86400' );
+
+	$site_name   = get_bloginfo( 'name' );
+	$site_desc   = get_bloginfo( 'description' );
+	$search_url  = home_url( '/?s={searchTerms}' );
+	$icon        = get_site_icon_url( 32 );
+	if ( ! $icon ) {
+		$icon = file_exists( BLOGPRO_DIR . '/assets/images/icon.png' ) ? BLOGPRO_URI . '/assets/images/icon.png' : '';
+	}
+
+	echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+	?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+	<ShortName><?php echo esc_xml( $site_name ); ?></ShortName>
+	<Description><?php echo esc_xml( $site_desc ? $site_desc : sprintf( __( 'Search %s', 'blog-pro' ), $site_name ) ); ?></Description>
+	<InputEncoding>UTF-8</InputEncoding>
+	<?php if ( $icon ) : ?>
+	<Image width="32" height="32" type="image/png"><?php echo esc_url( $icon ); ?></Image>
+	<?php endif; ?>
+	<Url type="text/html" method="get" template="<?php echo esc_url( $search_url ); ?>"/>
+</OpenSearchDescription>
+<?php
+	exit;
+}
+add_action( 'template_redirect', 'blogpro_serve_opensearch', 1 );
 
 /**
  * Favicon / icon fallback.

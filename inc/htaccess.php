@@ -50,6 +50,8 @@ function blogpro_htaccess_rules() {
 		"\t</FilesMatch>",
 		"\tHeader set X-Content-Type-Options \"nosniff\"",
 		"\tHeader set Referrer-Policy \"strict-origin-when-cross-origin\"",
+		// Strict-Transport-Security: tells browsers to always use HTTPS for 1 year.
+		"\tHeader always set Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" env=HTTPS",
 		// X-Frame-Options: prevents clickjacking and is a positive trust
 		// signal in Google's quality algorithms.
 		"\tHeader set X-Frame-Options \"SAMEORIGIN\"",

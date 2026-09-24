@@ -42,7 +42,6 @@ function blogpro_robots_txt( $output, $public ) {
 		'Applebot-Extended',
 		'cohere-ai',
 		'MistralAI',
-		'Bytespider',
 	) );
 	foreach ( $ai_bots as $bot ) {
 		$lines[] = 'User-agent: ' . $bot;
