@@ -97,6 +97,12 @@ function blogpro_schema_breadcrumbs() {
 
 function blogpro_schema_blogposting() {
 	global $post;
+	if ( ! $post ) {
+		return null;
+	}
+
+	$canonical = function_exists( 'blogpro_get_canonical_url' ) ? blogpro_get_canonical_url() : get_permalink();
+
 	// 'blogpro-hero' isn't registered (see functions.php) — fall back to the
 	// full master, matching what the og:image tag emits.
 	$image    = '';
@@ -113,14 +119,35 @@ function blogpro_schema_blogposting() {
 			$image = wp_get_attachment_image_url( get_post_thumbnail_id(), 'full' );
 		}
 	}
+	// Fallback 1: First <img> in post content if no featured image is set.
+	if ( ! $image && ! empty( $post->post_content ) ) {
+		if ( preg_match( '/<img\b[^>]*\bsrc=["\']([^"\']+)["\']/i', $post->post_content, $img_matches ) ) {
+			$image = esc_url_raw( $img_matches[1] );
+		}
+	}
+	// Fallback 2: Social/site fallback image (site icon, custom logo, banner).
+	if ( ! $image && function_exists( 'blogpro_social_image_data' ) ) {
+		$social_data = blogpro_social_image_data();
+		if ( ! empty( $social_data['url'] ) ) {
+			$image   = $social_data['url'];
+			$image_w = $social_data['w'];
+			$image_h = $social_data['h'];
+		}
+	}
+
 	$word_count      = str_word_count( wp_strip_all_tags( $post->post_content ) );
 	$reading_minutes = max( 1, (int) ceil( $word_count / 200 ) );
 
+	$headline = wp_strip_all_tags( get_the_title( $post ) );
+	if ( ! $headline ) {
+		$headline = get_bloginfo( 'name' );
+	}
+
 	$schema = array(
 		'@type'            => 'BlogPosting',
-		'@id'              => get_permalink() . '#article',
-		'mainEntityOfPage' => get_permalink(),
-		'headline'         => get_the_title(),
+		'@id'              => $canonical . '#article',
+		'mainEntityOfPage' => $canonical . '#webpage',
+		'headline'         => $headline,
 		'description'      => blogpro_get_meta_description(),
 		'datePublished'    => get_the_date( 'c' ),
 		'dateModified'     => get_the_modified_date( 'c' ),
@@ -192,12 +219,16 @@ function blogpro_schema_blogposting() {
 			$schema['mentions'] = $mentions;
 		}
 	}
-	// speakable — tells Google Assistant / AI Overviews which parts to read aloud.
-	// CSS selectors target the elements that hold the headline and intro paragraph.
-	$schema['speakable'] = array(
-		'@type'          => 'SpeakableSpecification',
-		'cssSelector'    => array( 'h1.entry-title', '.entry-content > p:first-of-type', '.entry-summary' ),
-	);
+	// speakable — Google Assistant news specification. Google strictly requires
+	// that every selector in cssSelector matches a real DOM element on the page,
+	// otherwise it generates validation errors. Made opt-in via filter.
+	$speakable_selectors = apply_filters( 'blogpro_schema_speakable_selectors', array(), $post );
+	if ( ! empty( $speakable_selectors ) ) {
+		$schema['speakable'] = array(
+			'@type'       => 'SpeakableSpecification',
+			'cssSelector' => array_values( (array) $speakable_selectors ),
+		);
+	}
 	// Key Takeaways → abstract (GEO: the block AI engines quote verbatim).
 	if ( function_exists( 'blogpro_takeaways_for_post' ) ) {
 		$takeaways = blogpro_takeaways_for_post( $post->ID );
@@ -232,11 +263,20 @@ function blogpro_schema_blogposting() {
  * @return array
  */
 function blogpro_schema_person( $user_id ) {
+	$author_name = $user_id ? get_the_author_meta( 'display_name', $user_id ) : '';
+	if ( ! $author_name ) {
+		$author_name = get_bloginfo( 'name' );
+	}
+	$author_url = $user_id ? get_author_posts_url( $user_id ) : home_url( '/' );
+
 	$person = array(
 		'@type' => 'Person',
-		'name'  => get_the_author_meta( 'display_name', $user_id ),
-		'url'   => get_author_posts_url( $user_id ),
+		'name'  => $author_name,
+		'url'   => $author_url,
 	);
+	if ( ! $user_id ) {
+		return $person;
+	}
 	$job_title = trim( (string) get_user_meta( $user_id, 'blogpro_job_title', true ) );
 	if ( $job_title ) {
 		$person['jobTitle'] = $job_title;
@@ -294,8 +334,10 @@ function blogpro_schema_webpage() {
 	$title     = function_exists( 'blogpro_get_meta_title' )    ? blogpro_get_meta_title()    : get_bloginfo( 'name' );
 
 	// Choose the most specific @type for the current context.
+	// For singular posts, use ItemPage (a WebPage subtype). The article itself
+	// is represented by the BlogPosting node in the @graph.
 	if ( is_singular( 'post' ) ) {
-		$type = 'Article';
+		$type = 'ItemPage';
 	} elseif ( is_front_page() || is_home() ) {
 		$type = 'WebPage';
 	} elseif ( is_search() ) {
@@ -332,9 +374,9 @@ function blogpro_schema_webpage() {
 	// Thumbnail as primaryImageOfPage for image-search eligibility.
 	if ( is_singular() && has_post_thumbnail() && function_exists( 'blogpro_social_image_data' ) ) {
 		$img = blogpro_social_image_data();
-		if ( $img['url'] ) {
+		if ( ! empty( $img['url'] ) ) {
 			$img_node = array( '@type' => 'ImageObject', 'url' => $img['url'] );
-			if ( $img['w'] && $img['h'] ) {
+			if ( ! empty( $img['w'] ) && ! empty( $img['h'] ) ) {
 				$img_node['width']  = (int) $img['w'];
 				$img_node['height'] = (int) $img['h'];
 			}
@@ -361,7 +403,10 @@ function blogpro_output_schema() {
 	}
 
 	if ( is_singular( 'post' ) ) {
-		$graph[] = blogpro_schema_blogposting();
+		$posting = blogpro_schema_blogposting();
+		if ( $posting ) {
+			$graph[] = $posting;
+		}
 	}
 
 	/**
