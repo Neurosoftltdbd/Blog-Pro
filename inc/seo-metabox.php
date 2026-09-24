@@ -15,25 +15,25 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 /*  Register the metabox                                                   */
 /* --------------------------------------------------------------------- */
 
-function blogpro_seo_metabox_register() {
+function blogpro_seo_override_metabox_register() {
 	$screens = apply_filters( 'blogpro_seo_metabox_screens', array( 'post', 'page' ) );
 	add_meta_box(
 		'blogpro_seo_metabox',
 		__( 'SEO Override', 'blog-pro' ),
-		'blogpro_seo_metabox_render',
+		'blogpro_seo_override_metabox_render',
 		$screens,
 		'normal',
 		'high'
 	);
 }
-add_action( 'add_meta_boxes', 'blogpro_seo_metabox_register' );
+add_action( 'add_meta_boxes', 'blogpro_seo_override_metabox_register' );
 
 /* --------------------------------------------------------------------- */
 /*  Render                                                                 */
 /* --------------------------------------------------------------------- */
 
-function blogpro_seo_metabox_render( $post ) {
-	wp_nonce_field( 'blogpro_seo_metabox_save', 'blogpro_seo_nonce' );
+function blogpro_seo_override_metabox_render( $post ) {
+	wp_nonce_field( 'blogpro_seo_override_metabox_save', 'blogpro_seo_override_nonce' );
 
 	$meta_title = (string) get_post_meta( $post->ID, '_blogpro_meta_title', true );
 	$meta_desc  = (string) get_post_meta( $post->ID, '_blogpro_meta_description', true );
@@ -118,11 +118,11 @@ function blogpro_seo_metabox_render( $post ) {
 /*  Save                                                                   */
 /* --------------------------------------------------------------------- */
 
-function blogpro_seo_metabox_save( $post_id ) {
+function blogpro_seo_override_metabox_save( $post_id ) {
 	// Nonce / permission checks.
 	if (
-		! isset( $_POST['blogpro_seo_nonce'] ) ||
-		! wp_verify_nonce( sanitize_key( $_POST['blogpro_seo_nonce'] ), 'blogpro_seo_metabox_save' )
+		! isset( $_POST['blogpro_seo_override_nonce'] ) ||
+		! wp_verify_nonce( sanitize_key( $_POST['blogpro_seo_override_nonce'] ), 'blogpro_seo_override_metabox_save' )
 	) {
 		return;
 	}
@@ -149,4 +149,4 @@ function blogpro_seo_metabox_save( $post_id ) {
 		}
 	}
 }
-add_action( 'save_post', 'blogpro_seo_metabox_save' );
+add_action( 'save_post', 'blogpro_seo_override_metabox_save' );
