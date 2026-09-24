@@ -2,7 +2,35 @@
 <html <?php language_attributes(); ?>>
 <head>
 <meta charset="<?php bloginfo( 'charset' ); ?>">
+<meta http-equiv="x-ua-compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<?php
+/**
+ * Preconnect hints — fired early (priority 1) so the browser establishes
+ * TCP+TLS tunnels to external origins before it parses the stylesheet list.
+ * Add or remove origins here whenever new third-party resources are introduced.
+ */
+function blogpro_preconnect_hints() {
+	$origins = apply_filters( 'blogpro_preconnect_origins', array(
+		// Google Fonts (if you load any font from fonts.googleapis.com)
+		// 'https://fonts.googleapis.com',
+		// 'https://fonts.gstatic.com',
+
+		// Ahrefs analytics (emitted by verification.php when key is set)
+		// 'https://analytics.ahrefs.com',
+	) );
+
+	foreach ( $origins as $origin ) {
+		$origin = esc_url( $origin );
+		if ( ! $origin ) continue;
+		// crossorigin is required for fonts (CORS pre-flight); harmless for others.
+		echo '<link rel="preconnect" href="' . $origin . '" crossorigin>' . "\n";
+		echo '<link rel="dns-prefetch" href="' . $origin . '">' . "\n";
+	}
+}
+add_action( 'wp_head', 'blogpro_preconnect_hints', 1 );
+?>
+<link rel="manifest" href="<?php echo esc_url( home_url( '/manifest.json' ) ); ?>">
 <?php wp_head(); ?>
 </head>
 <body <?php body_class( 'bg-white' ); ?> >

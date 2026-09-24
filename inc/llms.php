@@ -209,6 +209,9 @@ function blogpro_serve_dynamic_llm() {
 	if ( ! headers_sent() ) {
 		header( 'Content-Type: text/plain; charset=utf-8' );
 		header( 'Cache-Control: public, max-age=3600' );
+		// Prevent the llms.txt file itself appearing in search results
+		// while remaining readable by AI crawlers (they read the body).
+		header( 'X-Robots-Tag: noindex, nofollow' );
 	}
 	echo $output; // phpcs:ignore WordPress.Security.EscapeOutput -- static markdown index for AI crawlers.
 	exit;

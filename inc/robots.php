@@ -49,6 +49,28 @@ function blogpro_robots_txt( $output, $public ) {
 		$lines[] = 'Allow: /';
 		$lines[] = '';
 	}
+
+	// Crawl-delay for aggressive SEO/audit bots that ignore request-rate
+	// signals. A 10-second delay keeps server load manageable without
+	// blocking them from indexing the site entirely.
+	$slow_bots = apply_filters( 'blogpro_robots_slow_bots', array(
+		'Bytespider',
+		'SemrushBot',
+		'AhrefsBot',
+		'MJ12bot',
+		'DotBot',
+		'BLEXBot',
+	) );
+	foreach ( $slow_bots as $bot ) {
+		$lines[] = 'User-agent: ' . $bot;
+		$lines[] = 'Allow: /';
+		$lines[] = 'Crawl-delay: 10';
+		$lines[] = '';
+	}
+
+	// LLMs discovery — emerging convention read by AI crawlers (similar to
+	// how Sitemap: is read by search engine crawlers).
+	$lines[] = 'LLMs: ' . home_url( '/llms.txt' );
 	$lines[] = 'Sitemap: ' . home_url( '/sitemap.xml' );
 
 	return implode( "\n", $lines ) . "\n";

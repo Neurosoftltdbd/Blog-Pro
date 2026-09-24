@@ -231,30 +231,107 @@ function blogpro_output_meta_tags() {
 	echo "\n<!-- Blog Pro SEO meta -->\n";
 	echo '<meta name="description" content="' . $description . '">' . "\n";
 	echo '<link rel="canonical" href="' . $canonical . '">' . "\n";
-
-	// Robots directives
-	if ( is_search() || is_404() ) {
-		echo '<meta name="robots" content="noindex,follow">' . "\n";
-	} elseif ( is_paged() ) {
-		echo '<meta name="robots" content="index,follow,noarchive">' . "\n";
-	} else {
-		echo '<meta name="robots" content="index,follow,max-image-preview:large">' . "\n";
+	// Referrer policy — controls how much URL info is sent when users
+	// click outbound links. strict-origin-when-cross-origin is the
+	// recommended balance: full path for same-origin, origin-only cross-origin.
+	echo '<meta name="referrer" content="strict-origin-when-cross-origin">' . "\n";
+	// llms-txt discovery — lets AI crawlers auto-discover the file without
+	// already knowing the URL. HTTP Link header covers crawlers that read
+	// headers before HTML; the <link> tag covers browser-based parsers.
+	$llms_url = home_url( '/llms.txt' );
+	echo '<link rel="llms-txt" href="' . esc_url( $llms_url ) . '">' . "\n";
+	if ( ! headers_sent() ) {
+		header( 'Link: <' . esc_url_raw( $llms_url ) . '>; rel="llms-txt"', false );
 	}
 
+	// Robots directives
+	$noindex = false;
+	if ( is_search() || is_404() ) {
+		$noindex = true;
+		echo '<meta name="robots" content="noindex,follow">' . "\n";
+	} elseif ( ( is_category() || is_tag() || is_tax() ) && ! is_paged() ) {
+		// Thin-content protection: archives with ≤1 post are duplicate/stub
+		// pages with almost no unique value — noindex them to protect crawl
+		// budget and avoid thin-content penalties.
+		$queried = get_queried_object();
+		if ( $queried && isset( $queried->count ) && (int) $queried->count <= 1 ) {
+			$noindex = true;
+			echo '<meta name="robots" content="noindex,follow">' . "\n";
+		}
+	}
+	if ( ! $noindex ) {
+		if ( is_paged() ) {
+			// Paginated archives: still indexable; noarchive + max-image-preview.
+			echo '<meta name="robots" content="index,follow,noarchive,max-image-preview:large">' . "\n";
+		} else {
+			echo '<meta name="robots" content="index,follow,max-image-preview:large">' . "\n";
+		}
+	}
+
+	// Pagination — rel=prev/next (Google dropped these in 2019 but Bing
+	// still uses them for series/paginated archive signals).
+	if ( is_paged() ) {
+		global $paged, $wp_query;
+		$max_page = isset( $wp_query->max_num_pages ) ? (int) $wp_query->max_num_pages : 1;
+		if ( $paged > 1 ) {
+			echo '<link rel="prev" href="' . esc_url( get_pagenum_link( $paged - 1 ) ) . '">' . "\n";
+		}
+		if ( $paged < $max_page ) {
+			echo '<link rel="next" href="' . esc_url( get_pagenum_link( $paged + 1 ) ) . '">' . "\n";
+		}
+	}
+
+	// Theme colour — tells mobile browsers what colour to use for the browser chrome.
+	$theme_color = get_theme_mod( 'blogpro_theme_color', '#4f46e5' );
+	echo '<meta name="theme-color" content="' . esc_attr( $theme_color ) . '">' . "\n";
+
 	// Open Graph
-	echo '<meta property="og:type" content="' . ( is_singular( 'post' ) ? 'article' : 'website' ) . '">' . "\n";
+	// Determine og:type — profile for author pages, article for posts, website elsewhere.
+	$og_type = 'website';
+	if ( is_singular( 'post' ) )  $og_type = 'article';
+	if ( is_author() )            $og_type = 'profile';
+	echo '<meta property="og:type" content="' . esc_attr( $og_type ) . '">' . "\n";
 	echo '<meta property="og:locale" content="' . esc_attr( get_locale() ) . '">' . "\n";
 	echo '<meta property="og:title" content="' . $title . '">' . "\n";
 	echo '<meta property="og:description" content="' . $description . '">' . "\n";
 	echo '<meta property="og:url" content="' . $canonical . '">' . "\n";
 	echo '<meta property="og:site_name" content="' . $site_name . '">' . "\n";
+
+	// og:profile tags — enriches Facebook/LinkedIn person cards on author archives.
+	if ( is_author() ) {
+		$author_obj = get_queried_object();
+		if ( $author_obj ) {
+			$name_parts = explode( ' ', $author_obj->display_name, 2 );
+			echo '<meta property="profile:first_name" content="' . esc_attr( $name_parts[0] ) . '">' . "\n";
+			if ( isset( $name_parts[1] ) ) {
+				echo '<meta property="profile:last_name" content="' . esc_attr( $name_parts[1] ) . '">' . "\n";
+			}
+			echo '<meta property="profile:username" content="' . esc_attr( $author_obj->user_login ) . '">' . "\n";
+		}
+	}
 	if ( $image ) {
 		echo '<meta property="og:image" content="' . esc_url( $image ) . '">' . "\n";
+		// og:image:secure_url — Facebook and LinkedIn crawlers prefer this
+		// explicit HTTPS variant alongside og:image for HTTPS-only sites.
+		echo '<meta property="og:image:secure_url" content="' . esc_url( set_url_scheme( $image, 'https' ) ) . '">' . "\n";
 		// Dimensions + alt help Facebook/X prefetch the right rendition and
 		// stop them reserving layout (bigger, less-cropped cards).
 		if ( $social['w'] && $social['h'] ) {
 			echo '<meta property="og:image:width" content="' . (int) $social['w'] . '">' . "\n";
 			echo '<meta property="og:image:height" content="' . (int) $social['h'] . '">' . "\n";
+		}
+		// MIME type — prevents crawlers wasting time on format detection.
+		$img_ext  = strtolower( pathinfo( wp_parse_url( $image, PHP_URL_PATH ) ?: '', PATHINFO_EXTENSION ) );
+		$mime_map = array(
+			'jpg'  => 'image/jpeg',
+			'jpeg' => 'image/jpeg',
+			'png'  => 'image/png',
+			'webp' => 'image/webp',
+			'gif'  => 'image/gif',
+			'avif' => 'image/avif',
+		);
+		if ( isset( $mime_map[ $img_ext ] ) ) {
+			echo '<meta property="og:image:type" content="' . esc_attr( $mime_map[ $img_ext ] ) . '">' . "\n";
 		}
 		$img_alt = blogpro_social_image_alt();
 		if ( $img_alt ) {
@@ -270,10 +347,50 @@ function blogpro_output_meta_tags() {
 		foreach ( get_the_category() as $cat ) {
 			echo '<meta property="article:section" content="' . esc_attr( $cat->name ) . '">' . "\n";
 		}
+		// Post tags as article:tag (each tag gets its own meta element).
+		$tags = get_the_tags();
+		if ( $tags && ! is_wp_error( $tags ) ) {
+			foreach ( $tags as $tag ) {
+				echo '<meta property="article:tag" content="' . esc_attr( $tag->name ) . '">' . "\n";
+			}
+		}
 	}
 
-	// Twitter Card
+	// Per-post author credit (used by Google News, Bing News and some aggregators).
+	if ( is_singular( 'post' ) ) {
+		echo '<meta name="author" content="' . esc_attr( get_the_author() ) . '">' . "\n";
+		// news_keywords — required for Google News inclusion; comma-separated
+		// list of the post's tags (same signal, human-readable for editors).
+		$news_tags = get_the_tags();
+		if ( $news_tags && ! is_wp_error( $news_tags ) ) {
+			$kw = implode( ', ', wp_list_pluck( $news_tags, 'name' ) );
+			echo '<meta name="news_keywords" content="' . esc_attr( $kw ) . '">' . "\n";
+		}
+	}
+
+	// Hreflang — hook for multilingual plugins (WPML, Polylang) or custom
+	// language switching to inject <link rel="alternate" hreflang="..."> tags.
+	do_action( 'blogpro_hreflang_tags' );
+
+	// Twitter / X Card
 	echo '<meta name="twitter:card" content="' . ( $image ? 'summary_large_image' : 'summary' ) . '">' . "\n";
+	$twitter_site = get_theme_mod( 'blogpro_twitter_site', '' );
+	if ( $twitter_site ) {
+		echo '<meta name="twitter:site" content="' . esc_attr( $twitter_site ) . '">' . "\n";
+	}
+	// Per-post author Twitter handle (stored in user meta `twitter` or `_blogpro_twitter`).
+	if ( is_singular( 'post' ) ) {
+		global $post;
+		$author_twitter = get_the_author_meta( 'twitter', $post->post_author );
+		if ( ! $author_twitter ) {
+			$author_twitter = get_user_meta( $post->post_author, '_blogpro_twitter', true );
+		}
+		if ( $author_twitter ) {
+			// Normalise — ensure it starts with @.
+			$author_twitter = '@' . ltrim( $author_twitter, '@' );
+			echo '<meta name="twitter:creator" content="' . esc_attr( $author_twitter ) . '">' . "\n";
+		}
+	}
 	echo '<meta name="twitter:title" content="' . $title . '">' . "\n";
 	echo '<meta name="twitter:description" content="' . $description . '">' . "\n";
 	if ( $image ) {
@@ -288,8 +405,108 @@ function blogpro_output_meta_tags() {
 }
 add_action( 'wp_head', 'blogpro_output_meta_tags', 2 );
 
+/**
+ * Noindex RSS/Atom feeds via X-Robots-Tag HTTP header.
+ *
+ * Feed URLs (/feed/, /comments/feed/) have no SEO value and waste crawl
+ * budget. Noindexing them via the HTTP header (not a meta tag — feeds are
+ * XML, not HTML) prevents them appearing in search results.
+ */
+function blogpro_noindex_feeds() {
+	if ( is_feed() && ! headers_sent() ) {
+		header( 'X-Robots-Tag: noindex, nofollow', true );
+	}
+}
+add_action( 'wp', 'blogpro_noindex_feeds' );
+
 /* Override the default <title> with our computed value for full control. */
 add_filter( 'pre_get_document_title', 'blogpro_get_meta_title' );
+
+/**
+ * Remove the WordPress generator <meta> tag — no need to advertise WP version.
+ */
+remove_action( 'wp_head', 'wp_generator' );
+
+/**
+ * Favicon / icon fallback.
+ *
+ * WordPress core emits <link rel="icon"> via wp_site_icon() only when a
+ * Site Icon is set in Settings → Site Identity. If none is set, output a
+ * fallback from the theme's own assets so the browser tab is never blank.
+ *
+ * Priority 99 — runs AFTER wp_site_icon() (priority 1) so we only act
+ * when core didn't output anything.
+ */
+function blogpro_favicon_fallback() {
+	// If WP already emitted a site icon, nothing to do.
+	if ( has_site_icon() ) {
+		return;
+	}
+
+	// Prefer an SVG then fall back to a PNG — both live in theme assets.
+	$svg = BLOGPRO_DIR . '/assets/images/favicon.svg';
+	$png = BLOGPRO_DIR . '/assets/images/icon.png';
+	$ico = BLOGPRO_DIR . '/assets/images/favicon.ico';
+
+	if ( file_exists( $svg ) ) {
+		$url = BLOGPRO_URI . '/assets/images/favicon.svg';
+		echo '<link rel="icon" href="' . esc_url( $url ) . '" type="image/svg+xml">' . "\n";
+	} elseif ( file_exists( $png )  ) {
+		$url = BLOGPRO_URI . '/assets/images/icon.png';
+		echo '<link rel="icon" href="' . esc_url( $url ) . '" type="image/png">' . "\n";
+	} elseif ( file_exists( $ico ) ) {
+		$url = BLOGPRO_URI . '/assets/images/favicon.ico';
+		echo '<link rel="icon" href="' . esc_url( $url ) . '" type="image/x-icon">' . "\n";
+	}
+
+	// Apple Touch Icon — 180×180 PNG preferred.
+	$touch = BLOGPRO_DIR . '/assets/images/apple-touch-icon.png';
+	if ( file_exists( $touch ) ) {
+		echo '<link rel="apple-touch-icon" sizes="180x180" href="' . esc_url( BLOGPRO_URI . '/assets/images/apple-touch-icon.png' ) . '">' . "\n";
+	} elseif ( file_exists( $png ) ) {
+		echo '<link rel="apple-touch-icon" href="' . esc_url( BLOGPRO_URI . '/assets/images/icon.png' ) . '">' . "\n";
+	}
+}
+add_action( 'wp_head', 'blogpro_favicon_fallback', 99 );
+
+/**
+ * Register Customizer settings for social / SEO handles.
+ *
+ * Adds:
+ *  - blogpro_twitter_site    — site-level @handle (e.g. @MySiteName)
+ *  - blogpro_theme_color     — browser chrome / PWA theme colour
+ */
+function blogpro_customizer_seo_settings( $wp_customize ) {
+	$wp_customize->add_section( 'blogpro_seo', array(
+		'title'    => __( 'SEO & Social', 'blog-pro' ),
+		'priority' => 160,
+	) );
+
+	// Twitter/X site handle
+	$wp_customize->add_setting( 'blogpro_twitter_site', array(
+		'default'           => '',
+		'sanitize_callback' => 'sanitize_text_field',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( 'blogpro_twitter_site', array(
+		'label'       => __( 'Twitter / X Site Handle', 'blog-pro' ),
+		'description' => __( 'Include the @ sign, e.g. @MySiteName', 'blog-pro' ),
+		'section'     => 'blogpro_seo',
+		'type'        => 'text',
+	) );
+
+	// Theme colour
+	$wp_customize->add_setting( 'blogpro_theme_color', array(
+		'default'           => '#4f46e5',
+		'sanitize_callback' => 'sanitize_hex_color',
+		'transport'         => 'refresh',
+	) );
+	$wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, 'blogpro_theme_color', array(
+		'label'   => __( 'Browser Theme Colour', 'blog-pro' ),
+		'section' => 'blogpro_seo',
+	) ) );
+}
+add_action( 'customize_register', 'blogpro_customizer_seo_settings' );
 
 /**
  * Derive a human-readable label from a media filename.

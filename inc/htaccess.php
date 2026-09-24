@@ -50,6 +50,12 @@ function blogpro_htaccess_rules() {
 		"\t</FilesMatch>",
 		"\tHeader set X-Content-Type-Options \"nosniff\"",
 		"\tHeader set Referrer-Policy \"strict-origin-when-cross-origin\"",
+		// X-Frame-Options: prevents clickjacking and is a positive trust
+		// signal in Google's quality algorithms.
+		"\tHeader set X-Frame-Options \"SAMEORIGIN\"",
+		// Permissions-Policy: opt out of browser features this site doesn't
+		// use. Reduces attack surface and is a Lighthouse security audit pass.
+		"\tHeader set Permissions-Policy \"camera=(), microphone=(), geolocation=(), payment=(), usb=()\"",
 		'</IfModule>',
 		'',
 		'<IfModule mod_mime.c>',

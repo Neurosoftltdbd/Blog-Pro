@@ -115,11 +115,51 @@ function blogpro_maybe_render_sitemap() {
 		);
 	}
 
-	// Categories
+	// Categories — lastmod = most recently modified post in the category.
 	$terms = get_terms( array( 'taxonomy' => 'category', 'hide_empty' => true ) );
 	if ( ! is_wp_error( $terms ) ) {
 		foreach ( $terms as $t ) {
-			$urls[] = array( 'loc' => get_term_link( $t ), 'lastmod' => '', 'priority' => '0.5' );
+			$latest_in_cat = get_posts( array(
+				'category'       => $t->term_id,
+				'posts_per_page' => 1,
+				'orderby'        => 'modified',
+				'order'          => 'DESC',
+				'post_status'    => 'publish',
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+			) );
+			$cat_lastmod = $latest_in_cat
+				? get_the_modified_date( 'c', $latest_in_cat[0] )
+				: '';
+			$urls[] = array(
+				'loc'      => get_term_link( $t ),
+				'lastmod'  => $cat_lastmod,
+				'priority' => '0.5',
+			);
+		}
+	}
+
+	// Post tags — indexable, lower priority than categories.
+	$tags = get_terms( array( 'taxonomy' => 'post_tag', 'hide_empty' => true, 'number' => 500 ) );
+	if ( ! is_wp_error( $tags ) ) {
+		foreach ( $tags as $tag ) {
+			$latest_in_tag = get_posts( array(
+				'tag_id'         => $tag->term_id,
+				'posts_per_page' => 1,
+				'orderby'        => 'modified',
+				'order'          => 'DESC',
+				'post_status'    => 'publish',
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+			) );
+			$tag_lastmod = $latest_in_tag
+				? get_the_modified_date( 'c', $latest_in_tag[0] )
+				: '';
+			$urls[] = array(
+				'loc'      => get_term_link( $tag ),
+				'lastmod'  => $tag_lastmod,
+				'priority' => '0.4',
+			);
 		}
 	}
 
