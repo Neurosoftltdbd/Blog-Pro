@@ -56,18 +56,99 @@ function blogpro_post_nav() {
 	echo '</nav>';
 }
 
+/**
+ * Archive pagination — bounded window (prev · 1 … N-2 N N+1 … T · next),
+ * semantic labels, mobile-friendly. All visuals live in the .bp-pg*
+ * component classes (input.css), never inline arbitrary-variant strings.
+ *
+ * Mobile (<sm): number buttons + dots are hidden via CSS; the nav shows
+ * "Page X of Y" + working Newer/Older, so it never overflows.
+ */
 function blogpro_pagination() {
+	global $wp_query;
+
+	$total = isset( $wp_query->max_num_pages ) ? (int) $wp_query->max_num_pages : 0;
+	if ( $total < 2 ) {
+		return;
+	}
+	$page = (int) max( 1, get_query_var( 'paged' ) );
+
+	// prev_text "Newer" = page n-1 (newer posts); "Older" = page n+1.
 	$links = paginate_links( array(
-		'prev_text' => __( '&larr; Newer', 'blog-pro' ),
-		'next_text' => __( 'Older &rarr;', 'blog-pro' ),
+		'prev_text' => __( 'Newer', 'blog-pro' ),
+		'next_text' => __( 'Older', 'blog-pro' ),
+		'mid_size'  => 2,
+		'end_size'  => 1,
 		'type'      => 'array',
 	) );
-	if ( empty( $links ) ) return;
-	echo '<nav class="flex items-center gap-2 mt-8 [&_.page-numbers]:px-4 [&_.page-numbers]:py-2 [&_.page-numbers]:rounded-xl [&_.page-numbers]:font-medium [&_.page-numbers]:transition-colors [&_.page-numbers.current]:bg-indigo-600 [&_.page-numbers.current]:text-white [&_.page-numbers]:text-gray-700 [&_.page-numbers]:hover:bg-indigo-50 [&_a]:no-underline" aria-label="' . esc_attr__( 'Posts pagination', 'blog-pro' ) . '">';
-	foreach ( $links as $link ) {
-		echo $link;
+	if ( empty( $links ) ) {
+		return;
 	}
-	echo '</nav>';
+
+	$out = '';
+	foreach ( $links as $raw ) {
+		$out .= blogpro_pagination_item( $raw );
+	}
+
+	echo '<nav class="bp-pg-nav py-12" aria-label="' . esc_attr__( 'Posts pagination', 'blog-pro' ) . '><span class="bp-pg-status" aria-hidden="true">'
+		. sprintf( esc_html__( 'Page %1$d of %2$d', 'blog-pro' ), $page, $total )
+		. '</span>' . $out . '</nav>';
+}
+
+/**
+ * Rebuild one paginate_links() item (WP ships single-quoted classes) into
+ * the theme's .bp-pg component markup with proper aria wiring.
+ *
+ * @param string $raw Raw item HTML from paginate_links( 'array' ).
+ * @return string
+ */
+function blogpro_pagination_item( $raw ) {
+	$raw = trim( $raw );
+
+	// Dots — plain "&hellip;" string or classed wrapper; decorative only.
+	if ( false !== stripos( $raw, '&hellip;' ) || preg_match( '/class=["\'][^"\']*\bdots\b/', $raw ) ) {
+		return '<span class="bp-pg bp-pg--dots" aria-hidden="true">&hellip;</span>';
+	}
+
+	// Current page — not a link, so aria-current + label do the job.
+	if ( preg_match( '/class=["\'][^"\']*\bcurrent\b/', $raw ) ) {
+		preg_match( '/>([^<]*)</', $raw, $n );
+		$num = (int) $n[1];
+		return '<span class="bp-pg bp-pg--num bp-pg--current" aria-current="page" aria-label="'
+			. esc_attr( sprintf( __( 'Page %d', 'blog-pro' ), $num ) ) . '">'
+			. esc_html( $num ) . '</span>';
+	}
+
+	// Adjacent (prev/next) — live anchor or disabled placeholder.
+	if ( preg_match( '/class=["\'][^"\']*\b(prev|next)\b/', $raw, $dm ) ) {
+		$dir  = $dm[1];
+		$aria = 'prev' === $dir ? __( 'Newer posts', 'blog-pro' ) : __( 'Older posts', 'blog-pro' );
+		$text = esc_html( preg_replace( '/<[^>]+>/s', '', $raw ) ); // "← Newer" → escaped text
+
+		if ( '<a' === substr( $raw, 0, 2 ) ) {
+			preg_match( '/href=["\']([^"\']+)["\']/', $raw, $hm );
+			$cls = 'bp-pg bp-pg--adjacent bp-pg--' . $dir;
+			return $hm
+				? '<a class="' . $cls . '" href="' . esc_url( $hm[1] ) . '" aria-label="' . esc_attr( $aria ) . '">' . $text . '</a>'
+				: '<span class="' . $cls . '" aria-disabled="true" aria-label="' . esc_attr( $aria ) . '">' . $text . '</span>';
+		}
+		return '<span class="bp-pg bp-pg--adjacent bp-pg--' . $dir . ' bp-pg--disabled" aria-disabled="true" aria-label="'
+			. esc_attr( $aria ) . '">' . $text . '</span>';
+	}
+
+	// Plain number link.
+	if ( '<a' === substr( $raw, 0, 2 ) ) {
+		preg_match( '/href=["\']([^"\']+)["\']/', $raw, $hm );
+		$num = preg_replace( '/<[^>]+>/s', '', $raw );
+		if ( $hm ) {
+			return '<a class="bp-pg bp-pg--num" href="' . esc_url( $hm[1] ) . '" aria-label="'
+				. esc_attr( sprintf( __( 'Page %s', 'blog-pro' ), $num ) ) . '">'
+				. esc_html( $num ) . '</a>';
+		}
+	}
+
+	// Unknown shape — never emit unstyled/broken markup.
+	return '';
 }
 
 function blogpro_related_posts( $post_id, $limit = 3 ) {

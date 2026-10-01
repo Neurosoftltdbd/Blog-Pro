@@ -93,24 +93,59 @@ function blogpro_get_meta_title() {
 }
 
 function blogpro_get_canonical_url() {
+	if ( is_404() ) {
+		return '';
+	}
+
 	if ( is_singular() ) {
-		$url = get_permalink();
+		$canonical = wp_get_canonical_url();
+		if ( ! $canonical ) {
+			$canonical = get_permalink();
+		}
+		$url = $canonical;
 	} elseif ( is_home() || is_front_page() ) {
-		$url = home_url( '/' );
+		$paged = (int) get_query_var( 'paged' );
+		if ( $paged > 1 ) {
+			$url = get_pagenum_link( $paged );
+		} else {
+			$url = home_url( '/' );
+		}
 	} elseif ( is_category() || is_tag() || is_tax() ) {
-		$url = get_term_link( get_queried_object() );
+		$paged     = (int) get_query_var( 'paged' );
+		$term_link = get_term_link( get_queried_object() );
+		if ( ! is_wp_error( $term_link ) ) {
+			$url = $paged > 1 ? get_pagenum_link( $paged ) : $term_link;
+		} else {
+			global $wp;
+			$url = home_url( add_query_arg( array(), $wp->request ) );
+		}
 	} elseif ( is_author() ) {
-		$url = get_author_posts_url( get_queried_object_id() );
+		$paged = (int) get_query_var( 'paged' );
+		$url   = $paged > 1 ? get_pagenum_link( $paged ) : get_author_posts_url( get_queried_object_id() );
+	} elseif ( is_search() ) {
+		$url = get_search_link();
+	} elseif ( is_post_type_archive() ) {
+		$paged = (int) get_query_var( 'paged' );
+		$url   = $paged > 1 ? get_pagenum_link( $paged ) : get_post_type_archive_link( get_post_type() );
 	} else {
 		global $wp;
 		$url = home_url( add_query_arg( array(), $wp->request ) );
 	}
-	// Force HTTPS (site uses HTTPS) and strip trailing slash except for homepage
-	$url = set_url_scheme( $url, 'https' );
-	if ( ! ( is_home() || is_front_page() ) ) {
-		$url = untrailingslashit( $url );
+
+	if ( ! $url ) {
+		return '';
 	}
-	return $url;
+
+	// Respect WordPress permalink trailing slash settings
+	if ( is_front_page() || ( is_home() && ! is_paged() ) ) {
+		$url = trailingslashit( $url );
+	} else {
+		$url = user_trailingslashit( $url );
+	}
+
+	// Match scheme: use HTTPS if SSL or site configured with HTTPS
+	$scheme = ( is_ssl() || 0 === strpos( home_url(), 'https://' ) ) ? 'https' : 'http';
+	return set_url_scheme( $url, $scheme );
 }
 
 /**
@@ -230,7 +265,9 @@ function blogpro_output_meta_tags() {
 
 	echo "\n<!-- Blog Pro SEO meta -->\n";
 	echo '<meta name="description" content="' . $description . '">' . "\n";
-	echo '<link rel="canonical" href="' . $canonical . '">' . "\n";
+	if ( $canonical ) {
+		echo '<link rel="canonical" href="' . $canonical . '">' . "\n";
+	}
 	// Referrer policy — controls how much URL info is sent when users
 	// click outbound links. strict-origin-when-cross-origin is the
 	// recommended balance: full path for same-origin, origin-only cross-origin.
@@ -298,7 +335,9 @@ function blogpro_output_meta_tags() {
 	echo '<meta property="og:locale" content="' . esc_attr( get_locale() ) . '">' . "\n";
 	echo '<meta property="og:title" content="' . $title . '">' . "\n";
 	echo '<meta property="og:description" content="' . $description . '">' . "\n";
-	echo '<meta property="og:url" content="' . $canonical . '">' . "\n";
+	if ( $canonical ) {
+		echo '<meta property="og:url" content="' . $canonical . '">' . "\n";
+	}
 	echo '<meta property="og:site_name" content="' . $site_name . '">' . "\n";
 
 	// og:profile tags — enriches Facebook/LinkedIn person cards on author archives.

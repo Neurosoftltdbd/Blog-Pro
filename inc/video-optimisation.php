@@ -1,38 +1,7 @@
 <?php
-/**
- * Video & embed optimisation — playback robustness + lazy embeds.
- *
- * (Split out of inc/media-optimize.php so all video behavior lives here.)
- *
- * Fixes the failure modes that break the native player on this theme:
- *
- * 1. <video> without width/height — the element collapses when CSS
- *    constrains the wrapper, which reads as "player broken / can't seek".
- *    Intrinsic size is read from the attachment metadata and baked in;
- *    a 16:9 aspect-ratio wrapper keeps it stable.
- * 2. loading="lazy" on <video> — lazy videos don't paint their first
- *    frame in some browsers and Safari refuses to load them at all.
- *    Stripped here; preload="metadata" enforced instead (poster frame
- *    visible, full file still deferred until play).
- * 3. Wrong/missing MIME on Windows (XAMPP) Apache for .mp4/.m4v/.webm —
- *    a bad Content-Type makes Safari/Chrome refuse playback. Corrected
- *    via wp_mime_types + explicit AddType lines in .htaccess.
- * 4. playsinline — without it iOS opens the fullscreen system player,
- *    where controls look broken.
- *
- * Also: YouTube/Vimeo iframes lazy-load (moved from media-optimize.php).
- */
+
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-/* ------------------------------------------------------------------
- * 1. MIME correctness (WP-side + server-side)
- * ------------------------------------------------------------------ */
-
-/**
- * Correct/complete video MIME mappings — Windows/XAMPP Apache ships
- * video/quicktime for .mov and may miss .mp4 entirely; .m4v must map to
- * video/mp4 for Safari.
- */
 function blogpro_fix_video_mime_types( $mimes ) {
 	$mimes['mp4']  = 'video/mp4';
 	$mimes['m4v']  = 'video/mp4';
@@ -44,15 +13,6 @@ function blogpro_fix_video_mime_types( $mimes ) {
 }
 add_filter( 'wp_mime_types', 'blogpro_fix_video_mime_types' );
 
-/* ------------------------------------------------------------------
- * 2. Self-hosted <video> hardening
- * ------------------------------------------------------------------ */
-
-/**
- * Poster enrichment: when [video src=…mp4] points at a library video that
- * has a featured image, use it as poster so the player paints immediately.
- * Never fall back to the video URL itself (an mp4 poster is invalid).
- */
 function blogpro_video_shortcode_atts( $atts ) {
 	if ( empty( $atts['src'] ) || ! empty( $atts['poster'] ) ) {
 		return $atts;
@@ -89,17 +49,6 @@ if ( ! function_exists( 'blogpro_howto_human_duration' ) ) {
 	}
 }
 
-/**
- * Robustness pass over every rendered <video>:
- *  - drop loading="lazy" (breaks first-frame paint on several engines)
- *  - enforce preload="metadata"
- *  - add playsinline + controls
- *  - add width/height from the source attachment metadata when missing
- *  - wrap in a 16:9-safe container (.bp-video-wrap, CSS below)
- *
- * Idempotent — tags already carrying .bp-video are skipped, so running
- * on both wp_video_shortcode and the_content is safe.
- */
 function blogpro_tidy_videos( $html ) {
 	if ( false === stripos( (string) $html, '<video' ) ) {
 		return $html;

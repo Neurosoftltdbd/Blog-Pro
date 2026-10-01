@@ -1,36 +1,47 @@
 <?php
 /**
- * Minimal, fast XML sitemap served at /sitemap.xml — no plugin, no
- * database-heavy query builder. Includes posts, pages, and a lastmod
- * date so search engines can prioritize recrawls efficiently.
+ * Fast, scalable XML sitemap with Sitemap Index & pagination support.
+ * Serves /sitemap.xml (index), /sitemap-posts-1.xml, and /sitemap-pages.xml.
  *
- * Note: WP core also auto-generates /wp-sitemap.xml since 5.5. We
- * disable that here in favor of this single, simpler, cacheable file
- * so there's exactly one sitemap to submit to Search Console.
+ * Automatically splits posts into chunks of 1,000 URLs to prevent PHP memory
+ * exhaustion, gateway timeouts, and comply with search engine crawl guidelines.
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
+
+define( 'BLOGPRO_SITEMAP_CHUNK_SIZE', 1000 );
 
 add_filter( 'wp_sitemaps_enabled', '__return_false' );
 
 function blogpro_register_sitemap_rewrite() {
-	add_rewrite_rule( '^sitemap\.xml$', 'index.php?blogpro_sitemap=1', 'top' );
+	add_rewrite_rule( '^sitemap\.xml$', 'index.php?blogpro_sitemap=index', 'top' );
+	add_rewrite_rule( '^sitemap-posts(?:-([0-9]+))?\.xml$', 'index.php?blogpro_sitemap=posts&blogpro_sitemap_page=$matches[1]', 'top' );
+	add_rewrite_rule( '^sitemap-pages\.xml$', 'index.php?blogpro_sitemap=pages', 'top' );
 }
 add_action( 'init', 'blogpro_register_sitemap_rewrite' );
 
+function blogpro_sitemap_maybe_flush() {
+	$rules = get_option( 'rewrite_rules' );
+	if ( ! is_array( $rules ) || ! isset( $rules['^sitemap-posts(?:-([0-9]+))?\.xml$'] ) ) {
+		flush_rewrite_rules( false );
+	}
+}
+add_action( 'after_switch_theme', 'blogpro_sitemap_maybe_flush' );
+
 add_filter( 'query_vars', function ( $vars ) {
 	$vars[] = 'blogpro_sitemap';
+	$vars[] = 'blogpro_sitemap_page';
 	return $vars;
 } );
 
 /**
- * Collects image URLs for a post's <image:image> sitemap entries:
- * the featured image (full size, not the cropped card/hero variant —
- * Google prefers the original for image search) plus any images
- * embedded directly in the post content.
+ * Collects image URLs for a post's <image:image> sitemap entries.
+ * Fast & memory-safe: uses the canonical featured image if present,
+ * avoiding regex scans across full post content for the majority of posts.
  */
 function blogpro_sitemap_images_for_post( $post ) {
 	$images = array();
 
+	// 1. Featured image is the canonical image preferred by Google
 	if ( has_post_thumbnail( $post ) ) {
 		$thumb_id  = get_post_thumbnail_id( $post );
 		$thumb_url = wp_get_attachment_image_url( $thumb_id, 'full' );
@@ -40,140 +51,151 @@ function blogpro_sitemap_images_for_post( $post ) {
 				'title' => get_the_title( $post ),
 			);
 		}
+		return $images; // Fast return: avoids parsing massive post bodies into RAM
 	}
 
-	if ( preg_match_all( '/<img[^>]+src=["\']([^"\']+)["\']/i', $post->post_content, $matches ) ) {
+	// 2. Fallback: only regex scan post_content if no featured image was set
+	if ( ! empty( $post->post_content ) && preg_match_all( '/<img[^>]+src=["\']([^"\']+)["\']/i', $post->post_content, $matches ) ) {
 		foreach ( $matches[1] as $src ) {
-			// Skip if it's the same as the featured image (already added) or an external/CDN URL not on this site.
-			if ( ! empty( $images ) && $src === $images[0]['loc'] ) continue;
 			$images[] = array( 'loc' => $src );
-			if ( count( $images ) >= 10 ) break; // sitemap protocol allows up to 1000, 10 is a sane cap per post
+			if ( count( $images ) >= 5 ) break;
 		}
 	}
 
 	return $images;
 }
 
-function blogpro_maybe_render_sitemap() {
-	if ( ! get_query_var( 'blogpro_sitemap' ) ) return;
+/**
+ * Invalidate all sitemap transient caches when content changes.
+ */
+function blogpro_sitemap_clear_cache() {
+	delete_transient( 'blogpro_sitemap_index_xml' );
+	delete_transient( 'blogpro_sitemap_pages_xml' );
+	delete_transient( 'blogpro_sitemap_xml' ); // legacy cache key
 
-	header( 'Content-Type: application/xml; charset=UTF-8' );
-
-	// Check cache
-	$cached = get_transient( 'blogpro_sitemap_xml' );
-	if ( $cached !== false ) {
-		echo $cached;
-		exit;
+	$count_posts = (int) wp_count_posts( 'post' )->publish;
+	$total_pages = max( 1, (int) ceil( $count_posts / BLOGPRO_SITEMAP_CHUNK_SIZE ) );
+	for ( $i = 1; $i <= $total_pages + 2; $i++ ) {
+		delete_transient( "blogpro_sitemap_posts_{$i}_xml" );
 	}
+}
+add_action( 'save_post', 'blogpro_sitemap_clear_cache' );
+add_action( 'deleted_post', 'blogpro_sitemap_clear_cache' );
+add_action( 'transition_post_status', function( $new_status, $old_status ) {
+	if ( 'publish' === $new_status || 'publish' === $old_status ) {
+		blogpro_sitemap_clear_cache();
+	}
+}, 10, 2 );
+add_action( 'customize_save_after', 'blogpro_sitemap_clear_cache' );
+
+/**
+ * Render the main Sitemap Index (<sitemapindex>).
+ */
+function blogpro_render_sitemap_index() {
+	$cached = get_transient( 'blogpro_sitemap_index_xml' );
+	if ( false !== $cached ) {
+		echo $cached;
+		return;
+	}
+
+	$count_posts = (int) wp_count_posts( 'post' )->publish;
+	$total_post_sitemaps = max( 1, (int) ceil( $count_posts / BLOGPRO_SITEMAP_CHUNK_SIZE ) );
 
 	ob_start();
+	echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+	echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 
-	$urls = array();
+	// Child sitemaps for posts (chunks of 1,000)
+	for ( $page = 1; $page <= $total_post_sitemaps; $page++ ) {
+		$latest_in_chunk = get_posts( array(
+			'post_type'      => 'post',
+			'post_status'    => 'publish',
+			'has_password'   => false,
+			'posts_per_page' => 1,
+			'offset'         => ( $page - 1 ) * BLOGPRO_SITEMAP_CHUNK_SIZE,
+			'orderby'        => 'modified',
+			'order'          => 'DESC',
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+		) );
+		$chunk_lastmod = $latest_in_chunk ? get_the_modified_date( 'c', $latest_in_chunk[0] ) : '';
 
-	$lastmod_timestamp = get_lastpostmodified( 'U' );
-	$lastmod = $lastmod_timestamp ? date( 'c', $lastmod_timestamp ) : '';
-	$home_entry = array( 'loc' => home_url( '/' ), 'lastmod' => $lastmod, 'priority' => '1.0' );
-	if ( has_custom_logo() ) {
-		$logo_url = wp_get_attachment_image_url( get_theme_mod( 'custom_logo' ), 'full' );
-		if ( $logo_url ) {
-			$home_entry['images'] = array( array( 'loc' => $logo_url, 'title' => get_bloginfo( 'name' ) ) );
+		echo "\t<sitemap>\n";
+		echo "\t\t<loc>" . esc_url( home_url( "/sitemap-posts-{$page}.xml" ) ) . "</loc>\n";
+		if ( $chunk_lastmod ) {
+			echo "\t\t<lastmod>" . esc_html( $chunk_lastmod ) . "</lastmod>\n";
 		}
+		echo "\t</sitemap>\n";
 	}
-	$urls[] = $home_entry;
 
-	// Posts
-	$posts = get_posts( array(
+	// Child sitemap for pages
+	$latest_page = get_posts( array(
+		'post_type'      => 'page',
+		'post_status'    => 'publish',
+		'has_password'   => false,
+		'posts_per_page' => 1,
+		'orderby'        => 'modified',
+		'order'          => 'DESC',
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+	) );
+	$pages_lastmod = $latest_page ? get_the_modified_date( 'c', $latest_page[0] ) : '';
+
+	echo "\t<sitemap>\n";
+	echo "\t\t<loc>" . esc_url( home_url( '/sitemap-pages.xml' ) ) . "</loc>\n";
+	if ( $pages_lastmod ) {
+		echo "\t\t<lastmod>" . esc_html( $pages_lastmod ) . "</lastmod>\n";
+	}
+	echo "\t</sitemap>\n";
+
+	echo '</sitemapindex>';
+
+	$xml = ob_get_clean();
+	set_transient( 'blogpro_sitemap_index_xml', $xml, DAY_IN_SECONDS );
+	echo $xml;
+}
+
+/**
+ * Render Posts sub-sitemap chunk.
+ */
+function blogpro_render_posts_sitemap( $page_num = 1 ) {
+	$page_num  = max( 1, (int) $page_num );
+	$cache_key = "blogpro_sitemap_posts_{$page_num}_xml";
+
+	$cached = get_transient( $cache_key );
+	if ( false !== $cached ) {
+		echo $cached;
+		return;
+	}
+
+	$offset = ( $page_num - 1 ) * BLOGPRO_SITEMAP_CHUNK_SIZE;
+	$posts  = get_posts( array(
 		'post_type'      => 'post',
 		'post_status'    => 'publish',
-		'posts_per_page' => 2000,
+		'has_password'   => false,
+		'posts_per_page' => BLOGPRO_SITEMAP_CHUNK_SIZE,
+		'offset'         => $offset,
 		'orderby'        => 'modified',
 		'order'          => 'DESC',
 		'no_found_rows'  => true,
 	) );
-	foreach ( $posts as $p ) {
-		$entry = array(
-			'loc'      => get_permalink( $p ),
-			'lastmod'  => get_the_modified_date( 'c', $p ),
-			'priority' => '0.8',
-			'images'   => blogpro_sitemap_images_for_post( $p ),
-		);
-		$urls[] = $entry;
-	}
 
-	// Pages
-	$pages = get_posts( array(
-		'post_type'      => 'page',
-		'post_status'    => 'publish',
-		'posts_per_page' => 500,
-		'no_found_rows'  => true,
-	) );
-	foreach ( $pages as $p ) {
-		$urls[] = array(
-			'loc'      => get_permalink( $p ),
-			'lastmod'  => get_the_modified_date( 'c', $p ),
-			'priority' => '0.6',
-		);
-	}
-
-	// Categories — lastmod = most recently modified post in the category.
-	$terms = get_terms( array( 'taxonomy' => 'category', 'hide_empty' => true ) );
-	if ( ! is_wp_error( $terms ) ) {
-		foreach ( $terms as $t ) {
-			$latest_in_cat = get_posts( array(
-				'category'       => $t->term_id,
-				'posts_per_page' => 1,
-				'orderby'        => 'modified',
-				'order'          => 'DESC',
-				'post_status'    => 'publish',
-				'no_found_rows'  => true,
-				'fields'         => 'ids',
-			) );
-			$cat_lastmod = $latest_in_cat
-				? get_the_modified_date( 'c', $latest_in_cat[0] )
-				: '';
-			$urls[] = array(
-				'loc'      => get_term_link( $t ),
-				'lastmod'  => $cat_lastmod,
-				'priority' => '0.5',
-			);
-		}
-	}
-
-	// Post tags — indexable, lower priority than categories.
-	$tags = get_terms( array( 'taxonomy' => 'post_tag', 'hide_empty' => true, 'number' => 500 ) );
-	if ( ! is_wp_error( $tags ) ) {
-		foreach ( $tags as $tag ) {
-			$latest_in_tag = get_posts( array(
-				'tag_id'         => $tag->term_id,
-				'posts_per_page' => 1,
-				'orderby'        => 'modified',
-				'order'          => 'DESC',
-				'post_status'    => 'publish',
-				'no_found_rows'  => true,
-				'fields'         => 'ids',
-			) );
-			$tag_lastmod = $latest_in_tag
-				? get_the_modified_date( 'c', $latest_in_tag[0] )
-				: '';
-			$urls[] = array(
-				'loc'      => get_term_link( $tag ),
-				'lastmod'  => $tag_lastmod,
-				'priority' => '0.4',
-			);
-		}
-	}
-
+	ob_start();
 	echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 	echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
-	foreach ( $urls as $u ) {
+
+	foreach ( $posts as $p ) {
 		echo "\t<url>\n";
-		echo "\t\t<loc>" . esc_url( $u['loc'] ) . "</loc>\n";
-		if ( ! empty( $u['lastmod'] ) ) {
-			echo "\t\t<lastmod>" . esc_html( $u['lastmod'] ) . "</lastmod>\n";
+		echo "\t\t<loc>" . esc_url( get_permalink( $p ) ) . "</loc>\n";
+		$mod = get_the_modified_date( 'c', $p );
+		if ( $mod ) {
+			echo "\t\t<lastmod>" . esc_html( $mod ) . "</lastmod>\n";
 		}
-		echo "\t\t<priority>" . esc_html( $u['priority'] ) . "</priority>\n";
-		if ( ! empty( $u['images'] ) ) {
-			foreach ( $u['images'] as $img ) {
+		echo "\t\t<priority>0.8</priority>\n";
+
+		$images = blogpro_sitemap_images_for_post( $p );
+		if ( ! empty( $images ) ) {
+			foreach ( $images as $img ) {
 				echo "\t\t<image:image>\n";
 				echo "\t\t\t<image:loc>" . esc_url( $img['loc'] ) . "</image:loc>\n";
 				if ( ! empty( $img['title'] ) ) {
@@ -184,19 +206,116 @@ function blogpro_maybe_render_sitemap() {
 		}
 		echo "\t</url>\n";
 	}
+
 	echo '</urlset>';
 
 	$xml = ob_get_clean();
-	set_transient( 'blogpro_sitemap_xml', $xml, DAY_IN_SECONDS );
+	set_transient( $cache_key, $xml, DAY_IN_SECONDS );
 	echo $xml;
-	exit;
 }
-// Priority 0: must run BEFORE core's redirect_canonical (default 10), which
-// treats /sitemap.xml as a page and 301s it to /sitemap.xml/ — crawlers then
-// index the redirected URL and the sitemap entry mismatches.
-add_action( 'template_redirect', 'blogpro_maybe_render_sitemap', 0 );
 
-// Invalidate cache when content changes
-add_action( 'save_post', function() { delete_transient( 'blogpro_sitemap_xml' ); } );
-add_action( 'edited_terms', function() { delete_transient( 'blogpro_sitemap_xml' ); } );
-add_action( 'customize_save_after', function() { delete_transient( 'blogpro_sitemap_xml' ); } );
+/**
+ * Render Pages sub-sitemap.
+ */
+function blogpro_render_pages_sitemap() {
+	$cached = get_transient( 'blogpro_sitemap_pages_xml' );
+	if ( false !== $cached ) {
+		echo $cached;
+		return;
+	}
+
+	$lastmod_timestamp = get_lastpostmodified( 'U' );
+	$lastmod = $lastmod_timestamp ? date( 'c', $lastmod_timestamp ) : '';
+
+	$pages = get_posts( array(
+		'post_type'      => 'page',
+		'post_status'    => 'publish',
+		'has_password'   => false,
+		'posts_per_page' => 1000,
+		'no_found_rows'  => true,
+	) );
+
+	ob_start();
+	echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+	echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
+
+	// Homepage entry
+	echo "\t<url>\n";
+	echo "\t\t<loc>" . esc_url( home_url( '/' ) ) . "</loc>\n";
+	if ( $lastmod ) {
+		echo "\t\t<lastmod>" . esc_html( $lastmod ) . "</lastmod>\n";
+	}
+	echo "\t\t<priority>1.0</priority>\n";
+	if ( has_custom_logo() ) {
+		$logo_url = wp_get_attachment_image_url( get_theme_mod( 'custom_logo' ), 'full' );
+		if ( $logo_url ) {
+			echo "\t\t<image:image>\n";
+			echo "\t\t\t<image:loc>" . esc_url( $logo_url ) . "</image:loc>\n";
+			echo "\t\t\t<image:title>" . esc_html( get_bloginfo( 'name' ) ) . "</image:title>\n";
+			echo "\t\t</image:image>\n";
+		}
+	}
+	echo "\t</url>\n";
+
+	// Pages entries
+	foreach ( $pages as $p ) {
+		echo "\t<url>\n";
+		echo "\t\t<loc>" . esc_url( get_permalink( $p ) ) . "</loc>\n";
+		$mod = get_the_modified_date( 'c', $p );
+		if ( $mod ) {
+			echo "\t\t<lastmod>" . esc_html( $mod ) . "</lastmod>\n";
+		}
+		echo "\t\t<priority>0.6</priority>\n";
+		echo "\t</url>\n";
+	}
+
+	echo '</urlset>';
+
+	$xml = ob_get_clean();
+	set_transient( 'blogpro_sitemap_pages_xml', $xml, DAY_IN_SECONDS );
+	echo $xml;
+}
+
+/**
+ * Handle sitemap routing on template_redirect (priority 0).
+ */
+function blogpro_maybe_render_sitemap() {
+	$sitemap = get_query_var( 'blogpro_sitemap' );
+	$page    = (int) get_query_var( 'blogpro_sitemap_page' );
+
+	// Fallback detection via REQUEST_URI if rewrite rules haven't flushed yet
+	if ( ! $sitemap && isset( $_SERVER['REQUEST_URI'] ) ) {
+		$path = untrailingslashit( strtok( $_SERVER['REQUEST_URI'], '?' ) );
+		if ( preg_match( '#/sitemap\.xml$#i', $path ) ) {
+			$sitemap = 'index';
+		} elseif ( preg_match( '#/sitemap-posts(?:-([0-9]+))?\.xml$#i', $path, $matches ) ) {
+			$sitemap = 'posts';
+			$page    = ! empty( $matches[1] ) ? (int) $matches[1] : 1;
+		} elseif ( preg_match( '#/sitemap-pages\.xml$#i', $path ) ) {
+			$sitemap = 'pages';
+		}
+	}
+
+	if ( ! $sitemap || '1' === $sitemap ) {
+		if ( '1' === $sitemap ) {
+			$sitemap = 'index';
+		} else {
+			return;
+		}
+	}
+
+	header( 'Content-Type: application/xml; charset=UTF-8' );
+
+	if ( 'index' === $sitemap ) {
+		blogpro_render_sitemap_index();
+		exit;
+	} elseif ( 'posts' === $sitemap ) {
+		blogpro_render_posts_sitemap( $page > 0 ? $page : 1 );
+		exit;
+	} elseif ( 'pages' === $sitemap ) {
+		blogpro_render_pages_sitemap();
+		exit;
+	}
+}
+// Priority 0: must run BEFORE core's redirect_canonical (default 10)
+add_action( 'template_redirect', 'blogpro_maybe_render_sitemap', 0 );
