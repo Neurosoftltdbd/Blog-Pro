@@ -199,6 +199,7 @@ function blogpro_toc_enqueue() {
 		return;
 	}
 	wp_enqueue_script( 'blogpro-toc', BLOGPRO_URI . '/blocks/toc/view.js', array(), BLOGPRO_VERSION, true );
+	wp_script_add_data( 'blogpro-toc', 'defer', true );
 }
 add_action( 'wp_enqueue_scripts', 'blogpro_toc_enqueue', 20 );
 

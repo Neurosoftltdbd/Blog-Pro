@@ -64,28 +64,37 @@ add_filter( 'heartbeat_settings', function ( $settings ) {
 	return $settings;
 } );
 
-/* 7. Preconnect / preload critical resources for faster first paint. */
+/* 7. Preload critical resources for faster first paint. */
 function blogpro_resource_hints() {
-	echo '<link rel="preconnect" href="' . esc_url( home_url() ) . '">' . "\n";
-
-	// Preload the LCP image on singular views (featured image) with responsive srcset/sizes.
+	// Preload the LCP image using the same blogpro-img URLs the <img> tag uses,
+	// so the browser can match the preloaded resource to the actual request.
 	if ( is_singular() && has_post_thumbnail() ) {
 		$thumb_id = get_post_thumbnail_id();
-		$src      = wp_get_attachment_image_url( $thumb_id, 'full' );
-		if ( $src ) {
-			$srcset = wp_get_attachment_image_srcset( $thumb_id, 'full' );
-			$sizes  = '(max-width: 896px) 100vw, 896px';
-			$preload_tag = '<link rel="preload" as="image" href="' . esc_url( $src ) . '"';
-			if ( $srcset ) {
-				$preload_tag .= ' imagesrcset="' . esc_attr( $srcset ) . '" imagesizes="' . esc_attr( $sizes ) . '"';
-			}
-			$preload_tag .= ' fetchpriority="high">' . "\n";
-			echo $preload_tag;
+		$src_data = wp_get_attachment_image_src( $thumb_id, 'full' );
+		if ( $src_data ) {
+			$orig_w  = (int) $src_data[1];
+			$widths  = array( 320, 480, 640, 680, 768, 1024, 1280, 1600 );
+			$widths  = array_values( array_filter( $widths, function ( $w ) use ( $orig_w ) { return $w < $orig_w; } ) );
+			$widths[] = $orig_w;
+
+			$att_file = get_attached_file( $thumb_id );
+			$fname    = $att_file ? sanitize_file_name( pathinfo( $att_file, PATHINFO_FILENAME ) ) : '';
+			if ( '' === $fname ) $fname = $thumb_id;
+			$base = home_url( '/blogpro-img/' . $thumb_id . '/' . $fname . '-' );
+
+			$srcset = implode( ', ', array_map( function ( $w ) use ( $base ) {
+				return esc_url( $base . $w . '.webp' ) . ' ' . $w . 'w';
+			}, $widths ) );
+
+			$sizes = '(max-width: 896px) calc(100vw - 2rem), 896px';
+			echo '<link rel="preload" as="image" href="' . esc_url( $base . $widths[0] . '.webp' ) . '"'
+				. ' imagesrcset="' . esc_attr( $srcset ) . '" imagesizes="' . esc_attr( $sizes ) . '"'
+				. ' fetchpriority="high">' . "\n";
 		}
 	}
 
-	// Gravatar preconnect for single posts with open or existing comments.
-	if ( is_singular() && ( comments_open() || get_comments_number() ) ) {
+	// Gravatar preconnect for single posts with existing comments (avoids unused preconnect when 0 comments).
+	if ( is_singular() && get_comments_number() > 0 ) {
 		echo '<link rel="preconnect" href="https://secure.gravatar.com" crossorigin>' . "\n";
 		echo '<link rel="dns-prefetch" href="https://secure.gravatar.com">' . "\n";
 	}

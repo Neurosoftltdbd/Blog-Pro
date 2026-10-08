@@ -13,7 +13,7 @@ while ( have_posts() ) : the_post();
 		
 		<?php if ( has_post_thumbnail() ) : ?>
 			<div class="w-full rounded-lg overflow-hidden shadow-lg my-12 bg-gray-100">
-				<?php echo blogpro_responsive_img( get_post_thumbnail_id(), array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover aspect-video rounded-lg', 'sizes' => '(max-width: 896px) 100vw, 896px', 'loading' => 'eager' ) ); ?>
+				<?php echo blogpro_responsive_img( get_post_thumbnail_id(), array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover aspect-video rounded-lg', 'sizes' => '(max-width: 896px) calc(100vw - 2rem), 896px', 'loading' => 'eager' ) ); ?>
 			</div>
 		<?php endif; ?>
 		<div class="text-sm font-semibold text-indigo-600 tracking-widest py-4"><?php blogpro_posted_on(); ?></div>

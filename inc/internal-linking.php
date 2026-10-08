@@ -84,9 +84,9 @@ function blogpro_il_settings( $post_id ) {
  * @return array<int, array{phrase: string, url: string}>
  */
 function blogpro_il_auto_rules( $post_id ) {
-	static $titles = null;
+	$titles = get_transient( 'blogpro_il_auto_titles' );
 
-	if ( null === $titles ) {
+	if ( false === $titles ) {
 		global $wpdb;
 		$rows = (array) $wpdb->get_results(
 			"SELECT ID, post_title FROM {$wpdb->posts} WHERE post_type = 'post' AND post_status = 'publish'",
@@ -112,6 +112,8 @@ function blogpro_il_auto_rules( $post_id ) {
 		usort( $titles, function ( $a, $b ) {
 			return mb_strlen( $a['phrase'] ) <=> mb_strlen( $b['phrase'] );
 		} );
+
+		set_transient( 'blogpro_il_auto_titles', $titles, 12 * HOUR_IN_SECONDS );
 	}
 
 	$rules = array();
@@ -126,6 +128,10 @@ function blogpro_il_auto_rules( $post_id ) {
 	}
 	return blogpro_il_expand_title_phrases( $rules );
 }
+
+// Invalidate auto internal link cache whenever a post is published, saved, or deleted.
+add_action( 'save_post', function () { delete_transient( 'blogpro_il_auto_titles' ); } );
+add_action( 'delete_post', function () { delete_transient( 'blogpro_il_auto_titles' ); } );
 
 /**
  * A full title rarely appears verbatim in body text. Generate 2-3 word

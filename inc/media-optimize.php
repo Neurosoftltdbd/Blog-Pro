@@ -320,7 +320,7 @@ add_filter( 'big_image_size_threshold', function () { return 1600; } );
       instead of WP's generic (max-width: X) 100vw guess. */
 function blogpro_responsive_sizes( $sizes, $size, $image_src, $image_meta, $attachment_id ) {
 	if ( is_singular() ) {
-		return '(max-width: 820px) 100vw, 820px';
+		return '(max-width: 820px) calc(100vw - 2rem), 820px';
 	}
 	return '(max-width: 480px) 100vw, (max-width: 900px) 50vw, 480px';
 }
@@ -516,7 +516,7 @@ function blogpro_responsive_content_images( $content ) {
 			}
 			if ( $orig_w < 1 ) return $img;
 
-			$widths = array( 320, 480, 768, 1024, 1280, 1600 );
+			$widths = array( 320, 480, 640, 680, 768, 1024, 1280, 1600 );
 			$widths = array_values( array_filter( $widths, function ( $w ) use ( $orig_w ) { return $w < $orig_w; } ) );
 			$widths[] = $orig_w;
 
@@ -537,9 +537,9 @@ function blogpro_responsive_content_images( $content ) {
 				$img = preg_replace( '/\bsrc=["\'][^"\']*["\']/i', 'srcset="' . esc_attr( $srcset ) . '" src="' . esc_url( $base . $widths[0] . '.webp' ) . '"', $img );
 			}
 			if ( false !== stripos( $img, 'sizes=' ) ) {
-				$img = preg_replace( '/\bsizes=["\'][^"\']*["\']/i', 'sizes="(max-width: 820px) 100vw, 820px"', $img );
+				$img = preg_replace( '/\bsizes=["\'][^"\']*["\']/i', 'sizes="(max-width: 820px) calc(100vw - 2rem), 820px"', $img );
 			} else {
-				$img = str_replace( ' srcset="', ' sizes="(max-width: 820px) 100vw, 820px" srcset="', $img );
+				$img = str_replace( ' srcset="', ' sizes="(max-width: 820px) calc(100vw - 2rem), 820px" srcset="', $img );
 			}
 
 			// Inject intrinsic width/height when the markup lacks them (legacy
@@ -603,7 +603,7 @@ function blogpro_responsive_img( $attachment_id, $args = array() ) {
 
 	$orig_w = (int) $src[1];
 	$orig_h = (int) $src[2];
-	$widths = array( 320, 480, 768, 1024, 1280, 1600 );
+	$widths = array( 320, 480, 640, 680, 768, 1024, 1280, 1600 );
 	$widths = array_values( array_filter( $widths, function ( $w ) use ( $orig_w ) { return $w < $orig_w; } ) );
 	$widths[] = $orig_w;
 

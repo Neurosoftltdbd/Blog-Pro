@@ -171,7 +171,9 @@
       },
       { passive: true }
     );
-    onScroll();
+    if ((window.scrollY || document.documentElement.scrollTop || 0) > 0) {
+      window.requestAnimationFrame(onScroll);
+    }
 
     if (backTop) {
       backTop.addEventListener("click", function (e) {

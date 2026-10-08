@@ -88,18 +88,20 @@ document.addEventListener( 'DOMContentLoaded', function () {
 			// keep the active row visible inside a scrolled sidebar
 			var last = headings[ i ].links[ headings[ i ].links.length - 1 ];
 			var box  = last.closest ? last.closest( '.overflow-y-auto' ) : null;
-			if ( box ) {
-				var lr = last.getBoundingClientRect();
-				var br = box.getBoundingClientRect();
-				var delta = 0;
-				if ( lr.top < br.top + 8 ) {
-					delta = lr.top - br.top - 24;
-				} else if ( lr.bottom > br.bottom - 8 ) {
-					delta = lr.bottom - br.bottom + 24;
-				}
-				if ( delta ) {
-					box.scrollTo( { top: box.scrollTop + delta, behavior: 'smooth' } );
-				}
+			if ( box && box.scrollHeight > box.clientHeight ) {
+				window.requestAnimationFrame( function () {
+					var lr = last.getBoundingClientRect();
+					var br = box.getBoundingClientRect();
+					var delta = 0;
+					if ( lr.top < br.top + 8 ) {
+						delta = lr.top - br.top - 24;
+					} else if ( lr.bottom > br.bottom - 8 ) {
+						delta = lr.bottom - br.bottom + 24;
+					}
+					if ( delta ) {
+						box.scrollTo( { top: box.scrollTop + delta, behavior: 'smooth' } );
+					}
+				} );
 			}
 		}
 	}
@@ -152,6 +154,8 @@ document.addEventListener( 'DOMContentLoaded', function () {
 				window.requestAnimationFrame( update );
 			}
 		}, { passive: true } );
-		update();
+		if ( ( window.scrollY || 0 ) > 0 ) {
+			window.requestAnimationFrame( update );
+		}
 	}
 } );
