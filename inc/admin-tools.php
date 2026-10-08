@@ -221,6 +221,7 @@ function blogpro_ajax_optimize_batch() {
 	) );
 
 	$webp_created  = 0;
+	$cache_created = 0;
 	$fields_filled = 0;
 	foreach ( $ids as $id ) {
 		$file = get_attached_file( $id );
@@ -233,6 +234,7 @@ function blogpro_ajax_optimize_batch() {
 				wp_update_attachment_metadata( $id, $metadata );
 			}
 			$webp_created += blogpro_convert_attachment_to_webp( $id, $metadata );
+			$cache_created += function_exists( 'blogpro_pregenerate_resized_cache' ) ? blogpro_pregenerate_resized_cache( $id ) : 0;
 		}
 
 		// Fill alt / title / caption / description from the file name when
@@ -253,6 +255,7 @@ function blogpro_ajax_optimize_batch() {
 	wp_send_json_success( array(
 		'processed' => count( $ids ),
 		'webp'      => $webp_created,
+		'cache'     => $cache_created,
 		'fields'    => $fields_filled,
 		'more'      => count( $ids ) === $batch,
 	) );

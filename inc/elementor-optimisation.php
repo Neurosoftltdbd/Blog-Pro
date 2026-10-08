@@ -80,9 +80,15 @@ add_filter( 'elementor/frontend/print_google_fonts', 'blogpro_disable_elementor_
  * location (header/footer) is assigned and rendered for this page.
  */
 function blogpro_elementor_needs_assets() {
+	static $blogpro_elementor_needs_assets_cache = null;
+	if ( null !== $blogpro_elementor_needs_assets_cache ) {
+		return $blogpro_elementor_needs_assets_cache;
+	}
+
 	$post_id = get_the_ID();
 
 	if ( $post_id && \Elementor\Plugin::$instance->db->is_built_with_elementor( $post_id ) ) {
+		$blogpro_elementor_needs_assets_cache = true;
 		return true;
 	}
 
@@ -92,11 +98,13 @@ function blogpro_elementor_needs_assets() {
 	if ( function_exists( 'elementor_theme_do_location' ) ) {
 		foreach ( array( 'header', 'footer' ) as $location ) {
 			if ( elementor_theme_do_location( $location ) ) {
+				$blogpro_elementor_needs_assets_cache = true;
 				return true;
 			}
 		}
 	}
 
+	$blogpro_elementor_needs_assets_cache = false;
 	return false;
 }
 
@@ -218,15 +226,23 @@ function blogpro_elementor_get_used_widget_types() {
  * styles must never be dropped, so the optimization is skipped entirely.
  */
 function blogpro_elementor_has_theme_locations() {
+	static $blogpro_elementor_has_theme_locations_cache = null;
+	if ( null !== $blogpro_elementor_has_theme_locations_cache ) {
+		return $blogpro_elementor_has_theme_locations_cache;
+	}
+
 	if ( ! function_exists( 'elementor_theme_do_location' ) || ! did_action( 'elementor/loaded' ) || ! class_exists( '\ElementorPro\Modules\ThemeBuilder\Module' ) ) {
+		$blogpro_elementor_has_theme_locations_cache = false;
 		return false;
 	}
 	foreach ( array( 'header', 'footer' ) as $location ) {
 		$docs = \ElementorPro\Modules\ThemeBuilder\Module::instance()->get_conditions_manager()->get_documents_for_location( $location );
 		if ( ! empty( $docs ) ) {
+			$blogpro_elementor_has_theme_locations_cache = true;
 			return true;
 		}
 	}
+	$blogpro_elementor_has_theme_locations_cache = false;
 	return false;
 }
 

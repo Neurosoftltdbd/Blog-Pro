@@ -65,19 +65,20 @@ function blogpro_tidy_videos( $html ) {
 		// and Safari may not load it at all.
 		$tag = preg_replace( '/\s+loading=(["\'])(?:lazy|eager)\1/i', '', $tag );
 
+		// Collect all attributes to inject in a single pass.
+		$inject = '';
+
 		// preload: metadata (poster frame ready, bytes deferred).
-		if ( preg_match( '/\s+preload=(["\'])\w+\1/i', $tag ) ) {
-			$tag = preg_replace( '/\s+preload=(["\'])\w+\1/i', ' preload="metadata"', $tag );
-		} else {
-			$tag = preg_replace( '/<video/i', '<video preload="metadata"', $tag, 1 );
+		if ( ! preg_match( '/\s+preload=(["\'])\w+\1/i', $tag ) ) {
+			$inject .= ' preload="metadata"';
 		}
 
 		// iOS/Android inline playback + explicit controls.
 		if ( ! preg_match( '/\splaysinline\b/i', $tag ) ) {
-			$tag = preg_replace( '/<video/i', '<video playsinline', $tag, 1 );
+			$inject .= ' playsinline';
 		}
 		if ( ! preg_match( '/\scontrols(=|\s|>)/i', $tag ) ) {
-			$tag = preg_replace( '/<video/i', '<video controls', $tag, 1 );
+			$inject .= ' controls';
 		}
 
 		// Intrinsic size from the attachment behind the src (best effort).
@@ -85,7 +86,7 @@ function blogpro_tidy_videos( $html ) {
 			$id   = attachment_url_to_postid( $sm[2] );
 			$meta = $id ? wp_get_attachment_metadata( $id ) : false;
 			if ( $meta && ! empty( $meta['width'] ) && ! empty( $meta['height'] ) ) {
-				$tag = preg_replace( '/<video/i', '<video width="' . (int) $meta['width'] . '" height="' . (int) $meta['height'] . '"', $tag, 1 );
+				$inject .= ' width="' . (int) $meta['width'] . '" height="' . (int) $meta['height'] . '"';
 			}
 		}
 
@@ -93,7 +94,12 @@ function blogpro_tidy_videos( $html ) {
 		if ( preg_match( '/\sclass=(["\'])(.*?)\1/i', $tag ) ) {
 			$tag = preg_replace( '/\sclass=(["\'])(.*?)\1/i', ' class="bp-video block w-full h-full object-contain bg-slate-900 $2"', $tag, 1 );
 		} else {
-			$tag = preg_replace( '/<video/i', '<video class="bp-video block w-full h-full object-contain bg-slate-900"', $tag, 1 );
+			$inject .= ' class="bp-video block w-full h-full object-contain bg-slate-900"';
+		}
+
+		// Single injection pass for all collected attributes.
+		if ( $inject ) {
+			$tag = preg_replace( '/<video/i', '<video' . $inject, $tag, 1 );
 		}
 
 		return '<div class="bp-video-wrap relative max-w-full mx-auto my-8 rounded-2xl overflow-hidden bg-slate-900 aspect-video">' . $tag . '</div>';

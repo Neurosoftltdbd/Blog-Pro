@@ -145,27 +145,7 @@ function blogpro_delete_webp_on_attachment_removal( $post_id ) {
 }
 add_action( 'delete_attachment', 'blogpro_delete_webp_on_attachment_removal' );
 
-/* 2. Picture-element fallback (replace blogpro_maybe_use_webp) */
-function blogpro_maybe_use_picture( $html ) {
-    return preg_replace_callback(
-        '/<img([^>]+)(src|srcset)=["\']([^"\']+\.(jpe?g|png))["\']([^>]*)>/i',
-        function ( $m ) {
-            $webp_url = preg_replace( '/\.(jpe?g|png)$/i', '.webp', $m[3] );
-            $path = str_replace( content_url(), WP_CONTENT_DIR, $webp_url );
-            if ( ! file_exists( $path ) ) {
-                return $m[0];
-            }
-            // Rebuild whole <img> — replace every .jpg/.png URL with .webp (covers src+srcset)
-            $img_tag = '<img' . $m[1] . $m[2] . '="' . esc_url( $webp_url ) . '"' . $m[5] . '>';
-            $img_tag = preg_replace( '/\.(jpe?g|png)(\s|")/i', '.webp$2', $img_tag );
-            return '<picture>'
-                 . '<source type="image/webp" srcset="' . esc_url( $webp_url ) . '">' . $img_tag . '</picture>';
-        },
-        $html
-    );
-}
-add_filter('the_content', 'blogpro_maybe_use_picture', 20);
-add_filter('post_thumbnail_html', 'blogpro_maybe_use_picture', 20);
+
 
 
 
@@ -392,10 +372,9 @@ function blogpro_serve_resized_webp( $id, $width ) {
 	$master = $info['dirname'] . '/' . $info['filename'] . '.webp';
 	$source = ( file_exists( $master ) && filesize( $master ) > 0 ) ? $master : $file;
 
-	// Cache file named after the source image (original-name-width.webp, e.g.
-	// holiday-480.webp) instead of a numeric ID, so generated files are easy
-	// to recognize. The width stays in the name so every variant is distinct.
-	// URL/behaviour is unchanged — only the on-disk name differs.
+	// Cache file named {filename}-{width}.webp — matches the URL path
+	// segment so .htaccess can serve cached images as static files,
+	// bypassing WordPress entirely (eliminates 4.7s PHP bootstrap).
 	$base  = sanitize_file_name( $info['filename'] );
 	$cache = $cache_dir . '/' . $base . '-' . $width . '.webp';
 
@@ -444,6 +423,82 @@ function blogpro_serve_resized_webp( $id, $width ) {
 	}
 
 	blogpro_serve_webp_file( $cache );
+}
+
+/**
+ * Pre-generate resized cache files for an attachment at all registered widths.
+ * Used by the bulk optimizer to create cache files upfront so .htaccess
+ * can serve them as static files without any PHP processing.
+ *
+ * @param int $attachment_id
+ * @return int Number of cache files generated
+ */
+function blogpro_pregenerate_resized_cache( $attachment_id ) {
+	if ( ! function_exists( 'imagewebp' ) ) return 0;
+
+	$mime = get_post_mime_type( $attachment_id );
+	if ( ! in_array( $mime, array( 'image/jpeg', 'image/png', 'image/webp' ), true ) ) {
+		return 0;
+	}
+
+	$file = get_attached_file( $attachment_id );
+	if ( ! $file || ! file_exists( $file ) ) return 0;
+
+	$info   = pathinfo( $file );
+	$master = $info['dirname'] . '/' . $info['filename'] . '.webp';
+	$source = ( file_exists( $master ) && filesize( $master ) > 0 ) ? $master : $file;
+
+	// Get original dimensions
+	$orig = wp_getimagesize( $source );
+	if ( ! $orig ) return 0;
+
+	$orig_w = (int) $orig[0];
+	$orig_h = (int) $orig[1];
+
+	$upload    = wp_upload_dir();
+	$cache_dir = trailingslashit( $upload['basedir'] ) . 'blogpro-cache';
+	$base      = sanitize_file_name( $info['filename'] );
+
+	$widths = array( 320, 480, 640, 680, 768, 1024, 1280, 1600 );
+	$widths = array_values( array_filter( $widths, function ( $w ) use ( $orig_w ) { return $w < $orig_w; } ) );
+	$widths[] = $orig_w;
+
+	$generated = 0;
+	foreach ( $widths as $width ) {
+		$cache = $cache_dir . '/' . $base . '-' . $width . '.webp';
+		if ( file_exists( $cache ) && filesize( $cache ) > 0 ) continue;
+
+		$width = min( $width, $orig_w );
+		$height = (int) round( $orig_h * $width / $orig_w );
+
+		$old_limit = ini_set( 'memory_limit', '256M' );
+		if ( 'image/webp' === $mime || $source === $master ) {
+			$src = @imagecreatefromwebp( $source );
+		} elseif ( 'image/png' === $mime ) {
+			$src = @imagecreatefrompng( $source );
+		} else {
+			$src = @imagecreatefromjpeg( $source );
+		}
+		if ( ! $src ) { ini_set( 'memory_limit', $old_limit ); continue; }
+
+		$dst = imagecreatetruecolor( $width, $height );
+		imagealphablending( $dst, false );
+		imagesavealpha( $dst, true );
+		imagecopyresampled( $dst, $src, 0, 0, 0, 0, $width, $height, $orig_w, $orig_h );
+		imagedestroy( $src );
+		wp_mkdir_p( $cache_dir );
+		$ok = imagewebp( $dst, $cache, 82 );
+		imagedestroy( $dst );
+		ini_set( 'memory_limit', $old_limit );
+
+		if ( $ok && file_exists( $cache ) && filesize( $cache ) > 0 ) {
+			$generated++;
+		} else {
+			@unlink( $cache );
+		}
+	}
+
+	return $generated;
 }
 
 /**
@@ -509,10 +564,11 @@ function blogpro_responsive_content_images( $content ) {
 			$mime = get_post_mime_type( $id );
 			if ( ! in_array( $mime, array( 'image/jpeg', 'image/png', 'image/webp' ), true ) ) return $img;
 
+			$dims = @wp_getimagesize( $path );
 			if ( preg_match( '/width=["\'](\d+)["\']/i', $img, $wm ) ) {
 				$orig_w = (int) $wm[1];
 			} else {
-				$orig_w = (int) wp_getimagesize( $path )[0];
+				$orig_w = $dims ? (int) $dims[0] : 0;
 			}
 			if ( $orig_w < 1 ) return $img;
 
@@ -545,7 +601,6 @@ function blogpro_responsive_content_images( $content ) {
 			// Inject intrinsic width/height when the markup lacks them (legacy
 			// imports, some builders) — reserves layout space, kills CLS.
 			if ( ! preg_match( '/\b(width|height)=["\']\d+["\']/i', $img ) ) {
-				$dims = @wp_getimagesize( $path );
 				if ( $dims ) {
 					$w = (int) $dims[0];
 					$h = (int) $dims[1];

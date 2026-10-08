@@ -40,7 +40,6 @@ function blogpro_pwa_serve_manifest() {
 	$theme_color = get_theme_mod( 'pwa_theme_color', '#1a1a2e' );
 	$bg_color    = get_theme_mod( 'pwa_background_color', '#ffffff' );
 	$start_url   = home_url( '/' );
-	$icon_url    = get_site_icon_url( 512 );
 	$icon_192    = get_site_icon_url( 192 );
 	$icon_512    = get_site_icon_url( 512 );
 

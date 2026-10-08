@@ -94,9 +94,14 @@ function blogpro_resource_hints() {
 	}
 
 	// Gravatar preconnect for single posts with existing comments (avoids unused preconnect when 0 comments).
-	if ( is_singular() && get_comments_number() > 0 ) {
-		echo '<link rel="preconnect" href="https://secure.gravatar.com" crossorigin>' . "\n";
-		echo '<link rel="dns-prefetch" href="https://secure.gravatar.com">' . "\n";
+	// Use get_comment_count() which is cached by WP core, avoiding an extra DB query.
+	if ( is_singular() && wp_cache_get( 'blogpro_gravatar_' . get_queried_object_id() ) === false ) {
+		$comment_count = get_comments_number();
+		wp_cache_set( 'blogpro_gravatar_' . get_queried_object_id(), $comment_count );
+		if ( $comment_count > 0 ) {
+			echo '<link rel="preconnect" href="https://secure.gravatar.com" crossorigin>' . "\n";
+			echo '<link rel="dns-prefetch" href="https://secure.gravatar.com">' . "\n";
+		}
 	}
 }
 add_action( 'wp_head', 'blogpro_resource_hints', 1 );
@@ -184,12 +189,13 @@ function blogpro_speculation_rules() {
 									'/cart/*',
 									'/checkout/*',
 									'/my-account/*',
+									'/blogpro-img/*',
 								),
 							),
 						),
 					),
 				),
-				'eagerness' => 'moderate',
+				'eagerness' => 'conservative',
 			),
 		),
 	);

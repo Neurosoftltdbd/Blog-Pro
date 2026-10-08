@@ -39,6 +39,16 @@
 	AddType font/woff2 .woff2
 </IfModule>
 
+# Serve cached resized images directly from disk, bypassing WordPress.
+# URL: /blogpro-img/{id}/{filename}-{width}.webp
+# Disk: wp-content/uploads/blogpro-cache/{filename}-{width}.webp
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteCond %{REQUEST_URI} ^/blogpro-img/\d+/([^/]+)-(\d+)\.webp$ [NC]
+	RewriteCond %{DOCUMENT_ROOT}/wp-content/uploads/blogpro-cache/%1-%2\.webp -f
+	RewriteRule ^blogpro-img/\d+/([^/]+)-(\d+)\.webp$ /wp-content/uploads/blogpro-cache/$1-$2.webp [L]
+</IfModule>
+
 # ---------------------------------------------------------------------
 # NGINX equivalent (add inside your server{} block instead):
 #

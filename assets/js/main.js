@@ -33,22 +33,6 @@
     }
   });
 
-  // Lazy loading for images/iframes
-  if ("IntersectionObserver" in window) {
-    var lazyTargets = document.querySelectorAll("img:not([loading]), iframe:not([loading])");
-    var observer = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.setAttribute("loading", "lazy");
-          observer.unobserve(entry.target);
-        }
-      });
-    });
-    lazyTargets.forEach(function (el) {
-      observer.observe(el);
-    });
-  }
-
   // Social share links open in a small popup window.
   // mailto: links (email share) must NOT be intercepted — open them normally
   // via the default anchor behavior, so we bail before preventDefault().

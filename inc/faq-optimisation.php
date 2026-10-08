@@ -3,8 +3,10 @@
  * FAQ optimisation — single source of FAQ output per post.
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
-function blogpro_faq_block_in_content( $post_id ) {
-	$content = (string) get_post_field( 'post_content', $post_id );
+function blogpro_faq_block_in_content( $post_id, $content = null ) {
+	if ( null === $content ) {
+		$content = (string) get_post_field( 'post_content', $post_id );
+	}
 
 	// Block formats (case-insensitive)
 	if ( preg_match( '/<!--\s*wp:(blog-pro|rank-math|yoast)\/faq/i', $content ) ) {
@@ -62,7 +64,7 @@ function blogpro_faq_content_filter( $content ) {
 
 	$post_id   = get_the_ID();
 	$items     = blogpro_faq_for_post( $post_id );
-	if ( ! $items || blogpro_faq_block_in_content( $post_id ) ) {
+	if ( ! $items || blogpro_faq_block_in_content( $post_id, $content ) ) {
 		return $content;
 	}
 

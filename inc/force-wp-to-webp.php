@@ -25,17 +25,27 @@ function blogpro_force_webp_src( $image, $attachment_id, $size, $icon ) {
 	$url = $image[0];
 	if ( ! preg_match( '/\.(jpe?g|png)$/i', $url ) ) return $image;
 
-	// Resolve to the master WebP on disk ({original-name}.webp next to the
-	// source file). Fall back to the original URL if there's no master.
-	$file = get_attached_file( $attachment_id );
-	if ( ! $file ) return $image;
+	// Static cache: resolve the WebP master path once per attachment per
+	// request. Without this, every wp_get_attachment_image_src() call
+	// triggers get_attached_file() (DB) + file_exists() + filesize() (FS).
+	static $blogpro_webp_master_cache = array();
 
-	$master = pathinfo( $file, PATHINFO_DIRNAME ) . '/' . pathinfo( $file, PATHINFO_FILENAME ) . '.webp';
-	if ( ! file_exists( $master ) || filesize( $master ) < 1 ) return $image;
+	if ( ! isset( $blogpro_webp_master_cache[ $attachment_id ] ) ) {
+		$file = get_attached_file( $attachment_id );
+		if ( ! $file ) {
+			$blogpro_webp_master_cache[ $attachment_id ] = false;
+		} else {
+			$master = pathinfo( $file, PATHINFO_DIRNAME ) . '/' . pathinfo( $file, PATHINFO_FILENAME ) . '.webp';
+			$blogpro_webp_master_cache[ $attachment_id ] = ( file_exists( $master ) && filesize( $master ) > 0 ) ? $master : false;
+		}
+	}
+
+	$master = $blogpro_webp_master_cache[ $attachment_id ];
+	if ( ! $master ) return $image;
 
 	$image[0] = str_replace(
-		pathinfo( $file, PATHINFO_FILENAME ) . '.' . pathinfo( $file, PATHINFO_EXTENSION ),
-		pathinfo( $file, PATHINFO_FILENAME ) . '.webp',
+		pathinfo( $master, PATHINFO_FILENAME ) . '.' . pathinfo( $master, PATHINFO_EXTENSION ),
+		pathinfo( $master, PATHINFO_FILENAME ) . '.webp',
 		$url
 	);
 
