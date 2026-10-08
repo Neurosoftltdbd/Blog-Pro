@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./assets/css/figcaption.css";
+
 @plugin "@tailwindcss/typography";
 @source "./**/*.php";
 @source "./**/*.html";
@@ -143,7 +145,7 @@
   }
 
   .wp-block-image {
-    @apply flex w-full h-auto items-center justify-center my-6;
+    @apply flex flex-col w-full h-auto items-center justify-center my-6;
   }
   /* Keep .wp-block-embed a plain block — WordPress' responsive-embeds
      mechanism sizes the iframe via .wp-block-embed__wrapper::before

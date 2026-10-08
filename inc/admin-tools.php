@@ -112,32 +112,25 @@ function blogpro_ajax_cleanup_orphans() {
 	$basedir   = trailingslashit( wp_normalize_path( $upload['basedir'] ) );
 	$cache_dir = $basedir . 'blogpro-cache';
 
-	// Index source images (.jpg/.jpeg/.png) under uploads/ by basename, so we
-	// can answer "does a source for name X exist?" without re-scanning per file.
-	// The key is the basename without extension (e.g. 'holiday-768x512').
-	$sources = array();
-	if ( is_dir( $basedir ) ) {
-		$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $basedir, FilesystemIterator::SKIP_DOTS ) );
-		foreach ( $it as $entry ) {
-			if ( ! $entry->isFile() ) continue;
-			$ext = strtolower( $entry->getExtension() );
-			if ( ! in_array( $ext, array( 'jpg', 'jpeg', 'png' ), true ) ) continue;
-			$sources[ $entry->getBasename( '.' . $entry->getExtension() ) ] = true;
-		}
-	}
-
-	// Record every file that is a real attachment's original, so Pass 1 never
-	// deletes one. A .webp/.avif in the library can be a native upload (no
-	// jpg/png source at all), so we must not infer orphan-ness purely from
-	// missing file-system sources — check the DB before unlinking anything.
+	// Build a set of "live" source basenames from attachment metadata.
+	// A source is live only if its original file is still attached to a
+	// Media Library item. When an original is deleted, all its versions
+	// (webp, 320, 640, etc.) become orphans and must be removed.
 	global $wpdb;
 	$attached_files = $wpdb->get_col( "SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file'" );
-	$attached = array();
+	$sources = array();
 	foreach ( $attached_files as $rel ) {
-		$attached[ wp_normalize_path( $rel ) ] = true;
+		$rel = wp_normalize_path( $rel );
+		$basename = basename( $rel );
+		$ext = strtolower( pathinfo( $basename, PATHINFO_EXTENSION ) );
+		$sources[ pathinfo( $basename, PATHINFO_FILENAME ) ] = true;
+		// Also index the full relative path so we can match exact files
+		$sources[ $rel ] = true;
 	}
 
-	// Pass 1 — orphaned .webp/.avif in uploads/ whose source is gone.
+	// Pass 1 — remove all image files whose source is no longer attached.
+	// When an original is deleted from Media Library, all its versions
+	// (webp, 320, 640, thumbnails, etc.) become orphans and are removed.
 	if ( is_dir( $basedir ) ) {
 		$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $basedir, FilesystemIterator::SKIP_DOTS ) );
 		foreach ( $it as $entry ) {
@@ -147,21 +140,17 @@ function blogpro_ajax_cleanup_orphans() {
 			if ( strpos( $file, wp_normalize_path( $cache_dir ) . DIRECTORY_SEPARATOR ) === 0 ) continue;
 
 			$ext = strtolower( $entry->getExtension() );
-			if ( ! in_array( $ext, array( 'webp', 'avif' ), true ) ) continue;
+			if ( ! in_array( $ext, array( 'webp', 'avif', 'jpg', 'jpeg', 'png' ), true ) ) continue;
 
-			// Never delete a file that's itself a live attachment's original —
-			// .webp/.avif are valid library formats, so a native upload may
-			// have no jpg/png source at all.
+			// Never delete a file that's itself a live attachment's original.
 			$rel = ltrim( str_replace( $basedir, '', $file ), '/' );
-			if ( isset( $attached[ $rel ] ) ) continue;
+			if ( isset( $sources[ $rel ] ) ) continue;
 
 			$base = $entry->getBasename( '.' . $entry->getExtension() );
-			// The paired source may be the full name (holiday.webp ->
-			// holiday.jpg), or — for legacy thumbnails — the base minus a
-			// width/scale suffix (photo-768x512.webp -> photo.jpg).
-			if ( isset( $sources[ $base ] ) ) continue;
-			$plain = preg_replace( '/-\d+x\d+$/', '', $base );
-			if ( $plain !== $base && isset( $sources[ $plain ] ) ) continue;
+			// Strip any suffix (-320, -640, -800x675, etc.) to get the source name.
+			$plain = preg_replace( '/-(\d+x\d+|320|640)$/', '', $base );
+			// If the source name is live, keep this file (it's a version of a live image).
+			if ( isset( $sources[ $plain ] ) ) continue;
 
 			@unlink( $file );
 			$removed++;
@@ -182,7 +171,8 @@ function blogpro_ajax_cleanup_orphans() {
 			$name = implode( '-', $parts );
 			if ( '' === $name ) continue; // not one of ours
 
-			if ( isset( $sources[ $name ] ) ) continue; // source exists
+			// If the source name is live (still attached), keep the cache file.
+			if ( isset( $sources[ $name ] ) ) continue;
 
 			@unlink( wp_normalize_path( $entry->getPathname() ) );
 			$removed++;
@@ -234,7 +224,7 @@ function blogpro_ajax_optimize_batch() {
 				wp_update_attachment_metadata( $id, $metadata );
 			}
 			$webp_created += blogpro_convert_attachment_to_webp( $id, $metadata );
-			$cache_created += function_exists( 'blogpro_pregenerate_resized_cache' ) ? blogpro_pregenerate_resized_cache( $id ) : 0;
+			$cache_created += function_exists( 'blogpro_generate_resized_webp' ) ? blogpro_generate_resized_webp( $id ) : 0;
 		}
 
 		// Fill alt / title / caption / description from the file name when
