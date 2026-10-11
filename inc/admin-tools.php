@@ -99,7 +99,7 @@ function blogpro_optimize_query_args( $limit, $offset = 0 ) {
 	return array(
 		'post_type'      => 'attachment',
 		'post_status'    => 'inherit',
-		'post_mime_type' => array( 'image/jpeg', 'image/png' ),
+		'post_mime_type' => array( 'image/jpeg', 'image/png', 'image/webp' ),
 		'posts_per_page' => $limit,
 		'offset'         => $offset,
 		'orderby'        => 'ID',
