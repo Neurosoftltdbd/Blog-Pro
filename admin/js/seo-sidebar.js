@@ -93,7 +93,8 @@
 					return el('li', { key: i, style: { margin: '6px 0', color: '#3c434a' } },
 						el('span', { style: { color: color, fontWeight: 600, textTransform: 'uppercase', fontSize: '10px' } },
 							f.severity + ' — '),
-						f.message
+						f.message,
+						f.suggest ? el('div', { style: { color: '#646970', fontSize: '11px', marginTop: '2px' } }, f.suggest) : null
 					);
 				});
 				body.push(el('ul', { key: 'findings', style: { margin: 0, paddingLeft: '16px', fontSize: '12px', lineHeight: 1.5 } }, list));
@@ -112,8 +113,9 @@
 	}
 
 	function adminUrl(path) {
-		var base = window.ajaxurl ? window.ajaxurl.replace('admin-ajax.php', '') : '/wp-admin/';
-		return base + path;
+		// Base comes from PHP (admin_url()), not guessed from ajaxurl.
+		var base = (window.blogproSeoSidebar && window.blogproSeoSidebar.adminUrl) || '/wp-admin/';
+		return base.replace(/\/?$/, '/') + path;
 	}
 
 	registerPlugin('blogpro-seo-sidebar', {

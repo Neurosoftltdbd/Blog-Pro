@@ -5,30 +5,6 @@
 <meta http-equiv="x-ua-compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <?php
-/**
- * Preconnect hints — fired early (priority 1) so the browser establishes
- * TCP+TLS tunnels to external origins before it parses the stylesheet list.
- * Add or remove origins here whenever new third-party resources are introduced.
- */
-function blogpro_preconnect_hints() {
-	$origins = apply_filters( 'blogpro_preconnect_origins', array(
-		// Google Fonts (if you load any font from fonts.googleapis.com)
-		// 'https://fonts.googleapis.com',
-		// 'https://fonts.gstatic.com',
-
-		// Ahrefs analytics (emitted by verification.php when key is set)
-		// 'https://analytics.ahrefs.com',
-	) );
-
-	foreach ( $origins as $origin ) {
-		$origin = esc_url( $origin );
-		if ( ! $origin ) continue;
-		// crossorigin is required for fonts (CORS pre-flight); harmless for others.
-		echo '<link rel="preconnect" href="' . $origin . '" crossorigin>' . "\n";
-		echo '<link rel="dns-prefetch" href="' . $origin . '">' . "\n";
-	}
-}
-add_action( 'wp_head', 'blogpro_preconnect_hints', 1 );
 ?>
 <link rel="manifest" href="<?php echo esc_url( home_url( '/manifest.json' ) ); ?>">
 <?php wp_head(); ?>
@@ -44,16 +20,16 @@ add_action( 'wp_head', 'blogpro_preconnect_hints', 1 );
 			$logo_id = get_theme_mod( 'custom_logo' );
 			if ( $logo_id ) :
 			?>
-				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" aria-label="<?php bloginfo( 'name' ); ?>">
-					<?php echo wp_get_attachment_image( $logo_id, 'full', false, [
-						'class'         => 'w-full h-15 object-contain',
-						'loading'       => 'eager',
-						'fetchpriority' => 'high',
-						'alt'           => get_bloginfo( 'name' ),
-					] ); ?>
+				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>">
+					<?php echo blogpro_responsive_img( $logo_id, array(
+						'class'   => 'w-full h-15 object-contain',
+						'alt'     => get_bloginfo( 'name' ),
+						'sizes'   => '(max-width: 200px) 100vw, 200px',
+						'loading' => 'eager',
+					) ); ?>
 				</a>
 			<?php else : ?>
-				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" class="text-xl font-bold tracking-tighter text-indigo-600 hover:text-indigo-800 transition-colors no-underline pl-2 md:pl-0"><?php bloginfo( 'name' ); ?></a>
+				<a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" class="text-xl font-bold tracking-tighter text-indigo-600 hover:text-indigo-800 transition-colors no-underline pl-2 md:pl-0"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></a>
 			<?php endif; ?>
 			</div>
 

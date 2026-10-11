@@ -845,16 +845,58 @@ function blogpro_seo_scan_batch( $limit = 10, $max_age = 604800 ) {
 		'post_type'      => 'post',
 		'post_status'    => 'publish',
 		'posts_per_page' => $limit,
+		'no_found_rows'  => true,
+		'fields'         => 'ids',
 		'meta_query'     => array(
 			'relation' => 'OR',
 			array( 'key' => $cache_key, 'compare' => 'NOT EXISTS' ),
 			array( 'key' => $cache_key, 'value' => $cutoff, 'compare' => '<', 'type' => 'NUMERIC' ),
 		),
 	) );
-	foreach ( $posts as $p ) {
-		blogpro_seo_store_result( $p->ID );
+	foreach ( $posts as $post_id ) {
+		blogpro_seo_store_result( (int) $post_id );
 	}
 	return count( $posts );
+}
+
+/**
+ * Site-wide SEO summary from cached post meta (no re-scan).
+ *
+ * @return array{posts:int, scored:int, average:float, ok:int, mid:int, bad:int, errors:int, warnings:int, worst:array}
+ */
+function blogpro_seo_summary() {
+	$ids = get_posts( array(
+		'post_type'      => 'post',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+		'no_found_rows'  => true,
+	) );
+	$out = array( 'posts' => count( $ids ), 'scored' => 0, 'average' => 0.0, 'ok' => 0, 'mid' => 0, 'bad' => 0, 'errors' => 0, 'warnings' => 0, 'worst' => array() );
+	$total = 0;
+	$rows  = array();
+	foreach ( $ids as $id ) {
+		$score = get_post_meta( $id, '_blogpro_seo_score', true );
+		if ( '' === $score ) {
+			continue;
+		}
+		$score = (int) $score;
+		$out['scored']++;
+		$total += $score;
+		if ( $score >= 80 ) { $out['ok']++; } elseif ( $score >= 60 ) { $out['mid']++; } else { $out['bad']++; }
+		$issues = get_post_meta( $id, '_blogpro_seo_issues', true );
+		if ( is_array( $issues ) ) {
+			$out['errors']   += (int) ( $issues['error'] ?? 0 );
+			$out['warnings'] += (int) ( $issues['warning'] ?? 0 );
+		}
+		$rows[] = array( 'id' => $id, 'title' => get_the_title( $id ), 'score' => $score );
+	}
+	if ( $out['scored'] ) {
+		$out['average'] = round( $total / $out['scored'], 1 );
+	}
+	usort( $rows, function ( $a, $b ) { return $a['score'] <=> $b['score']; } );
+	$out['worst'] = array_slice( $rows, 0, 5 );
+	return $out;
 }
 
 function blogpro_seo_checker_page() {
@@ -916,6 +958,25 @@ function blogpro_seo_checker_page() {
 	<div class="wrap bpseo-wrap">
 		<h1><?php esc_html_e( 'SEO Checker', 'blog-pro' ); ?></h1>
 		<p><?php esc_html_e( 'Automated on-page audit of all published posts, ranked worst-first. Scores refresh on every post save; use the rescan button to audit new/changed posts.' ); ?></p>
+		<?php
+		$blogpro_sum = blogpro_seo_summary();
+		?>
+		<div class="bpseo-summary" style="display:flex;gap:16px;flex-wrap:wrap;margin:16px 0;">
+			<div><strong><?php echo esc_html( number_format_i18n( $blogpro_sum['scored'] ) ); ?></strong> / <?php echo esc_html( number_format_i18n( $blogpro_sum['posts'] ) ); ?> <?php esc_html_e( 'posts scored', 'blog-pro' ); ?></div>
+			<div><?php esc_html_e( 'Average', 'blog-pro' ); ?>: <strong><?php echo esc_html( $blogpro_sum['average'] ); ?></strong>/100</div>
+			<div><span class="bpseo-row bpseo-ok"><?php echo (int) $blogpro_sum['ok']; ?></span> <?php esc_html_e( 'good (80+)', 'blog-pro' ); ?></div>
+			<div><span class="bpseo-row bpseo-mid"><?php echo (int) $blogpro_sum['mid']; ?></span> <?php esc_html_e( 'needs work (60-79)', 'blog-pro' ); ?></div>
+			<div><span class="bpseo-row bpseo-bad"><?php echo (int) $blogpro_sum['bad']; ?></span> <?php esc_html_e( 'poor (under 60)', 'blog-pro' ); ?></div>
+			<div><?php esc_html_e( 'Errors', 'blog-pro' ); ?>: <strong><?php echo (int) $blogpro_sum['errors']; ?></strong> · <?php esc_html_e( 'Warnings', 'blog-pro' ); ?>: <strong><?php echo (int) $blogpro_sum['warnings']; ?></strong></div>
+		</div>
+		<?php if ( $blogpro_sum['worst'] ) : ?>
+		<h2><?php esc_html_e( 'Lowest scores', 'blog-pro' ); ?></h2>
+		<ol>
+			<?php foreach ( $blogpro_sum['worst'] as $w ) : ?>
+			<li><a href="<?php echo esc_url( admin_url( 'admin.php?page=blogpro-seo-checker&post_id=' . (int) $w['id'] ) ); ?>"><?php echo esc_html( $w['title'] ); ?></a> — <?php echo (int) $w['score']; ?>/100</li>
+			<?php endforeach; ?>
+		</ol>
+		<?php endif; ?>
 
 		<?php
 		if ( isset( $rescanned ) ) :
@@ -1085,13 +1146,30 @@ function blogpro_seo_rest_check( $request ) {
 		'findings' => $flat,
 	) );
 }
+/**
+ * Route permission: the requesting user must be able to edit the post.
+ *
+ * @param WP_REST_Request $request
+ * @return bool|WP_Error
+ */
+function blogpro_seo_rest_permission( $request ) {
+	$post_id = absint( $request['id'] );
+	if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+		return new WP_Error( 'blogpro_forbidden', __( 'Not allowed.', 'blog-pro' ), array( 'status' => 403 ) );
+	}
+	return true;
+}
 add_action( 'rest_api_init', function () {
 	register_rest_route( 'blogpro/v1', '/seo-check/(?P<id>\d+)', array(
 		'methods'             => 'GET',
 		'callback'            => 'blogpro_seo_rest_check',
-		'permission_callback' => '__return_true', // checked in callback
+		'permission_callback' => 'blogpro_seo_rest_permission',
 		'args'                => array(
-			'id' => array( 'validate_callback' => 'is_numeric', 'required' => true ),
+			'id' => array(
+				'validate_callback' => 'rest_is_integer',
+				'sanitize_callback' => 'absint',
+				'required'          => true,
+			),
 		),
 	) );
 } );
@@ -1120,8 +1198,9 @@ function blogpro_seo_sidebar_enqueue( $hook ) {
 		true
 	);
 	wp_localize_script( 'blogpro-seo-sidebar', 'blogproSeoSidebar', array(
-		'root' => esc_url_raw( rest_url() ),
-		'nonce' => wp_create_nonce( 'wp_rest' ),
+		'root'     => esc_url_raw( rest_url() ),
+		'nonce'    => wp_create_nonce( 'wp_rest' ),
+		'adminUrl' => esc_url_raw( admin_url() ),
 	) );
 }
 add_action( 'admin_enqueue_scripts', 'blogpro_seo_sidebar_enqueue' );
@@ -1235,6 +1314,10 @@ function blogpro_seo_fix() {
 	$post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
 	$what    = isset( $_POST['what'] ) ? sanitize_key( $_POST['what'] ) : '';
 	check_admin_referer( 'blogpro_seo_fix_' . $post_id . '_' . $what );
+	// manage_options alone is not enough: the user must be allowed to edit this post.
+	if ( ! $post_id || ! current_user_can( 'edit_post', $post_id ) ) {
+		wp_die( esc_html__( 'Not allowed.', 'blog-pro' ) );
+	}
 
 	if ( 'fix-title' === $what || 'fix-desc' === $what ) {
 		$key   = 'fix-title' === $what ? '_blogpro_meta_title' : '_blogpro_meta_description';
@@ -1249,7 +1332,11 @@ function blogpro_seo_fix() {
 			'/<h1\b[^>]*>(.*?)<\/h1>/is',
 			function ( $m ) use ( &$count ) {
 				$count++;
-				return 1 === $count ? $m[0] : '<h2' . substr( $m[0], 3 );
+				if ( 1 === $count ) {
+					return $m[0];
+				}
+				// Downgrade the whole element: opening AND closing tag.
+				return '<h2' . substr( $m[0], 3, -5 ) . '</h2>';
 			},
 			$content
 		);

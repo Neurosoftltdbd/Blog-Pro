@@ -1,5 +1,6 @@
 <?php
 require BLOGPRO_DIR . '/inc/performance.php';   // speed optimizations
+require BLOGPRO_DIR . '/inc/page-cache.php';     // full-page file cache (no plugin)
 require BLOGPRO_DIR . '/inc/seo-meta.php';       // dynamic meta tags
 require BLOGPRO_DIR . '/inc/seo-metabox.php';    // per-post SEO title/description metabox
 require BLOGPRO_DIR . '/inc/schema.php';         // JSON-LD structured data

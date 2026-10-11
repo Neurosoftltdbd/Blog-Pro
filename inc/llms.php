@@ -19,6 +19,18 @@ function blogpro_add_llm_rewrite() {
 }
 add_action( 'init', 'blogpro_add_llm_rewrite' );
 
+/**
+ * Flush once if the llms.txt rule is missing (existing installs upgraded
+ * without a Permalinks save would otherwise 404 on /llms.txt).
+ */
+function blogpro_llm_maybe_flush() {
+	$rules = get_option( 'rewrite_rules' );
+	if ( ! is_array( $rules ) || ! isset( $rules['^llms\.txt$'] ) ) {
+		flush_rewrite_rules( false );
+	}
+}
+add_action( 'wp_loaded', 'blogpro_llm_maybe_flush' );
+
 // Register query var
 function blogpro_llm_query_vars( $vars ) {
 	$vars[] = 'blogpro_llm';
@@ -72,7 +84,7 @@ function blogpro_llm_build() {
 	$output .= "> Language: " . get_bloginfo( 'language' ) . "\n";
 	$output .= "> Sitemap: " . home_url( '/sitemap.xml' ) . "\n";
 	if ( $latest ) {
-		$output .= "> Last-Updated: " . mysql2date( 'c', $latest[0]->post_modified_gmt, false ) . "Z\n";
+		$output .= "> Last-Updated: " . gmdate( 'Y-m-d\TH:i:s\Z', strtotime( $latest[0]->post_modified_gmt . ' UTC' ) ) . "\n";
 	}
 	$output .= "\n";
 
@@ -84,6 +96,10 @@ function blogpro_llm_build() {
 	$per_cat  = absint( apply_filters( 'blogpro_llm_posts_per_category', 15 ) );
 	$cats     = get_categories( array( 'hide_empty' => true, 'orderby' => 'count', 'order' => 'DESC', 'number' => 12 ) );
 
+	// IDs already listed under an earlier category — a post in two categories
+	// is shown once, so the file has no repeated entries.
+	$seen_ids = array();
+
 	if ( $cats ) {
 		foreach ( $cats as $cat ) {
 			$posts = get_posts( array(
@@ -91,10 +107,12 @@ function blogpro_llm_build() {
 				'posts_per_page' => $per_cat,
 				'post_status'    => 'publish',
 				'orderby'        => 'modified',
+				'post__not_in'   => $seen_ids,
 			) );
 			if ( ! $posts ) {
 				continue;
 			}
+			$seen_ids = array_merge( $seen_ids, wp_list_pluck( $posts, 'ID' ) );
 			$heading = $cat->name . ' (' . $cat->count . ')';
 			$output .= "## " . blogpro_llm_md( $heading ) . "\n";
 			if ( $cat->description ) {
@@ -113,6 +131,7 @@ function blogpro_llm_build() {
 	// ---- Uncategorized (safety net: posts outside the category loop) ----
 	$loose_posts = $cats ? get_posts( array(
 		'category__not_in' => wp_list_pluck( $cats, 'term_id' ),
+		'post__not_in'     => $seen_ids,
 		'posts_per_page'   => $per_cat,
 		'orderby'          => 'modified',
 		'post_status'      => 'publish',
@@ -174,8 +193,10 @@ function blogpro_llm_build() {
 	}
 
 	// ---- Contact ----
-	$contact_email = get_option( 'admin_email' );
-	$contact_phone = get_theme_mod( 'contact_phone' );
+	// Customizer contact email only — never expose the WP admin_email (it is the
+	// login/recovery address and is publicly readable from this file).
+	$contact_email = get_theme_mod( 'blogpro_org_contact_email', '' );
+	$contact_phone = get_theme_mod( 'blogpro_org_contact_phone', '' );
 	$output .= "\n## Contact\n";
 	if ( $contact_email ) {
 		$output .= "Email: {$contact_email}\n";
@@ -226,5 +247,15 @@ function blogpro_llm_invalidate( $post_id = 0 ) {
 	delete_transient( blogpro_llm_cache_key() );
 }
 add_action( 'save_post', 'blogpro_llm_invalidate' );
+add_action( 'deleted_post', 'blogpro_llm_invalidate' );
+add_action( 'transition_post_status', function ( $new_status, $old_status ) {
+	// Covers scheduled → published, unpublish, trash and restore.
+	if ( 'publish' === $new_status || 'publish' === $old_status ) {
+		blogpro_llm_invalidate();
+	}
+}, 10, 2 );
 add_action( 'edit_category', 'blogpro_llm_invalidate' );
+add_action( 'delete_category', 'blogpro_llm_invalidate' );
+add_action( 'created_category', 'blogpro_llm_invalidate' );
+add_action( 'customize_save_after', 'blogpro_llm_invalidate' );
 add_action( 'switch_theme', 'blogpro_llm_invalidate' );

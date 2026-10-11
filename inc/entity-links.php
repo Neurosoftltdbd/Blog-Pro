@@ -168,9 +168,5 @@ function blogpro_author_same_as( $user_id ) {
 			$urls[] = $url;
 		}
 	}
-	$archive = get_author_posts_url( $user_id );
-	if ( $archive ) {
-		$urls[] = $archive; // own author page is a sameAs too
-	}
 	return $urls;
 }

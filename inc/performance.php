@@ -40,7 +40,7 @@ add_action( 'pre_ping', 'blogpro_no_self_pingbacks' );
 
 /* 4. Remove querystring version args from static assets — better proxy/CDN caching. */
 function blogpro_remove_asset_versioning( $src ) {
-	if ( strpos( $src, 'ver=' ) ) {
+	if ( false !== strpos( $src, 'ver=' ) ) {
 		$src = remove_query_arg( 'ver', $src );
 	}
 	return $src;
@@ -66,38 +66,22 @@ add_filter( 'heartbeat_settings', function ( $settings ) {
 
 /* 7. Preload critical resources for faster first paint. */
 function blogpro_resource_hints() {
-	// Preload the LCP image using the same blogpro-img URLs the <img> tag uses,
-	// so the browser can match the preloaded resource to the actual request.
+	// Preload the LCP image with the exact WebP URLs blogpro_responsive_img() emits,
+	// so the preload matches the <img> request. Mismatched URLs waste the preload.
 	if ( is_singular() && has_post_thumbnail() ) {
-		$thumb_id = get_post_thumbnail_id();
-		$src_data = wp_get_attachment_image_src( $thumb_id, 'full' );
-		if ( $src_data ) {
-			$orig_w  = (int) $src_data[1];
-			$widths  = array( 320, 480, 640, 680, 768, 1024, 1280, 1600 );
-			$widths  = array_values( array_filter( $widths, function ( $w ) use ( $orig_w ) { return $w < $orig_w; } ) );
-			$widths[] = $orig_w;
-
-			$att_file = get_attached_file( $thumb_id );
-			$fname    = $att_file ? sanitize_file_name( pathinfo( $att_file, PATHINFO_FILENAME ) ) : '';
-			if ( '' === $fname ) $fname = $thumb_id;
-			$base = home_url( '/blogpro-img/' . $thumb_id . '/' . $fname . '-' );
-
-			$srcset = implode( ', ', array_map( function ( $w ) use ( $base ) {
-				return esc_url( $base . $w . '.webp' ) . ' ' . $w . 'w';
-			}, $widths ) );
-
+		$webp = blogpro_webp_sources( get_post_thumbnail_id() );
+		if ( $webp ) {
+			// Must match the sizes attribute in single.php.
 			$sizes = '(max-width: 896px) calc(100vw - 2rem), 896px';
-			echo '<link rel="preload" as="image" href="' . esc_url( $base . $widths[0] . '.webp' ) . '"'
-				. ' imagesrcset="' . esc_attr( $srcset ) . '" imagesizes="' . esc_attr( $sizes ) . '"'
+			echo '<link rel="preload" as="image" href="' . $webp['src'] . '"'
+				. ' imagesrcset="' . esc_attr( $webp['srcset'] ) . '" imagesizes="' . esc_attr( $sizes ) . '"'
 				. ' fetchpriority="high">' . "\n";
 		}
 	}
 
 	// Gravatar preconnect for single posts with existing comments (avoids unused preconnect when 0 comments).
-	// Use get_comment_count() which is cached by WP core, avoiding an extra DB query.
-	if ( is_singular() && wp_cache_get( 'blogpro_gravatar_' . get_queried_object_id() ) === false ) {
+	if ( is_singular() ) {
 		$comment_count = get_comments_number();
-		wp_cache_set( 'blogpro_gravatar_' . get_queried_object_id(), $comment_count );
 		if ( $comment_count > 0 ) {
 			echo '<link rel="preconnect" href="https://secure.gravatar.com" crossorigin>' . "\n";
 			echo '<link rel="dns-prefetch" href="https://secure.gravatar.com">' . "\n";
@@ -123,9 +107,6 @@ if ( ! defined( 'WP_POST_REVISIONS' ) ) {
 
 /* 10. Disable the REST API's core discovery links for non-logged-in users on
        archives (keeps our custom, purpose-built endpoint as the primary API). */
-add_filter( 'rest_authentication_errors', function ( $result ) {
-	return $result; // left open by default; tighten per-route in inc/rest-api.php if needed.
-} );
 
 /* 11. GZIP + long-lived caching headers + far-future expiry for static assets
        via .htaccess (Apache). See /.htaccess-blogpro for the ready-to-use rules
@@ -190,6 +171,8 @@ function blogpro_speculation_rules() {
 									'/checkout/*',
 									'/my-account/*',
 									'/blogpro-img/*',
+									'/wp-json/*',
+									'/*add-to-cart=*',
 								),
 							),
 						),
@@ -203,5 +186,69 @@ function blogpro_speculation_rules() {
 }
 add_action( 'wp_footer', 'blogpro_speculation_rules', 50 );
 
+if ( ! function_exists( 'blogpro_preconnect_hints' ) ) {
+	/**
+	 * Preconnect hints — fired early (priority 1) so the browser establishes
+	 * TCP+TLS tunnels to external origins before it parses the stylesheet list.
+	 * Add or remove origins here whenever new third-party resources are introduced.
+	 */
+	function blogpro_preconnect_hints() {
+		$origins = apply_filters( 'blogpro_preconnect_origins', array(
+			// Google Fonts (if you load any font from fonts.googleapis.com)
+			// 'https://fonts.googleapis.com',
+			// 'https://fonts.gstatic.com',
 
+			// Ahrefs analytics (emitted by verification.php when key is set)
+			// 'https://analytics.ahrefs.com',
+		) );
 
+		foreach ( $origins as $origin ) {
+			$origin = esc_url( $origin );
+			if ( ! $origin ) continue;
+			// crossorigin is required for fonts (CORS pre-flight); harmless for others.
+			echo '<link rel="preconnect" href="' . $origin . '" crossorigin>' . "\n";
+			echo '<link rel="dns-prefetch" href="' . $origin . '">' . "\n";
+		}
+	}
+	add_action( 'wp_head', 'blogpro_preconnect_hints', 1 );
+}
+
+/**
+ * URL of the posts index. Uses the page assigned as "Posts page" in
+ * Settings → Reading, falling back to home when none is set.
+ *
+ * @return string
+ */
+if ( ! function_exists( 'blogpro_posts_page_url' ) ) {
+	function blogpro_posts_page_url() {
+		$posts_page = (int) get_option( 'page_for_posts' );
+		return $posts_page ? get_permalink( $posts_page ) : home_url( '/' );
+	}
+}
+
+/**
+ * Drop the cached homepage category markup whenever content or terms change.
+ */
+if ( ! function_exists( 'blogpro_home_category_cache_bust' ) ) {
+	function blogpro_home_category_cache_bust() {
+		delete_transient( 'blogpro_home_category_html' );
+	}
+	add_action( 'save_post', 'blogpro_home_category_cache_bust' );
+	add_action( 'deleted_post', 'blogpro_home_category_cache_bust' );
+	add_action( 'created_category', 'blogpro_home_category_cache_bust' );
+	add_action( 'edit_category', 'blogpro_home_category_cache_bust' );
+	add_action( 'delete_category', 'blogpro_home_category_cache_bust' );
+}
+
+/**
+ * Homepage hero slider script — loaded only on the front page, in the footer.
+ */
+if ( ! function_exists( 'blogpro_enqueue_front_slider' ) ) {
+	function blogpro_enqueue_front_slider() {
+		if ( ! is_front_page() ) {
+			return;
+		}
+		wp_enqueue_script( 'blogpro-front-slider', BLOGPRO_URI . '/assets/js/front-slider.js', array(), BLOGPRO_VERSION, true );
+	}
+	add_action( 'wp_enqueue_scripts', 'blogpro_enqueue_front_slider' );
+}

@@ -103,8 +103,7 @@ function blogpro_schema_blogposting() {
 
 	$canonical = function_exists( 'blogpro_get_canonical_url' ) ? blogpro_get_canonical_url() : get_permalink();
 
-	// 'blogpro-hero' isn't registered (see functions.php) — fall back to the
-	// full master, matching what the og:image tag emits.
+	// Use the full master, matching what the og:image tag emits.
 	$image    = '';
 	$image_w  = null;
 	$image_h  = null;
@@ -271,6 +270,7 @@ function blogpro_schema_person( $user_id ) {
 
 	$person = array(
 		'@type' => 'Person',
+		'@id'   => home_url( '/#/person/' . (int) $user_id ),
 		'name'  => $author_name,
 		'url'   => $author_url,
 	);
@@ -284,34 +284,38 @@ function blogpro_schema_person( $user_id ) {
 	// knowsAbout — topics the author writes about, derived from the
 	// categories they have published posts in. AI engines use this to
 	// assess per-topic author authority (E-E-A-T expertise signal).
-	$author_cats = get_categories( array(
-		'hide_empty' => true,
-		'orderby'    => 'count',
-		'order'      => 'DESC',
-		'number'     => 10,
-	) );
-	if ( $author_cats && ! is_wp_error( $author_cats ) ) {
-		// Filter to only categories where this author has actually published.
-		$knows = array();
-		foreach ( $author_cats as $cat ) {
-			$count = (int) $cat->count;
-			if ( $count < 1 ) continue;
-			// Quick check: does this author have posts in this cat?
-			$check = get_posts( array(
-				'author'         => $user_id,
-				'category'       => $cat->term_id,
-				'posts_per_page' => 1,
-				'post_status'    => 'publish',
-				'no_found_rows'  => true,
-				'fields'         => 'ids',
-			) );
-			if ( $check ) {
-				$knows[] = $cat->name;
+	// Cached per author: this runs on every singular render and the per-category
+	// check below is N+1 queries. Refreshed daily.
+	$knows_cache_key = 'blogpro_knows_about_' . (int) $user_id;
+	$knows           = get_transient( $knows_cache_key );
+	if ( false === $knows ) {
+		$knows       = array();
+		$author_cats = get_categories( array(
+			'hide_empty' => true,
+			'orderby'    => 'count',
+			'order'      => 'DESC',
+			'number'     => 10,
+		) );
+		if ( $author_cats && ! is_wp_error( $author_cats ) ) {
+			foreach ( $author_cats as $cat ) {
+				if ( (int) $cat->count < 1 ) continue;
+				$check = get_posts( array(
+					'author'         => $user_id,
+					'category'       => $cat->term_id,
+					'posts_per_page' => 1,
+					'post_status'    => 'publish',
+					'no_found_rows'  => true,
+					'fields'         => 'ids',
+				) );
+				if ( $check ) {
+					$knows[] = $cat->name;
+				}
 			}
 		}
-		if ( $knows ) {
-			$person['knowsAbout'] = $knows;
-		}
+		set_transient( $knows_cache_key, $knows, DAY_IN_SECONDS );
+	}
+	if ( $knows ) {
+		$person['knowsAbout'] = $knows;
 	}
 	if ( function_exists( 'blogpro_author_same_as' ) ) {
 		$same_as = blogpro_author_same_as( $user_id );
@@ -357,8 +361,11 @@ function blogpro_schema_webpage() {
 		'inLanguage' => get_bloginfo( 'language' ),
 	);
 
-	// Publisher cross-reference.
-	$node['about'] = array( '@id' => home_url( '/#organization' ) );
+	// ProfilePage must describe the person it is about.
+	if ( 'ProfilePage' === $type && is_author() ) {
+		$node['mainEntity'] = array( '@id' => home_url( '/#/person/' . (int) get_queried_object_id() ) );
+	}
+
 
 	// Date signals — only meaningful on singular pages.
 	if ( is_singular() ) {
@@ -405,6 +412,13 @@ function blogpro_output_schema() {
 	if ( is_singular( 'post' ) ) {
 		$posting = blogpro_schema_blogposting();
 		if ( $posting ) {
+			// Person is emitted once as its own @graph node; the article refers
+			// to it by @id instead of repeating the full object.
+			if ( isset( $posting['author']['@id'] ) ) {
+				$author_node      = $posting['author'];
+				$graph[]          = $author_node;
+				$posting['author'] = array( '@id' => $author_node['@id'] );
+			}
 			$graph[] = $posting;
 		}
 	}

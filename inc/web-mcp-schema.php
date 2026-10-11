@@ -46,13 +46,21 @@ function blogpro_webmcp_schema() {
 	}
 
 	// ── Contact form ─────────────────────────────────────────────
-	$contact_page = get_posts( array(
-		'post_type' => 'page',
-		'meta_key'  => '_wp_page_template',
-		'meta_value' => 'page-contact.php',
-		'fields'    => 'ids',
-		'posts_per_page' => 1,
-	) );
+	// Cache the contact page ID — the meta_query lookup would otherwise run on every page view.
+	$contact_id = get_transient( 'blogpro_contact_page_id' );
+	if ( false === $contact_id ) {
+		$found      = get_posts( array(
+			'post_type'      => 'page',
+			'meta_key'       => '_wp_page_template',
+			'meta_value'     => 'page-contact.php',
+			'fields'         => 'ids',
+			'posts_per_page' => 1,
+			'no_found_rows'  => true,
+		) );
+		$contact_id = $found ? (int) $found[0] : 0;
+		set_transient( 'blogpro_contact_page_id', $contact_id, DAY_IN_SECONDS );
+	}
+	$contact_page = $contact_id ? array( $contact_id ) : array();
 	if ( ! empty( $contact_page ) ) {
 		$tools[] = array(
 			'@type'  => 'Action',

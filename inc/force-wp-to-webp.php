@@ -20,10 +20,9 @@ function blogpro_force_webp_src( $image, $attachment_id, $size, $icon ) {
 	// $image = array( url, width, height, is_intermediate ) or false.
 	if ( ! $image || empty( $image[0] ) ) return $image;
 
-	// Only rewrite image URLs that point at a real jpg/png master; leave
-	// everything else (native .webp uploads, svg, non-images) untouched.
+	// Already a WebP URL: nothing to do. Library is WebP-only, so this is the normal case.
 	$url = $image[0];
-	if ( ! preg_match( '/\.(jpe?g|png)$/i', $url ) ) return $image;
+	if ( preg_match( '/\.webp$/i', $url ) ) return $image;
 
 	// Static cache: resolve the WebP master path once per attachment per
 	// request. Without this, every wp_get_attachment_image_src() call

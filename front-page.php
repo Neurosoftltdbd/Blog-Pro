@@ -44,14 +44,15 @@ get_header();
 ?>
 <!--hero-->
 <section id="hero" class="w-full bg-white">
+	<h1 class="sr-only"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></h1>
 	<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 py-12 px-2 md:px-0">
-		<!-- Left Side: Slider (5 random posts) -->
+		<!-- Left Side: Slider (5 latest posts) -->
 		<div class="lg:col-span-2 relative">
 			<?php
 			$slider_query = new WP_Query( array(
 				'post_type'      => 'post',
 				'posts_per_page' => 5,
-				'orderby'        => 'rand',
+				'orderby'        => 'date',
 				'no_found_rows'  => true
 			) );
 			if ( $slider_query->have_posts() ) :
@@ -86,14 +87,14 @@ echo blogpro_responsive_img( get_post_thumbnail_id(), $img_attrs );
 			<?php endif; ?>
 		</div>
 
-		<!-- Right Side: List (5 random posts) -->
+		<!-- Right Side: List (5 latest posts) -->
 		<div class="lg:col-span-1">
 			<h3 class="text-xl font-bold text-gray-900 mb-6"><?php esc_html_e('Must Read', 'blog-pro'); ?></h3>
 			<?php
 			$list_query = new WP_Query( array(
 				'post_type'      => 'post',
 				'posts_per_page' => 5,
-				'orderby'        => 'rand',
+				'orderby'        => 'date',
 				'no_found_rows'  => true
 			) );
 			if ( $list_query->have_posts() ) :
@@ -118,51 +119,6 @@ echo blogpro_responsive_img( get_post_thumbnail_id(), $img_attrs );
 			<?php endif; ?>
 		</div>
 	</div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-	const slider = document.getElementById('heroSlider');
-	if (!slider) return;
-	const slides = slider.querySelectorAll('.slide');
-	const prevBtn = document.getElementById('prevSlide');
-	const nextBtn = document.getElementById('nextSlide');
-	let currentSlide = 0;
-
-	if(slides.length === 0) return;
-
-	function showSlide(index) {
-		slides.forEach((slide, i) => {
-			if (i === index) {
-				slide.classList.add('active');
-				slide.style.opacity = '1';
-				slide.style.zIndex = '2';
-			} else {
-				slide.classList.remove('active');
-				slide.style.opacity = '0';
-				slide.style.zIndex = '1';
-			}
-		});
-	}
-
-	function nextSlideFn() {
-		currentSlide = (currentSlide + 1) % slides.length;
-		showSlide(currentSlide);
-	}
-
-	function prevSlideFn() {
-		currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-		showSlide(currentSlide);
-	}
-
-	if(nextBtn) nextBtn.addEventListener('click', nextSlideFn);
-	if(prevBtn) prevBtn.addEventListener('click', prevSlideFn);
-
-	// Initialize
-	showSlide(0);
-
-	// Auto slide
-	setInterval(nextSlideFn, 5000);
-});
-</script>
 </section>
 
 
@@ -195,6 +151,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Category wise post -->
 <section id="category-posts" class="max-w-7xl mx-auto px-4 md:px-0">
+<?php
+$blogpro_cat_html = get_transient( 'blogpro_home_category_html' );
+if ( false === $blogpro_cat_html ) {
+	ob_start();
+?>
 <?php
 $categories = get_categories( array(
 	'orderby'    => 'count',
@@ -255,10 +216,16 @@ if ( $categories ) :
 	endforeach;
 endif;
 ?>
+<?php
+	$blogpro_cat_html = ob_get_clean();
+	set_transient( 'blogpro_home_category_html', $blogpro_cat_html, HOUR_IN_SECONDS );
+}
+echo $blogpro_cat_html; // phpcs:ignore WordPress.Security.EscapeOutput -- markup built from escaped template output.
+?>
 </section>
 <div class="w-full text-center py-12">
     <h3>
-		<a href="<?php echo esc_url( home_url("/blog/") ); ?>" class="button-primary px-6 py-3 rounded-full font-semibold">Read All Posts</a>
+		<a href="<?php echo esc_url( blogpro_posts_page_url() ); ?>" class="button-primary px-6 py-3 rounded-full font-semibold">Read All Posts</a>
 	</h3>
 </div>
 <?php get_footer(); ?>

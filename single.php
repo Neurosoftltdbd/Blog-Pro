@@ -12,13 +12,14 @@ while ( have_posts() ) : the_post();
 		<h1 class="entry-title text-2xl md:text-5xl text-center font-extrabold tracking-tight text-gray-900 py-4 md:py-8 leading-tight"><?php the_title(); ?></h1>
 		
 		<?php if ( has_post_thumbnail() ) : ?>
-			<div class="w-full rounded-lg overflow-hidden shadow-lg my-12 bg-gray-100">
-				<?php echo blogpro_responsive_img( get_post_thumbnail_id(), array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover aspect-video rounded-lg', 'sizes' => '(max-width: 896px) calc(100vw - 2rem), 896px', 'loading' => 'eager' ) ); ?>
+			<div class="w-full rounded-lg overflow-hidden my-12 bg-gray-100">
+				<?php echo blogpro_responsive_img( get_post_thumbnail_id(), array( 'alt' => esc_attr( get_the_title() ), 'class' => 'w-full h-full object-cover aspect-video rounded-lg', 'sizes' => '(max-width: 820px) calc(100vw - 2rem), 665px', 'loading' => 'eager' ) ); ?>
 			</div>
 		<?php endif; ?>
 		<div class="text-sm font-semibold text-indigo-600 tracking-widest py-4"><?php blogpro_posted_on(); ?></div>
 
-		<div class="<?php echo $blogpro_toc_on ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_260px] xl:grid-cols-[minmax(0,1fr)_300px] lg:gap-10 items-start' : ''; ?> [&_h2]:scroll-mt-24 [&_h3]:scroll-mt-24"><div class="entry-content prose prose-lg md:prose-xl prose-indigo max-w-none mx-auto mb-16 text-gray-800 leading-relaxed [&_h1]:text-3xl [&_h1]:font-extrabold [&_h1]:my-4 [&_h1]:tracking-tight [&_h2]:text-2xl [&_h2]:font-extrabold [&_h2]:my-2 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:my-4 [&_h4]:text-lg [&_h4]:font-semibold [&_h4]:my-4 [&_a]:text-indigo-600 [&_a:hover]:text-indigo-800 [&_a]:no-underline [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-4 [&_li]:my-2 [&_blockquote]:border-l-4 [&_blockquote]:border-indigo-500 [&_blockquote]:bg-indigo-50 [&_blockquote]:py-3 [&_blockquote]:px-5 [&_blockquote]:my-6 [&_blockquote]:italic [&_blockquote]:text-slate-600 [&_blockquote]:rounded-r-lg [&_table]:w-full [&_table]:border-collapse [&_table]:my-6 [&_table]:text-sm [&_table]:min-w-full [&_th]:border [&_th]:border-slate-200 [&_th]:bg-slate-50 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-bold [&_td]:border [&_td]:border-slate-200 [&_td]:px-3 [&_td]:py-2 [&_tbody_tr]:even:bg-slate-50 [&_table]:overflow-x-auto [&_dl]:my-4 [&_dt]:font-bold [&_dt]:mt-2 [&_dd]:ml-4 [&_dd]:mb-1 [&_mark]:bg-yellow-200 [&_mark]:px-1 [&_kbd]:bg-slate-100 [&_kbd]:border [&_kbd]:border-slate-300 [&_kbd]:rounded [&_kbd]:px-1 [&_kbd]:text-sm [&_kbd]:font-mono [&_sup]:text-xs [&_sup]:align-super [&_sub]:text-xs [&_sub]:align-sub [&_q]:italic [&_q]:text-slate-600 [&_cite]:italic [&_cite]:text-slate-600 [&_abbr]:underline [&_abbr]:decoration-dotted [&_time]:text-slate-600 [&_del]:line-through [&_del]:text-slate-400 [&_ins]:underline [&_ins]:text-green-700 [&_details]:my-4 [&_details]:border [&_details]:border-slate-200 [&_details]:rounded-lg [&_details]:p-3 [&_summary]:font-bold [&_summary]:cursor-pointer [&_video]:w-full [&_video]:rounded-xl [&_video]:my-6 [&_audio]:w-full [&_audio]:my-4 [&_caption]:text-sm [&_caption]:text-slate-500 [&_caption]:text-center [&_caption]:mt-2 [&_strong]:font-bold [&_em]:italic [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-xl [&_pre]:bg-slate-900 [&_pre]:text-slate-100 [&_pre]:p-4 [&_pre]:rounded-xl [&_pre]:overflow-x-auto [&_pre]:my-6 [&_code]:bg-indigo-100 [&_code]:text-indigo-700 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit [&_hr]:border-slate-200 [&_hr]:my-10 [&_figure]:my-6 [&_figcaption]:text-sm [&_figcaption]:text-slate-500 [&_figcaption]:text-center [&_figcaption]:mt-2 [&_iframe]:rounded-xl [&_p]:py-4">
+		<div class="<?php echo $blogpro_toc_on ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_260px] xl:grid-cols-[minmax(0,1fr)_300px] lg:gap-10 items-start' : ''; ?> [&_h2]:scroll-mt-24 [&_h3]:scroll-mt-24">
+			<div class="entry-content prose prose-lg md:prose-xl prose-indigo max-w-none mx-auto mb-16 text-gray-800 leading-relaxed">
 			<?php the_content(); ?>
 		</div>
 		<?php if ( $blogpro_toc_on ) : ?>
@@ -33,7 +34,7 @@ while ( have_posts() ) : the_post();
 		?>
 		<div class="flex flex-wrap gap-3 mb-16">
 			<?php foreach ( $tags as $tag ) : ?>
-				<a href="<?php echo esc_url( get_tag_link( $tag ) ); ?>" class="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-sm font-semibold hover:bg-indigo-100 hover:text-indigo-900 transition-colors">
+				<a href="<?php echo esc_url( get_tag_link( $tag ) ); ?>" class="no-underline px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-sm font-semibold hover:bg-indigo-100 hover:text-indigo-900 transition-colors">
 					#<?php echo esc_html( $tag->name ); ?>
 				</a>
 			<?php endforeach; ?>

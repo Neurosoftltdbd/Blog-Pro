@@ -22,7 +22,6 @@ function blogpro_robots_txt( $output, $public ) {
 	$lines[] = 'User-agent: *';
 	$lines[] = 'Allow: /';
 	$lines[] = 'Disallow: /wp-admin/';
-	$lines[] = 'Disallow: /wp-includes/';
 	$lines[] = 'Disallow: /?s=';
 	$lines[] = 'Disallow: /search/';
 	$lines[] = 'Allow: /wp-admin/admin-ajax.php';
@@ -67,9 +66,9 @@ function blogpro_robots_txt( $output, $public ) {
 		$lines[] = '';
 	}
 
-	// LLMs discovery — emerging convention read by AI crawlers (similar to
-	// how Sitemap: is read by search engine crawlers).
-	$lines[] = 'LLMs: ' . home_url( '/llms.txt' );
+	// No "LLMs:" directive here: it is not a recognised robots.txt directive
+	// and Google Search Console / PageSpeed flags it as malformed. llms.txt is
+	// discovered via <link rel="llms-txt"> and the Link header (seo-meta.php).
 	$lines[] = 'Sitemap: ' . home_url( '/sitemap.xml' );
 
 	return implode( "\n", $lines ) . "\n";
@@ -133,10 +132,9 @@ add_action( 'parse_request', 'blogpro_serve_robots' );
  * Cheap guard: only flushes if the rule marker is missing.
  */
 function blogpro_robots_maybe_flush() {
-	global $wp_rewrite;
-	$rules = $wp_rewrite->rewrite_rules();
-	if ( ! isset( $rules['^robots\.txt$'] ) ) {
-		$wp_rewrite->flush_rules( false );
+	$rules = get_option( 'rewrite_rules' );
+	if ( ! is_array( $rules ) || ! isset( $rules['^robots\.txt$'] ) ) {
+		flush_rewrite_rules( false );
 	}
 }
 add_action( 'after_switch_theme', 'blogpro_robots_maybe_flush' );

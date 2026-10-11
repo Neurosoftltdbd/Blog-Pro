@@ -27,7 +27,7 @@
 			<?php endfor; ?>
 		</div>
 		<div class="copyright text-center border-t border-gray-800 text-white pt-8">
-			<p>&copy; <?php echo esc_html( date_i18n( 'Y' ) ); ?> <?php bloginfo( 'name' ); ?>. <?php esc_html_e( 'All rights reserved.', 'blog-pro' ); ?></p>
+			<p>&copy; <?php echo esc_html( date_i18n( 'Y' ) ); ?> <?php echo esc_html( get_bloginfo( 'name' ) ); ?>. <?php esc_html_e( 'All rights reserved.', 'blog-pro' ); ?></p>
 		</div>
 	</div>
 </footer>

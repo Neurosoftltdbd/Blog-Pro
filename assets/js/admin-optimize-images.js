@@ -71,6 +71,41 @@
 			} );
 		} );
 
+		/* --- Convert Originals to WebP button --- */
+		var convertBtn    = document.getElementById( 'blogpro-convert-start' );
+		var convertStatus = document.getElementById( 'blogpro-convert-status' );
+		if ( convertBtn ) {
+			convertBtn.addEventListener( 'click', function () {
+				if ( ! window.confirm( 'Convert all original images to WebP and delete the originals? This cannot be undone.' ) ) return;
+				var cursor = 0, converted = 0, failed = 0;
+				convertBtn.disabled = true;
+				convertStatus.style.display = 'block';
+
+				( function step() {
+					postForm( 'blogpro_convert_originals', { cursor: cursor } ).then( function ( res ) {
+						if ( ! res.success ) {
+							convertStatus.textContent = cfg.i18n.error;
+							convertBtn.disabled = false;
+							return;
+						}
+						cursor     = res.data.cursor;
+						converted += res.data.converted;
+						failed    += res.data.failed;
+						convertStatus.textContent = 'Converted ' + converted + ', failed ' + failed + ', remaining ' + res.data.remaining + '…';
+						if ( res.data.more ) {
+							step();
+						} else {
+							convertBtn.disabled = false;
+							convertStatus.textContent = 'Finished. Converted ' + converted + ', failed ' + failed + '.';
+						}
+					} ).catch( function () {
+						convertStatus.textContent = cfg.i18n.error;
+						convertBtn.disabled = false;
+					} );
+				} )();
+			} );
+		}
+
 		/* --- Cleanup Orphaned Files button --- */
 		var cleanupBtn    = document.getElementById( 'blogpro-cleanup-start' );
 		var cleanupStatus = document.getElementById( 'blogpro-cleanup-status' );

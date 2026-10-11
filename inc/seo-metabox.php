@@ -88,6 +88,14 @@ function blogpro_seo_override_metabox_render( $post ) {
 		<p class="blogpro-seo-hint"><?php esc_html_e( 'Recommended: 120–160 characters. Google may rewrite this but a good description improves click-through rate.', 'blog-pro' ); ?></p>
 	</div>
 
+	<?php $excluded = get_post_meta( $post->ID, '_blogpro_noindex', true ); ?>
+	<p>
+		<label>
+			<input type="checkbox" name="blogpro_noindex" value="1" <?php checked( '1', $excluded ); ?>>
+			<?php esc_html_e( 'Exclude from sitemap', 'blog-pro' ); ?>
+		</label>
+	</p>
+
 	<script>
 	(function() {
 		function counter( inputId, countId, max ) {
@@ -137,6 +145,13 @@ function blogpro_seo_override_metabox_save( $post_id ) {
 		} else {
 			update_post_meta( $post_id, '_blogpro_meta_title', $title );
 		}
+	}
+
+	// Sitemap exclusion flag.
+	if ( ! empty( $_POST['blogpro_noindex'] ) ) {
+		update_post_meta( $post_id, '_blogpro_noindex', '1' );
+	} else {
+		delete_post_meta( $post_id, '_blogpro_noindex' );
 	}
 
 	// Description.

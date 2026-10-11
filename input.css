@@ -1,6 +1,4 @@
 @import "tailwindcss";
-@import "./assets/css/figcaption.css";
-
 @plugin "@tailwindcss/typography";
 @source "./**/*.php";
 @source "./**/*.html";
@@ -69,7 +67,7 @@
   }
 
   .text-gradient {
-    @apply bg-gradient-to-r from-brand-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent;
+    @apply bg-linear-to-r from-brand-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent;
   }
 
   /* Copy-link toast — created by JS, announced via role="status" */
@@ -155,5 +153,135 @@
      handled by core's inline CSS, so no aspect-video needed here. */
   .wp-block-embed {
     @apply w-full my-6;
+  }
+}
+
+/* Post/page body typography. One rule shared by page.php and single.php. */
+@layer components {
+  .entry-content {
+    @apply [&_h1]:text-3xl;
+    @apply [&_h1]:font-extrabold;
+    @apply [&_h1]:my-4;
+    @apply [&_h1]:tracking-tight;
+    @apply [&_h2]:text-2xl;
+    @apply [&_h2]:font-extrabold;
+    @apply [&_h2]:my-2;
+    @apply [&_h3]:text-xl;
+    @apply [&_h3]:font-bold;
+    @apply [&_h3]:my-4;
+    @apply [&_h4]:text-lg;
+    @apply [&_h4]:font-semibold;
+    @apply [&_h4]:my-4;
+    @apply [&_a]:text-indigo-600;
+    @apply [&_a:hover]:text-indigo-800;
+    @apply [&_a]:no-underline;
+    @apply [&_ul]:list-disc;
+    @apply [&_ul]:pl-6;
+    @apply [&_ul]:my-4;
+    @apply [&_ol]:list-decimal;
+    @apply [&_ol]:pl-6;
+    @apply [&_ol]:my-4;
+    @apply [&_li]:my-2;
+    @apply [&_blockquote]:border-l-4;
+    @apply [&_blockquote]:border-indigo-500;
+    @apply [&_blockquote]:bg-indigo-50;
+    @apply [&_blockquote]:py-3;
+    @apply [&_blockquote]:px-5;
+    @apply [&_blockquote]:my-6;
+    @apply [&_blockquote]:italic;
+    @apply [&_blockquote]:text-slate-600;
+    @apply [&_blockquote]:rounded-r-lg;
+    @apply [&_table]:w-full;
+    @apply [&_table]:border-collapse;
+    @apply [&_table]:my-6;
+    @apply [&_table]:text-sm;
+    @apply [&_table]:min-w-full;
+    @apply [&_th]:border;
+    @apply [&_th]:border-slate-200;
+    @apply [&_th]:bg-slate-50;
+    @apply [&_th]:px-3;
+    @apply [&_th]:py-2;
+    @apply [&_th]:text-left;
+    @apply [&_th]:font-bold;
+    @apply [&_td]:border;
+    @apply [&_td]:border-slate-200;
+    @apply [&_td]:px-3;
+    @apply [&_td]:py-2;
+    @apply [&_tbody_tr]:even:bg-slate-50;
+    @apply [&_table]:overflow-x-auto;
+    @apply [&_dl]:my-4;
+    @apply [&_dt]:font-bold;
+    @apply [&_dt]:mt-2;
+    @apply [&_dd]:ml-4;
+    @apply [&_dd]:mb-1;
+    @apply [&_mark]:bg-yellow-200;
+    @apply [&_mark]:px-1;
+    @apply [&_kbd]:bg-slate-100;
+    @apply [&_kbd]:border;
+    @apply [&_kbd]:border-slate-300;
+    @apply [&_kbd]:rounded;
+    @apply [&_kbd]:px-1;
+    @apply [&_kbd]:text-sm;
+    @apply [&_kbd]:font-mono;
+    @apply [&_sup]:text-xs;
+    @apply [&_sup]:align-super;
+    @apply [&_sub]:text-xs;
+    @apply [&_sub]:align-sub;
+    @apply [&_q]:italic;
+    @apply [&_q]:text-slate-600;
+    @apply [&_cite]:italic;
+    @apply [&_cite]:text-slate-600;
+    @apply [&_abbr]:underline;
+    @apply [&_abbr]:decoration-dotted;
+    @apply [&_time]:text-slate-600;
+    @apply [&_del]:line-through;
+    @apply [&_del]:text-slate-400;
+    @apply [&_ins]:underline;
+    @apply [&_ins]:text-green-700;
+    @apply [&_details]:my-4;
+    @apply [&_details]:border;
+    @apply [&_details]:border-slate-200;
+    @apply [&_details]:rounded-lg;
+    @apply [&_details]:p-3;
+    @apply [&_summary]:font-bold;
+    @apply [&_summary]:cursor-pointer;
+    @apply [&_video]:w-full;
+    @apply [&_video]:rounded-xl;
+    @apply [&_video]:my-6;
+    @apply [&_audio]:w-full;
+    @apply [&_audio]:my-4;
+    @apply [&_caption]:text-sm;
+    @apply [&_caption]:text-slate-500;
+    @apply [&_caption]:text-center;
+    @apply [&_caption]:mt-2;
+    @apply [&_strong]:font-bold;
+    @apply [&_em]:italic;
+    @apply [&_img]:max-w-full;
+    @apply [&_img]:h-auto;
+    @apply [&_img]:rounded-xl;
+    @apply [&_pre]:bg-slate-900;
+    @apply [&_pre]:text-slate-100;
+    @apply [&_pre]:p-4;
+    @apply [&_pre]:rounded-xl;
+    @apply [&_pre]:overflow-x-auto;
+    @apply [&_pre]:my-6;
+    @apply [&_code]:bg-indigo-100;
+    @apply [&_code]:text-indigo-700;
+    @apply [&_code]:px-1.5;
+    @apply [&_code]:py-0.5;
+    @apply [&_code]:rounded;
+    @apply [&_code]:text-sm;
+    @apply [&_pre_code]:bg-transparent;
+    @apply [&_pre_code]:p-0;
+    @apply [&_pre_code]:text-inherit;
+    @apply [&_hr]:border-slate-200;
+    @apply [&_hr]:my-10;
+    @apply [&_figure]:my-6;
+    @apply [&_figcaption]:text-sm;
+    @apply [&_figcaption]:text-slate-500;
+    @apply [&_figcaption]:text-center;
+    @apply [&_figcaption]:mt-2;
+    @apply [&_iframe]:rounded-xl;
+    @apply [&_p]:py-4;
   }
 }

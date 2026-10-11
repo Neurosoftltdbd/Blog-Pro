@@ -11,12 +11,42 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
+ * Whether the current request should be noindexed (search, 404, thin archives).
+ * Used by the wp_robots filter, which runs before wp_head output.
+ *
+ * @return bool
+ */
+function blogpro_is_noindex_context() {
+	if ( is_search() || is_404() ) {
+		return true;
+	}
+	// Date archives: a month/year with at most one post is a thin duplicate of
+	// that post's own URL. Same thin-content rule as term archives below.
+	if ( is_date() && ! is_paged() ) {
+		global $wp_query;
+		if ( (int) $wp_query->found_posts <= 1 ) {
+			return true;
+		}
+	}
+	if ( ( is_category() || is_tag() || is_tax() ) && ! is_paged() ) {
+		// Thin-content protection: archives with <=1 post add no unique value.
+		$queried = get_queried_object();
+		if ( $queried && isset( $queried->count ) && (int) $queried->count <= 1 ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
  * Trim description to optimal length.
  */
 function blogpro_trim_description( $text, $max_words = 25, $max_chars = 160 ) {
     $trimmed = wp_trim_words( $text, $max_words, '…' );
     if ( mb_strlen( $trimmed ) > $max_chars ) {
-        $trimmed = mb_substr( $trimmed, 0, $max_chars - 1 ) . '…';
+        // Cut at the last word boundary so the snippet never ends mid-word.
+        $cut     = mb_substr( $trimmed, 0, $max_chars - 3 );
+        $trimmed = preg_replace( '/\s+\S*$/u', '', $cut ) . '...';
     }
     return $trimmed;
 }
@@ -53,7 +83,9 @@ function blogpro_get_meta_description() {
 
 function blogpro_trim_title( $title, $max_chars = 60 ) {
 	if ( mb_strlen( $title ) > $max_chars ) {
-		$title = mb_substr( $title, 0, $max_chars - 1 ) . '…';
+		// Cut at the last word boundary so the title never ends mid-word.
+		$cut   = mb_substr( $title, 0, $max_chars - 3 );
+		$title = preg_replace( '/\s+\S*$/u', '', $cut ) . '...';
 	}
 	return $title;
 }
@@ -277,37 +309,11 @@ function blogpro_output_meta_tags() {
 	// headers before HTML; the <link> tag covers browser-based parsers.
 	$llms_url = home_url( '/llms.txt' );
 	echo '<link rel="llms-txt" href="' . esc_url( $llms_url ) . '">' . "\n";
-	if ( ! headers_sent() ) {
-		header( 'Link: <' . esc_url_raw( $llms_url ) . '>; rel="llms-txt"', false );
-	}
 
 	// OpenSearch auto-discovery — allows browser address bars (Chrome/Edge/Firefox)
 	// to enable instant Tab-to-search for this website.
 	echo '<link rel="search" type="application/opensearchdescription+xml" href="' . esc_url( home_url( '/opensearch.xml' ) ) . '" title="' . $site_name . '">' . "\n";
 
-	// Robots directives
-	$noindex = false;
-	if ( is_search() || is_404() ) {
-		$noindex = true;
-		echo '<meta name="robots" content="noindex,follow">' . "\n";
-	} elseif ( ( is_category() || is_tag() || is_tax() ) && ! is_paged() ) {
-		// Thin-content protection: archives with ≤1 post are duplicate/stub
-		// pages with almost no unique value — noindex them to protect crawl
-		// budget and avoid thin-content penalties.
-		$queried = get_queried_object();
-		if ( $queried && isset( $queried->count ) && (int) $queried->count <= 1 ) {
-			$noindex = true;
-			echo '<meta name="robots" content="noindex,follow">' . "\n";
-		}
-	}
-	if ( ! $noindex ) {
-		if ( is_paged() ) {
-			// Paginated archives: still indexable; noarchive + max-image-preview.
-			echo '<meta name="robots" content="index,follow,noarchive,max-image-preview:large">' . "\n";
-		} else {
-			echo '<meta name="robots" content="index,follow,max-image-preview:large">' . "\n";
-		}
-	}
 
 	// Pagination — rel=prev/next (Google dropped these in 2019 but Bing
 	// still uses them for series/paginated archive signals).
@@ -386,7 +392,14 @@ function blogpro_output_meta_tags() {
 		echo '<meta property="article:published_time" content="' . esc_attr( get_the_date( 'c' ) ) . '">' . "\n";
 		echo '<meta property="article:modified_time" content="' . esc_attr( get_the_modified_date( 'c' ) ) . '">' . "\n";
 		echo '<meta property="article:author" content="' . esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ) . '">' . "\n";
-		echo '<meta property="article:publisher" content="' . esc_url( home_url( '/' ) ) . '">' . "\n";
+		// article:publisher must be a Facebook Page URL, not the site home URL.
+		// Emit only when a Facebook profile is configured in Profile Links.
+		$fb_page = function_exists( 'blogpro_entity_same_as' )
+			? (string) get_option( 'blogpro_facebook_url', '' )
+			: '';
+		if ( '' !== $fb_page && preg_match( '#^https?://#i', $fb_page ) ) {
+			echo '<meta property="article:publisher" content="' . esc_url( $fb_page ) . '">' . "\n";
+		}
 		foreach ( get_the_category() as $cat ) {
 			echo '<meta property="article:section" content="' . esc_attr( $cat->name ) . '">' . "\n";
 		}
@@ -402,13 +415,6 @@ function blogpro_output_meta_tags() {
 	// Per-post author credit (used by Google News, Bing News and some aggregators).
 	if ( is_singular( 'post' ) ) {
 		echo '<meta name="author" content="' . esc_attr( get_the_author() ) . '">' . "\n";
-		// news_keywords — required for Google News inclusion; comma-separated
-		// list of the post's tags (same signal, human-readable for editors).
-		$news_tags = get_the_tags();
-		if ( $news_tags && ! is_wp_error( $news_tags ) ) {
-			$kw = implode( ', ', wp_list_pluck( $news_tags, 'name' ) );
-			echo '<meta name="news_keywords" content="' . esc_attr( $kw ) . '">' . "\n";
-		}
 	}
 
 	// Hreflang — hook for multilingual plugins (WPML, Polylang) or custom
@@ -447,6 +453,30 @@ function blogpro_output_meta_tags() {
 	echo "<!-- /Blog Pro SEO meta -->\n";
 }
 add_action( 'wp_head', 'blogpro_output_meta_tags', 2 );
+
+// HTTP Link header must go out before the body; wp_head is too late.
+add_action( 'send_headers', function () {
+	if ( ! is_admin() ) {
+		header( 'Link: <' . esc_url_raw( home_url( '/llms.txt' ) ) . '>; rel="llms-txt"', false );
+	}
+} );
+
+// Single source for the robots meta (core emits it via wp_robots).
+add_filter( 'wp_robots', function ( $robots ) {
+	if ( blogpro_is_noindex_context() ) {
+		return array( 'noindex' => true, 'follow' => true );
+	}
+	$robots = array(
+		'index'             => true,
+		'follow'            => true,
+		'max-image-preview' => 'large',
+		'max-snippet'       => '-1',
+	);
+	if ( is_paged() ) {
+		$robots['noarchive'] = true;
+	}
+	return $robots;
+} );
 
 /**
  * Noindex RSS/Atom feeds via X-Robots-Tag HTTP header.
@@ -698,9 +728,10 @@ function blogpro_fix_buffer_attributes( $buffer ) {
 	// must pass through untouched — this buffer pass assumes an HTML doc.
 	// (Robots/sitemap/REST handlers exit before template_redirect, so this is
 	// a cheap safety net for anything that slips through, not a hot path.)
-	// if ( 0 !== stripos( ltrim( $buffer ), '<!doctype' ) && 0 !== stripos( ltrim( $buffer ), '<html' ) ) {
-	// 	return $buffer;
-	// }
+	$head = ltrim( substr( $buffer, 0, 64 ) );
+	if ( 0 !== stripos( $head, '<!doctype' ) && 0 !== stripos( $head, '<html' ) ) {
+		return $buffer;
+	}
 
 	// Images.
 	$buffer = preg_replace_callback(
@@ -797,6 +828,10 @@ function blogpro_fix_buffer_attributes( $buffer ) {
 }
 
 function blogpro_fix_buffer_start() {
+	// Feeds are XML: never rewrite them.
+	if ( is_feed() ) {
+		return;
+	}
 	ob_start( 'blogpro_fix_buffer_attributes' );
 }
 add_action( 'template_redirect', 'blogpro_fix_buffer_start' );

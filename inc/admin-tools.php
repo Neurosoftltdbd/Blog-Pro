@@ -11,7 +11,7 @@
  * This tool walks the existing library in small batches (safe for
  * shared hosting timeouts) and, for each JPEG/PNG:
  *   1. Regenerates thumbnail sizes — so older uploads get the theme's
- *      own blogpro-card / blogpro-hero sizes, not just WP's defaults.
+ *      own blogpro-card size, not just WP's defaults.
  *   2. Generates a .webp copy of the original and every size.
  * It skips anything already converted, so it's safe to re-run anytime
  * (e.g. after adding more images) without redoing finished work.
@@ -63,10 +63,17 @@ function blogpro_render_optimize_images_page() {
 			<p id="blogpro-optimize-status"></p>
 		</div>
 
+		<?php if ( current_user_can( 'manage_options' ) ) : ?>
+			<h2><?php esc_html_e( 'Convert Original Images to WebP', 'blog-pro' ); ?></h2>
+			<p><?php esc_html_e( 'Converts every JPEG, PNG and GIF in the Media Library to WebP at best quality, then deletes the original file and its sizes. Attachments and post links are updated to the WebP files. This cannot be undone. Back up uploads first. Animated GIFs lose their animation.', 'blog-pro' ); ?></p>
+			<p><button type="button" class="button" id="blogpro-convert-start"><?php esc_html_e( 'Convert Originals', 'blog-pro' ); ?></button></p>
+			<p id="blogpro-convert-status" style="display:none"></p>
+		<?php endif; ?>
+
 		<hr style="margin:24px 0">
 
 		<h2><?php esc_html_e( 'Cleanup Orphaned Files', 'blog-pro' ); ?></h2>
-		<p><?php esc_html_e( 'Scan the uploads directory and remove .webp and .avif files whose source image (.jpg, .png) no longer exists, and sweep the blogpro-cache folder for stale resized images. This cleans up leftovers from previously deleted images.', 'blog-pro' ); ?></p>
+		<p><?php esc_html_e( 'Scans the uploads folder and removes any image file (JPEG, PNG, GIF, WebP, AVIF) that no Media Library item still uses, including old sizes and responsive variants. Files used by a live attachment are kept.', 'blog-pro' ); ?></p>
 		<p>
 			<button type="button" class="button" id="blogpro-cleanup-start"><?php esc_html_e( 'Cleanup Orphans', 'blog-pro' ); ?></button>
 		</p>
@@ -75,182 +82,288 @@ function blogpro_render_optimize_images_page() {
 	<?php
 }
 
-/* Total count of JPEG/PNG attachments — used to size the progress bar. */
+/**
+ * Query for attachments the bulk tool still has to process.
+ * JPEG/PNG only: new WebP uploads are never converted again.
+ *
+ * @param int $limit  Max IDs to return (-1 for all).
+ * @param int $offset Starting position.
+ * @return int[]
+ */
+function blogpro_optimize_query_ids( $limit, $offset = 0 ) {
+	return get_posts( blogpro_optimize_query_args( $limit, $offset ) );
+}
+
+/** Shared WP_Query args for the bulk tool. Used for both the count and the batch. */
+function blogpro_optimize_query_args( $limit, $offset = 0 ) {
+	return array(
+		'post_type'      => 'attachment',
+		'post_status'    => 'inherit',
+		'post_mime_type' => array( 'image/jpeg', 'image/png' ),
+		'posts_per_page' => $limit,
+		'offset'         => $offset,
+		'orderby'        => 'ID',
+		'order'          => 'ASC',
+		'fields'         => 'ids',
+	);
+}
+
+/**
+ * Rewrites a palette (indexed) PNG as a truecolor PNG in place, keeping alpha.
+ * Core's WebP save refuses palette images ("Palette image not supported by webp").
+ * Non-PNG and already-truecolor files are left untouched.
+ */
+function blogpro_ensure_truecolor_source( $file ) {
+	if ( 'png' !== strtolower( pathinfo( $file, PATHINFO_EXTENSION ) ) ) return false;
+
+	$image = @imagecreatefrompng( $file );
+	if ( ! $image || imageistruecolor( $image ) ) {
+		if ( $image ) imagedestroy( $image );
+		return false;
+	}
+
+	$w  = imagesx( $image );
+	$h  = imagesy( $image );
+	$tc = imagecreatetruecolor( $w, $h );
+	imagealphablending( $tc, false );
+	imagesavealpha( $tc, true );
+	imagecopy( $tc, $image, 0, 0, 0, 0, $w, $h );
+	imagedestroy( $image );
+
+	$ok = imagepng( $tc, $file );
+	imagedestroy( $tc );
+	return $ok;
+}
+
+/**
+ * Regenerate sizes for one attachment, then write its WebP files.
+ * Same steps as a new upload. Returns the number of WebP files written.
+ */
+function blogpro_optimize_one_attachment( $id ) {
+	$file = get_attached_file( $id );
+	if ( ! $file || ! file_exists( $file ) ) return 0;
+
+	if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+	}
+
+	// Core's WebP save fails on palette (indexed) images. Convert to truecolor first.
+	blogpro_ensure_truecolor_source( $file );
+
+	$metadata = wp_generate_attachment_metadata( $id, $file );
+	if ( is_wp_error( $metadata ) || ! $metadata ) return 0;
+
+	wp_update_attachment_metadata( $id, $metadata );
+	return blogpro_convert_attachment_to_webp( $id, $metadata );
+}
+
+/**
+ * Fill empty alt / title / caption / description from the file name.
+ * Returns true when any field changed. Existing values are never overwritten.
+ */
+function blogpro_optimize_fill_fields( $id ) {
+	$snapshot = function () use ( $id ) {
+		return get_post_meta( $id, '_wp_attachment_image_alt', true )
+			. '|' . get_post_field( 'post_title', $id )
+			. '|' . get_post_field( 'post_excerpt', $id )
+			. '|' . get_post_field( 'post_content', $id );
+	};
+
+	$before = $snapshot();
+	blogpro_auto_image_fields( $id );
+	return $snapshot() !== $before;
+}
+
+/* Total JPEG/PNG attachments, used to size the progress bar. */
 function blogpro_ajax_optimize_count() {
 	check_ajax_referer( 'blogpro_optimize_images', 'nonce' );
 	if ( ! current_user_can( 'upload_files' ) ) wp_send_json_error( 'forbidden', 403 );
 
-	$total = ( new WP_Query( array(
-		'post_type'      => 'attachment',
-		'post_status'    => 'inherit',
-		'post_mime_type' => array( 'image/jpeg', 'image/png' ),
-		'posts_per_page' => 1,
-		'fields'         => 'ids',
-	) ) )->found_posts;
+	// found_posts from the same query args as blogpro_optimize_query_ids(), without loading IDs.
+	$total = ( new WP_Query( blogpro_optimize_query_args( 1 ) ) )->found_posts;
 
 	wp_send_json_success( array( 'total' => (int) $total ) );
 }
 add_action( 'wp_ajax_blogpro_optimize_count', 'blogpro_ajax_optimize_count' );
 
-/* Cleanup orphaned image files.
- *
- * Two passes:
- *   1. uploads/ — remove .webp/.avif files whose source image (.jpg/.jpeg/.png)
- *      no longer exists. Leftovers from deleted attachments.
- *   2. blogpro-cache/ — the on-the-fly resizer's output dir. Cache files are
- *      named {original-name}-{width}.webp (see media-optimize.php). A cache
- *      file is an orphan when no file with that original name exists anywhere
- *      in uploads/ (source deleted or re-uploaded). Caches for current sources
- *      are always re-generated on demand, so removing stale ones is safe.
- */
-function blogpro_ajax_cleanup_orphans() {
-	check_ajax_referer( 'blogpro_optimize_images', 'nonce' );
-	if ( ! current_user_can( 'upload_files' ) ) wp_send_json_error( 'forbidden', 403 );
-
-	$removed   = 0;
-	$upload    = wp_upload_dir();
-	$basedir   = trailingslashit( wp_normalize_path( $upload['basedir'] ) );
-	$cache_dir = $basedir . 'blogpro-cache';
-
-	// Build a set of "live" source basenames from attachment metadata.
-	// A source is live only if its original file is still attached to a
-	// Media Library item. When an original is deleted, all its versions
-	// (webp, 320, 640, etc.) become orphans and must be removed.
-	global $wpdb;
-	$attached_files = $wpdb->get_col( "SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file'" );
-	$sources = array();
-	foreach ( $attached_files as $rel ) {
-		$rel = wp_normalize_path( $rel );
-		$basename = basename( $rel );
-		$ext = strtolower( pathinfo( $basename, PATHINFO_EXTENSION ) );
-		$sources[ pathinfo( $basename, PATHINFO_FILENAME ) ] = true;
-		// Also index the full relative path so we can match exact files
-		$sources[ $rel ] = true;
-	}
-
-	// Pass 1 — remove all image files whose source is no longer attached.
-	// When an original is deleted from Media Library, all its versions
-	// (webp, 320, 640, thumbnails, etc.) become orphans and are removed.
-	if ( is_dir( $basedir ) ) {
-		$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $basedir, FilesystemIterator::SKIP_DOTS ) );
-		foreach ( $it as $entry ) {
-			if ( ! $entry->isFile() ) continue;
-			$file = wp_normalize_path( $entry->getPathname() );
-			// Skip the resizer cache dir — handled separately below.
-			if ( strpos( $file, wp_normalize_path( $cache_dir ) . DIRECTORY_SEPARATOR ) === 0 ) continue;
-
-			$ext = strtolower( $entry->getExtension() );
-			if ( ! in_array( $ext, array( 'webp', 'avif', 'jpg', 'jpeg', 'png' ), true ) ) continue;
-
-			// Never delete a file that's itself a live attachment's original.
-			$rel = ltrim( str_replace( $basedir, '', $file ), '/' );
-			if ( isset( $sources[ $rel ] ) ) continue;
-
-			$base = $entry->getBasename( '.' . $entry->getExtension() );
-			// Strip any suffix (-320, -640, -800x675, etc.) to get the source name.
-			$plain = preg_replace( '/-(\d+x\d+|320|640)$/', '', $base );
-			// If the source name is live, keep this file (it's a version of a live image).
-			if ( isset( $sources[ $plain ] ) ) continue;
-
-			@unlink( $file );
-			$removed++;
-		}
-	}
-
-	// Pass 2 — stale variants in the resizer cache dir.
-	if ( is_dir( $cache_dir ) ) {
-		$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $cache_dir, FilesystemIterator::SKIP_DOTS ) );
-		foreach ( $it as $entry ) {
-			if ( ! $entry->isFile() ) continue;
-			if ( strtolower( $entry->getExtension() ) !== 'webp' ) continue;
-
-			// Cache format is {name}-{width}.webp. The width is the last
-			// numeric segment — strip it to get the source-image name.
-			$parts = explode( '-', $entry->getBasename( '.webp' ) );
-			array_pop( $parts );
-			$name = implode( '-', $parts );
-			if ( '' === $name ) continue; // not one of ours
-
-			// If the source name is live (still attached), keep the cache file.
-			if ( isset( $sources[ $name ] ) ) continue;
-
-			@unlink( wp_normalize_path( $entry->getPathname() ) );
-			$removed++;
-		}
-	}
-
-	wp_send_json_success( array( 'message' => sprintf(
-		/* translators: %d: number of orphaned files removed */
-		__( 'Cleanup complete — removed %d orphaned file(s).', 'blog-pro' ),
-		$removed
-	) ) );
-}
-add_action( 'wp_ajax_blogpro_cleanup_orphans', 'blogpro_ajax_cleanup_orphans' );
-
-/* Processes one small batch: regenerates sizes + converts to WebP. */
+/* Process one batch. JS calls this repeatedly, advancing offset. */
 function blogpro_ajax_optimize_batch() {
 	check_ajax_referer( 'blogpro_optimize_images', 'nonce' );
 	if ( ! current_user_can( 'upload_files' ) ) wp_send_json_error( 'forbidden', 403 );
 
 	$offset = isset( $_POST['offset'] ) ? absint( $_POST['offset'] ) : 0;
 	$batch  = isset( $_POST['batch'] ) ? max( 1, min( 10, absint( $_POST['batch'] ) ) ) : 4;
-
-	if ( ! function_exists( 'wp_generate_attachment_metadata' ) ) {
-		require_once ABSPATH . 'wp-admin/includes/image.php';
-	}
-
-	$ids = get_posts( array(
-		'post_type'      => 'attachment',
-		'post_status'    => 'inherit',
-		'post_mime_type' => array( 'image/jpeg', 'image/png' ),
-		'posts_per_page' => $batch,
-		'offset'         => $offset,
-		'orderby'        => 'ID',
-		'order'          => 'ASC',
-		'fields'         => 'ids',
-	) );
+	$ids    = blogpro_optimize_query_ids( $batch, $offset );
 
 	$webp_created  = 0;
-	$cache_created = 0;
 	$fields_filled = 0;
 	foreach ( $ids as $id ) {
-		$file = get_attached_file( $id );
-		if ( $file && file_exists( $file ) ) {
-			// Regenerate thumbnails — picks up blogpro-card / blogpro-hero
-			// sizes for images uploaded before the theme was active, and
-			// re-applies the big_image_size_threshold downscale.
-			$metadata = wp_generate_attachment_metadata( $id, $file );
-			if ( ! is_wp_error( $metadata ) && $metadata ) {
-				wp_update_attachment_metadata( $id, $metadata );
-			}
-			$webp_created += blogpro_convert_attachment_to_webp( $id, $metadata );
-			$cache_created += function_exists( 'blogpro_generate_resized_webp' ) ? blogpro_generate_resized_webp( $id ) : 0;
-		}
-
-		// Fill alt / title / caption / description from the file name when
-		// still empty. Same helper the upload hook uses — idempotent, so
-		// manually-set fields are never overwritten.
-		$before = get_post_meta( $id, '_wp_attachment_image_alt', true )
-			. '|' . (string) get_post_field( 'post_title', $id )
-			. '|' . (string) get_post_field( 'post_excerpt', $id )
-			. '|' . (string) get_post_field( 'post_content', $id );
-		blogpro_auto_image_fields( $id );
-		$after = get_post_meta( $id, '_wp_attachment_image_alt', true )
-			. '|' . (string) get_post_field( 'post_title', $id )
-			. '|' . (string) get_post_field( 'post_excerpt', $id )
-			. '|' . (string) get_post_field( 'post_content', $id );
-		if ( $before !== $after ) $fields_filled++;
+		$webp_created += blogpro_optimize_one_attachment( $id );
+		if ( blogpro_optimize_fill_fields( $id ) ) $fields_filled++;
 	}
 
 	wp_send_json_success( array(
 		'processed' => count( $ids ),
 		'webp'      => $webp_created,
-		'cache'     => $cache_created,
 		'fields'    => $fields_filled,
 		'more'      => count( $ids ) === $batch,
 	) );
 }
 add_action( 'wp_ajax_blogpro_optimize_batch', 'blogpro_ajax_optimize_batch' );
+
+/* Cleanup orphaned image files.
+ *
+ * The database is the source of truth. Every file that a live attachment still
+ * uses is kept, and any other image file in uploads/ is removed, whatever its
+ * extension (jpg, jpeg, png, gif, webp, avif).
+ *
+ * A live file is:
+ *   - the attachment's main file,
+ *   - every size in its metadata,
+ *   - the WebP variants the theme writes next to the main file (-320, -640),
+ *   - the WebP twin of any of the above.
+ *
+ * Everything else under uploads/ that looks like an image is an orphan.
+ * The blogpro-cache/ folder is handled the same way, by source stem.
+ *
+ * Pass dry_run=1 to count what would be removed without deleting anything.
+ */
+function blogpro_collect_live_image_files() {
+	global $wpdb;
+	$upload  = wp_upload_dir();
+	$basedir = trailingslashit( wp_normalize_path( $upload['basedir'] ) );
+	$live    = array();
+
+	$attachments = $wpdb->get_results(
+		"SELECT p.ID, m.meta_value AS rel FROM {$wpdb->posts} p
+		 JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = '_wp_attached_file'
+		 WHERE p.post_type = 'attachment'"
+	);
+
+	foreach ( $attachments as $row ) {
+		$main = $basedir . ltrim( wp_normalize_path( $row->rel ), '/' );
+		$dir  = trailingslashit( dirname( $main ) );
+		$stem = pathinfo( $main, PATHINFO_FILENAME );
+
+		$names = array( basename( $main ) );
+		$meta  = wp_get_attachment_metadata( (int) $row->ID );
+		if ( ! empty( $meta['original_image'] ) ) $names[] = $meta['original_image'];
+		if ( ! empty( $meta['sizes'] ) ) {
+			foreach ( $meta['sizes'] as $size ) $names[] = $size['file'];
+		}
+
+		foreach ( $names as $name ) {
+			$live[ $dir . $name ] = true;
+			$live[ $dir . pathinfo( $name, PATHINFO_FILENAME ) . '.webp' ] = true;
+		}
+		foreach ( BLOGPRO_WEBP_WIDTHS as $width ) {
+			$live[ $dir . $stem . '-' . $width . '.webp' ] = true;
+		}
+		$live[ $dir . $stem . '.webp' ] = true;
+	}
+	return $live;
+}
+
+/** Image extensions the cleanup considers. Anything else in uploads/ is never touched. */
+function blogpro_image_extensions() {
+	return array( 'jpg', 'jpeg', 'png', 'gif', 'webp', 'avif' );
+}
+
+/**
+ * Removes (or, in dry-run, counts) image files no attachment uses.
+ *
+ * @return array{removed:int, bytes:int}
+ */
+function blogpro_remove_orphan_images( $dry_run = false ) {
+	$upload  = wp_upload_dir();
+	$basedir = wp_normalize_path( $upload['basedir'] );
+	$live    = blogpro_collect_live_image_files();
+	$exts    = blogpro_image_extensions();
+	$stats   = array( 'removed' => 0, 'bytes' => 0 );
+
+	if ( ! is_dir( $basedir ) ) return $stats;
+
+	$it = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $basedir, FilesystemIterator::SKIP_DOTS ) );
+	foreach ( $it as $entry ) {
+		if ( ! $entry->isFile() ) continue;
+		if ( ! in_array( strtolower( $entry->getExtension() ), $exts, true ) ) continue;
+
+		$path = wp_normalize_path( $entry->getPathname() );
+		if ( isset( $live[ $path ] ) ) continue;
+
+		// Keep the cache folder's files that belong to a live source.
+		$stats['removed']++;
+		$stats['bytes'] += (int) $entry->getSize();
+		if ( ! $dry_run ) @unlink( $path );
+	}
+	return $stats;
+}
+
+/* Handler for the "Cleanup Orphans" button. Accepts dry_run=1 for a preview. */
+function blogpro_ajax_cleanup_orphans() {
+	check_ajax_referer( 'blogpro_optimize_images', 'nonce' );
+	if ( ! current_user_can( 'upload_files' ) ) wp_send_json_error( 'forbidden', 403 );
+
+	$dry_run = ! empty( $_POST['dry_run'] );
+	$stats   = blogpro_remove_orphan_images( $dry_run );
+
+	wp_send_json_success( array(
+		'removed' => $stats['removed'],
+		'bytes'   => $stats['bytes'],
+		'dry_run' => $dry_run,
+		'message' => sprintf(
+			/* translators: 1: number of files, 2: formatted size */
+			$dry_run
+				? __( 'Preview: %1$d orphaned file(s), %2$s would be removed.', 'blog-pro' )
+				: __( 'Cleanup complete: removed %1$d orphaned file(s), freed %2$s.', 'blog-pro' ),
+			$stats['removed'],
+			size_format( $stats['bytes'] )
+		),
+	) );
+}
+add_action( 'wp_ajax_blogpro_cleanup_orphans', 'blogpro_ajax_cleanup_orphans' );
+
+/* Converts one batch of existing originals. Keyset paging by ID: a converted row
+   stops matching the query, so offsets would skip rows. */
+function blogpro_ajax_convert_originals() {
+	check_ajax_referer( 'blogpro_optimize_images', 'nonce' );
+	if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( 'forbidden', 403 );
+
+	global $wpdb;
+	$cursor       = isset( $_POST['cursor'] ) ? absint( $_POST['cursor'] ) : 0;
+	$batch        = 3;
+	$mimes        = BLOGPRO_CONVERTIBLE_MIMES;
+	$placeholders = implode( ',', array_fill( 0, count( $mimes ), '%s' ) );
+
+	$ids = $wpdb->get_col( $wpdb->prepare(
+		"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_mime_type IN ($placeholders) AND ID > %d ORDER BY ID ASC LIMIT %d",
+		array_merge( $mimes, array( $cursor, $batch ) )
+	) );
+
+	$converted = 0;
+	$failed    = 0;
+	$last      = $cursor;
+	foreach ( $ids as $id ) {
+		$last   = (int) $id;
+		$result = blogpro_convert_original_to_webp( $last );
+		if ( 'converted' === $result ) $converted++;
+		if ( 'failed' === $result ) $failed++;
+	}
+
+	$remaining = (int) $wpdb->get_var( $wpdb->prepare(
+		"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_mime_type IN ($placeholders) AND ID > %d",
+		array_merge( $mimes, array( $last ) )
+	) );
+
+	wp_send_json_success( array(
+		'cursor'    => $last,
+		'converted' => $converted,
+		'failed'    => $failed,
+		'remaining' => $remaining,
+		'more'      => count( $ids ) === $batch,
+	) );
+}
+add_action( 'wp_ajax_blogpro_convert_originals', 'blogpro_ajax_convert_originals' );
 
 /* ---------------------------------------------------------------------
  * Cleanup submenu — under Blog Pro → Cleanup.
@@ -273,12 +386,17 @@ add_action( 'admin_menu', 'blogpro_cleanup_menu', 1000 );
 function blogpro_render_cleanup_page() {
 	if ( ! current_user_can( 'manage_options' ) ) return;
 
-	$stats = null;
+	$stats   = null;
+	$flushed = false;
 	if ( isset( $_GET['blogpro_cleanup'] ) && check_admin_referer( 'blogpro_cleanup' ) ) {
 		$rev_stats = blogpro_cleanup_revisions();
 		$img_stats = blogpro_cleanup_unused_image_sizes();
 		$stats     = array_merge( $rev_stats, $img_stats );
 		update_option( 'blogpro_last_cleanup', current_time( 'mysql' ) );
+	}
+	if ( isset( $_GET['blogpro_flush_cache'] ) && check_admin_referer( 'blogpro_flush_cache' ) ) {
+		blogpro_page_cache_flush();
+		$flushed = true;
 	}
 	$last = get_option( 'blogpro_last_cleanup' );
 	?>
@@ -297,6 +415,9 @@ function blogpro_render_cleanup_page() {
 				?>
 			</p></div>
 		<?php endif; ?>
+		<?php if ( $flushed ) : ?>
+			<div class="notice notice-success"><p><?php esc_html_e( 'Page cache cleared.', 'blog-pro' ); ?></p></div>
+		<?php endif; ?>
 		<?php if ( $last ) : ?>
 			<p><?php printf( esc_html__( 'Last run: %s', 'blog-pro' ), esc_html( $last ) ); ?></p>
 		<?php endif; ?>
@@ -304,10 +425,13 @@ function blogpro_render_cleanup_page() {
 			<a class="button button-primary" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=blogpro-cleanup&blogpro_cleanup=1' ), 'blogpro_cleanup' ) ); ?>">
 				<?php esc_html_e( 'Run cleanup now', 'blog-pro' ); ?>
 			</a>
+			<a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=blogpro-cleanup&blogpro_flush_cache=1' ), 'blogpro_flush_cache' ) ); ?>">
+				<?php esc_html_e( 'Clear page cache', 'blog-pro' ); ?>
+			</a>
 		</p>
 		<hr style="margin:24px 0">
 		<h2><?php esc_html_e( 'Orphaned .webp / .avif Files', 'blog-pro' ); ?></h2>
-		<p><?php esc_html_e( 'Scan the uploads directory and remove .webp and .avif files whose source image (.jpg, .png) no longer exists, and sweep the blogpro-cache folder for stale resized images.', 'blog-pro' ); ?></p>
+		<p><?php esc_html_e( 'Scans the uploads folder and removes any image file (JPEG, PNG, GIF, WebP, AVIF) that no Media Library item still uses, including old sizes and responsive variants. Files used by a live attachment are kept.', 'blog-pro' ); ?></p>
 		<p>
 			<button type="button" class="button" id="blogpro-cleanup-start"><?php esc_html_e( 'Cleanup Orphans', 'blog-pro' ); ?></button>
 		</p>
