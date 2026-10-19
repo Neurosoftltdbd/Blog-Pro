@@ -46,3 +46,4 @@ document.addEventListener('DOMContentLoaded', function() {
 		clearInterval(autoTimer);
 		if (!document.hidden) autoTimer = setInterval(nextSlideFn, 5000);
 	});
+});

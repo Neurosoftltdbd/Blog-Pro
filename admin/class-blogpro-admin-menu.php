@@ -206,6 +206,7 @@ function blogpro_render_dashboard_page() {
 			<a class="button button-primary" href="<?php echo esc_url( admin_url( 'post-new.php' ) ); ?>"><?php esc_html_e( 'New post', 'blog-pro' ); ?></a>
 			<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=blogpro-optimize-images' ) ); ?>"><?php esc_html_e( 'Optimize images', 'blog-pro' ); ?></a>
 			<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=blogpro-seo-checker' ) ); ?>"><?php esc_html_e( 'SEO check', 'blog-pro' ); ?></a>
+			<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=blogpro-analytics' ) ); ?>"><?php esc_html_e( 'Analytics', 'blog-pro' ); ?></a>
 			<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=blogpro-contact' ) ); ?>"><?php esc_html_e( 'Contact inbox', 'blog-pro' ); ?></a>
 			<a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=blogpro-about' ) ); ?>"><?php esc_html_e( 'About theme', 'blog-pro' ); ?></a>
 		</div>

@@ -30,7 +30,9 @@ require BLOGPRO_DIR . '/inc/toc.php'; // automatic table of contents (sidebar + 
 require BLOGPRO_DIR . '/inc/content-blocks.php'; // Key Takeaways + Sources metaboxes, table wrappers
 require BLOGPRO_DIR . '/inc/entity-links.php'; // social profile URLs (sameAs) + author identity fields
 require BLOGPRO_DIR . '/inc/faq-optimisation.php'; // avoids duplicate FAQ output
+require BLOGPRO_DIR . '/inc/analytics.php';    // visitor analytics engine (storage, REST beacon, geo)
 require BLOGPRO_DIR . '/admin/seo-checker.php';    // automated on-page SEO auditor (Tools → SEO Checker)
+require BLOGPRO_DIR . '/admin/analytics.php';     // Blog Pro → Analytics dashboard
 require BLOGPRO_DIR . '/admin/class-blogpro-admin-menu.php'; // branded dashboard sidebar
 
 
