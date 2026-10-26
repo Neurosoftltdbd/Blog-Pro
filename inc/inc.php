@@ -34,6 +34,7 @@ require BLOGPRO_DIR . '/inc/analytics.php';    // visitor analytics engine (stor
 require BLOGPRO_DIR . '/admin/seo-checker.php';    // automated on-page SEO auditor (Tools → SEO Checker)
 require BLOGPRO_DIR . '/admin/analytics.php';     // Blog Pro → Analytics dashboard
 require BLOGPRO_DIR . '/admin/class-blogpro-admin-menu.php'; // branded dashboard sidebar
+require BLOGPRO_DIR . '/inc/adsterra.php'; // Adsterra ads management & section placements
 
 
 // WooCommerce integration if active

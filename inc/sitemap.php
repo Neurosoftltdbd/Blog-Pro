@@ -8,7 +8,7 @@
  */
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'BLOGPRO_SITEMAP_CHUNK_SIZE', 1000 );
+define( 'BLOGPRO_SITEMAP_CHUNK_SIZE', 200 );
 
 add_filter( 'wp_sitemaps_enabled', '__return_false' );
 

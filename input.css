@@ -156,132 +156,711 @@
   }
 }
 
-/* Post/page body typography. One rule shared by page.php and single.php. */
+/* Post/page body typography and rich block fields. Shared by single.php and page.php. */
 @layer components {
   .entry-content {
-    @apply [&_h1]:text-3xl;
-    @apply [&_h1]:font-extrabold;
-    @apply [&_h1]:my-4;
-    @apply [&_h1]:tracking-tight;
-    @apply [&_h2]:text-2xl;
-    @apply [&_h2]:font-extrabold;
-    @apply [&_h2]:my-2;
-    @apply [&_h3]:text-xl;
-    @apply [&_h3]:font-bold;
-    @apply [&_h3]:my-4;
-    @apply [&_h4]:text-lg;
-    @apply [&_h4]:font-semibold;
-    @apply [&_h4]:my-4;
-    @apply [&_a]:text-indigo-600;
-    @apply [&_a:hover]:text-indigo-800;
-    @apply [&_a]:no-underline;
-    @apply [&_ul]:list-disc;
-    @apply [&_ul]:pl-6;
-    @apply [&_ul]:my-4;
-    @apply [&_ol]:list-decimal;
-    @apply [&_ol]:pl-6;
-    @apply [&_ol]:my-4;
-    @apply [&_li]:my-2;
-    @apply [&_blockquote]:border-l-4;
-    @apply [&_blockquote]:border-indigo-500;
-    @apply [&_blockquote]:bg-indigo-50;
-    @apply [&_blockquote]:py-3;
-    @apply [&_blockquote]:px-5;
-    @apply [&_blockquote]:my-6;
-    @apply [&_blockquote]:italic;
-    @apply [&_blockquote]:text-slate-600;
-    @apply [&_blockquote]:rounded-r-lg;
-    @apply [&_table]:w-full;
-    @apply [&_table]:border-collapse;
-    @apply [&_table]:my-6;
-    @apply [&_table]:text-sm;
-    @apply [&_table]:min-w-full;
-    @apply [&_th]:border;
-    @apply [&_th]:border-slate-200;
-    @apply [&_th]:bg-slate-50;
-    @apply [&_th]:px-3;
-    @apply [&_th]:py-2;
-    @apply [&_th]:text-left;
-    @apply [&_th]:font-bold;
-    @apply [&_td]:border;
-    @apply [&_td]:border-slate-200;
-    @apply [&_td]:px-3;
-    @apply [&_td]:py-2;
-    @apply [&_tbody_tr]:even:bg-slate-50;
-    @apply [&_table]:overflow-x-auto;
-    @apply [&_dl]:my-4;
-    @apply [&_dt]:font-bold;
-    @apply [&_dt]:mt-2;
-    @apply [&_dd]:ml-4;
-    @apply [&_dd]:mb-1;
-    @apply [&_mark]:bg-yellow-200;
-    @apply [&_mark]:px-1;
-    @apply [&_kbd]:bg-slate-100;
-    @apply [&_kbd]:border;
-    @apply [&_kbd]:border-slate-300;
-    @apply [&_kbd]:rounded;
-    @apply [&_kbd]:px-1;
-    @apply [&_kbd]:text-sm;
-    @apply [&_kbd]:font-mono;
-    @apply [&_sup]:text-xs;
-    @apply [&_sup]:align-super;
-    @apply [&_sub]:text-xs;
-    @apply [&_sub]:align-sub;
-    @apply [&_q]:italic;
-    @apply [&_q]:text-slate-600;
-    @apply [&_cite]:italic;
-    @apply [&_cite]:text-slate-600;
-    @apply [&_abbr]:underline;
-    @apply [&_abbr]:decoration-dotted;
-    @apply [&_time]:text-slate-600;
-    @apply [&_del]:line-through;
-    @apply [&_del]:text-slate-400;
-    @apply [&_ins]:underline;
-    @apply [&_ins]:text-green-700;
-    @apply [&_details]:my-4;
-    @apply [&_details]:border;
-    @apply [&_details]:border-slate-200;
-    @apply [&_details]:rounded-lg;
-    @apply [&_details]:p-3;
-    @apply [&_summary]:font-bold;
-    @apply [&_summary]:cursor-pointer;
-    @apply [&_video]:w-full;
-    @apply [&_video]:rounded-xl;
-    @apply [&_video]:my-6;
-    @apply [&_audio]:w-full;
-    @apply [&_audio]:my-4;
-    @apply [&_caption]:text-sm;
-    @apply [&_caption]:text-slate-500;
-    @apply [&_caption]:text-center;
-    @apply [&_caption]:mt-2;
-    @apply [&_strong]:font-bold;
-    @apply [&_em]:italic;
-    @apply [&_img]:max-w-full;
-    @apply [&_img]:h-auto;
-    @apply [&_img]:rounded-xl;
-    @apply [&_pre]:bg-slate-900;
-    @apply [&_pre]:text-slate-100;
-    @apply [&_pre]:p-4;
-    @apply [&_pre]:rounded-xl;
-    @apply [&_pre]:overflow-x-auto;
-    @apply [&_pre]:my-6;
-    @apply [&_code]:bg-indigo-100;
-    @apply [&_code]:text-indigo-700;
-    @apply [&_code]:px-1.5;
-    @apply [&_code]:py-0.5;
-    @apply [&_code]:rounded;
-    @apply [&_code]:text-sm;
-    @apply [&_pre_code]:bg-transparent;
-    @apply [&_pre_code]:p-0;
-    @apply [&_pre_code]:text-inherit;
-    @apply [&_hr]:border-slate-200;
-    @apply [&_hr]:my-10;
-    @apply [&_figure]:my-6;
-    @apply [&_figcaption]:text-sm;
-    @apply [&_figcaption]:text-slate-500;
-    @apply [&_figcaption]:text-center;
-    @apply [&_figcaption]:mt-2;
-    @apply [&_iframe]:rounded-xl;
-    @apply [&_p]:py-4;
+    @apply text-slate-800 leading-relaxed wrap-break-word;
+
+    /* Clean clearing of floated images */
+    &::after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+
+    /* Reading selection styling */
+    & ::selection {
+      @apply bg-indigo-500 text-white;
+    }
+
+    /* First lead paragraph */
+    & > p:first-of-type {
+      @apply text-lg md:text-xl text-slate-800 leading-relaxed font-normal;
+    }
+
+    /* WordPress drop cap */
+    & p.has-drop-cap:first-letter {
+      @apply float-left text-5xl md:text-6xl font-black text-indigo-600 leading-none mr-3 pt-1 uppercase font-serif;
+    }
+
+    /* Headings hierarchy with scroll margin anchors */
+    h1 {
+      @apply text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight mt-12 mb-6 leading-tight scroll-mt-24;
+    }
+    h2 {
+      @apply text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mt-12 mb-5 leading-snug scroll-mt-24 pb-3 border-b border-slate-100;
+    }
+    h3 {
+      @apply text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 tracking-tight mt-10 mb-4 leading-snug scroll-mt-24;
+    }
+    h4 {
+      @apply text-lg sm:text-xl font-bold text-slate-900 tracking-tight mt-8 mb-3 leading-snug scroll-mt-24;
+    }
+    h5 {
+      @apply text-base sm:text-lg font-semibold text-slate-900 mt-6 mb-2 leading-normal scroll-mt-24;
+    }
+    h6 {
+      @apply text-sm sm:text-base font-semibold text-slate-500 uppercase tracking-wider mt-6 mb-2 leading-normal scroll-mt-24;
+    }
+    h1 + h2,
+    h2 + h3,
+    h3 + h4,
+    h4 + h5 {
+      margin-top: 1rem;
+    }
+
+    /* Reset heading styles inside .bp-faq so the card header flex row aligns correctly.
+       Without this, .entry-content h2 adds mt-12 mb-5 pb-3 border-b and 2xl font-size
+       which pushes the icon and count badge out of alignment. */
+    .bp-faq h2,
+    .bp-faq h3 {
+      all: unset;
+      display: revert;
+    }
+
+    /* Body paragraphs */
+    p {
+      @apply my-5 md:my-6 leading-relaxed md:leading-8 text-slate-700 font-normal;
+    }
+
+    /* Hyperlinks with accessible affordance and hover transitions */
+    a {
+      @apply text-indigo-600 font-medium underline underline-offset-4 decoration-indigo-300 decoration-1 hover:text-indigo-800 hover:decoration-indigo-600 hover:decoration-2 transition-all duration-200 cursor-pointer wrap-break-word;
+    }
+    a:focus-visible {
+      @apply outline-none ring-2 ring-indigo-500 ring-offset-2 rounded-xs;
+    }
+    a:has(img) {
+      text-decoration: none;
+    }
+
+    /* Lists (ordered, unordered, nested, definition) */
+    ul {
+      @apply list-disc pl-6 sm:pl-7 my-6 space-y-2 marker:text-indigo-500 marker:font-bold;
+    }
+    ol {
+      @apply list-decimal pl-6 sm:pl-7 my-6 space-y-2 marker:text-indigo-600 marker:font-semibold;
+    }
+    li {
+      @apply pl-1 text-slate-700 leading-relaxed;
+    }
+    ul ul,
+    ol ol,
+    ul ol,
+    ol ul {
+      @apply my-2 pl-5 space-y-1.5;
+    }
+    dl {
+      @apply my-6 bg-slate-50/70 border border-slate-200/80 rounded-2xl p-5 md:p-6 space-y-3;
+    }
+    dt {
+      @apply font-bold text-slate-900 text-base mt-2 first:mt-0;
+    }
+    dd {
+      @apply ml-4 text-slate-600 mb-2 leading-relaxed;
+    }
+
+    /* Quotes and pullquotes */
+    blockquote,
+    .wp-block-quote {
+      @apply my-8 pl-6 pr-6 py-4 border-l-4 border-indigo-600 bg-linear-to-r from-indigo-50/80 via-indigo-50/30 to-transparent rounded-r-2xl text-slate-800 italic leading-relaxed text-lg md:text-xl shadow-xs;
+    }
+    blockquote p {
+      @apply my-2 italic;
+    }
+    blockquote cite,
+    .wp-block-quote cite {
+      @apply block mt-3 text-sm font-semibold text-slate-600 not-italic before:content-['—\00a0'];
+    }
+    .wp-block-pullquote {
+      @apply my-10 p-6 md:p-8 text-center border-y-2 border-indigo-500 bg-indigo-50/30 rounded-2xl;
+    }
+    .wp-block-pullquote blockquote p {
+      @apply text-xl md:text-2xl font-bold text-slate-900 not-italic leading-relaxed;
+    }
+    .wp-block-pullquote cite {
+      @apply mt-3 text-sm uppercase tracking-wider font-semibold text-indigo-700 not-italic block;
+    }
+
+    /* Code & syntax elements */
+    pre,
+    .wp-block-code pre {
+      @apply my-8 p-5 md:p-6 rounded-2xl bg-slate-900 text-slate-100 overflow-x-auto text-sm md:text-base leading-relaxed border border-slate-800 shadow-xl font-mono;
+    }
+    code {
+      @apply px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-mono text-[0.875em] font-semibold border border-indigo-100/80 wrap-break-word;
+    }
+    pre code {
+      @apply bg-transparent text-inherit p-0 border-0 font-normal text-sm md:text-base leading-relaxed rounded-none shadow-none;
+    }
+    kbd {
+      @apply px-2 py-1 text-xs font-mono font-semibold text-slate-800 bg-slate-100 border border-slate-300 rounded-md shadow-xs inline-block align-middle mx-0.5;
+    }
+    samp {
+      @apply font-mono text-xs bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded;
+    }
+
+    /* ── Tables ───────────────────────────────────────────────────────
+       One source of truth for every table in post content.
+
+       Structure: the outer wrapper carries the card chrome (border,
+       radius, shadow) and owns horizontal scrolling, so the table can
+       stay native. Putting the chrome on the wrapper rather than on the
+       <table> keeps a Gutenberg <figcaption> inside the card — it is a
+       sibling of the table, so chrome on the table would leave it
+       stranded outside.
+
+       Borders are `separate` with zero spacing, not `collapse`:
+       collapsed borders cannot be clipped by the wrapper's radius, and
+       they detach from any cell the layout moves. The cost is that a
+       border on a <tr> no longer renders, so every row separator is
+       drawn on the cells instead.
+
+       Type is decided by SECTION, not by tag: a <th> in thead is a column
+       header (gradient fill), a <th> in tbody is a row label (light fill).
+       Styling every <th> alike makes row-scoped headers white-on-white.
+
+       Separators are horizontal only, and the header has no bottom rule:
+       the gradient bar meets the first body row directly.
+
+       The prose plugin's table rules sit in @layer utilities, which
+       outranks @layer components whatever the specificity — so the
+       declarations that must beat it carry !important. It also wins
+       unevenly (it pads `thead th` and `tbody td` but not `tbody th`, and
+       zeroes the inline padding of every first and last cell), which is
+       what knocks the header, the data cells and the row labels onto
+       three different gutters unless the padding is pinned here. */
+    figure.wp-block-table,
+    .wp-block-table,
+    .bp-table-scroll {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain; /* no browser back-swipe mid-table */
+      @apply my-8 bg-white;
+      border-radius: 0.75rem;
+      box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+      scrollbar-width: thin;
+      scrollbar-color: #a5b4fc transparent;
+      border: 1px solid var(--color-slate-200);
+
+      /* Thin custom scrollbar */
+      &::-webkit-scrollbar {
+        height: 6px;
+      }
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: #a5b4fc;
+        border-radius: 9999px;
+      }
+      &::-webkit-scrollbar-thumb:hover {
+        background: #818cf8;
+      }
+
+      & table {
+        @apply w-full min-w-full my-0 text-left text-sm md:text-base bg-white;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        /* Digits line up column-wise in data tables, so numbers can be
+           compared down a column at a glance. */
+        font-variant-numeric: tabular-nums;
+      }
+
+      & figcaption {
+        @apply p-3 text-center text-xs text-slate-500 italic border-t border-slate-200 bg-slate-50 font-medium tracking-wide;
+      }
+    }
+
+    /* The wrapper is focusable (see blogpro_wrap_tables) so a clipped
+       table can still be scrolled by keyboard — make that focus visible. */
+    .bp-table-scroll:focus-visible {
+      outline: none;
+      border-color: var(--color-indigo-500);
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--color-indigo-500) 30%, transparent);
+    }
+
+    /* Standalone HTML tables — the ones the PHP filter missed, e.g. in a
+       widget or a template. The wrapper normally provides the scroll
+       container; with no wrapper to lean on, the table is its own.
+       `display: block` is deliberately not used here: it takes the table
+       out of the table formatting context, and each section child
+       (thead, tbody, tfoot) then gets its own anonymous table box, so the
+       header lays its columns out independently of the body and the two
+       stop lining up. Staying `table` keeps one shared column model and
+       lets `overflow-x` scroll it. */
+    table:not(.wp-block-table table):not(.bp-table-scroll table) {
+      @apply w-full my-8 text-left text-sm md:text-base bg-white;
+      border-collapse: separate !important;
+      border-spacing: 0 !important;
+      font-variant-numeric: tabular-nums;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid var(--color-slate-200);
+      border-radius: 0.75rem;
+      box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+    }
+
+    /* ── Column headers ─────────────────────────────────────────────
+       One continuous gradient across the whole header row, left to
+       right, painted on the <tr> — an <th> can only paint its own cell,
+       which would restart the gradient at every column. The cells are
+       forced transparent for the same reason.
+       No rule along the bottom edge: the bar meets the first row
+       directly, which also means overriding the border the prose plugin
+       puts under the header. */
+    thead tr {
+      background-image: linear-gradient(
+        to right,
+        #3730a3 0%,
+        #4f46e5 100%
+      ) !important;
+    }
+    thead {
+      border-bottom: 0 !important;
+    }
+    /* A Gutenberg table can emit an empty thead; it must not paint a bar. */
+    thead:empty {
+      display: none;
+    }
+    thead th,
+    thead td {
+      background-color: transparent !important;
+      background-image: none !important;
+      color: #ffffff !important;
+      font-weight: 600;
+      font-size: 0.75rem;
+      line-height: 1.4;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      /* Matches td, so a label sits on the same line as its column. */
+      vertical-align: middle !important;
+      text-align: left;
+      border: 0;
+      border-bottom: 0 !important;
+    }
+
+    /* ── Cell padding: the single source of alignment ───────────────
+       Declared once for every cell type so the header, body and footer
+       share one grid. See the note above on why these need !important. */
+    thead th,
+    thead td,
+    tbody th,
+    tbody td,
+    tfoot th,
+    tfoot td {
+      padding-inline: 0.75rem !important;
+      padding-block: 0.875rem !important;
+      border: 0 !important;
+    }
+    @media (min-width: 640px) {
+      thead th,
+      thead td,
+      tbody th,
+      tbody td,
+      tfoot th,
+      tfoot td {
+        padding-inline: 1rem !important;
+      }
+    }
+    /* Undo the prose plugin's zeroed outer edges, so the first label is
+       inset like every other cell instead of flush against the edge. */
+    thead th:first-child,
+    thead td:first-child,
+    tbody th:first-child,
+    tbody td:first-child,
+    tfoot th:first-child,
+    tfoot td:first-child {
+      padding-inline-start: 0.75rem !important;
+    }
+    thead th:last-child,
+    thead td:last-child,
+    tbody th:last-child,
+    tbody td:last-child,
+    tfoot th:last-child,
+    tfoot td:last-child {
+      padding-inline-end: 0.75rem !important;
+    }
+    @media (min-width: 640px) {
+      thead th:first-child,
+      thead td:first-child,
+      tbody th:first-child,
+      tbody td:first-child,
+      tfoot th:first-child,
+      tfoot td:first-child {
+        padding-inline-start: 1rem !important;
+      }
+      thead th:last-child,
+      thead td:last-child,
+      tbody th:last-child,
+      tbody td:last-child,
+      tfoot th:last-child,
+      tfoot td:last-child {
+        padding-inline-end: 1rem !important;
+      }
+    }
+
+    /* ── Body rows ──────────────────────────────────────────────────
+       No rules between rows: the zebra banding and the hover already
+       separate them, and a hairline on every row turns a long table into
+       a grid. The wrapper's own edge closes the bottom. */
+    tbody tr {
+      @apply transition-colors duration-150;
+      /* The prose plugin puts a hairline on every row; zero it on the row
+         as well as the cells, since a row can still paint a border in the
+         separated borders model. */
+      border-bottom: 0 !important;
+    }
+    tbody th,
+    tbody td {
+      border-bottom: 0 !important;
+    }
+    td {
+      @apply text-slate-600 leading-6 align-middle text-sm;
+      overflow-wrap: break-word;
+    }
+    /* Row labels — a light treatment, never the gradient header fill. */
+    tbody th {
+      @apply text-left align-middle text-sm font-semibold text-slate-900 bg-slate-50/80;
+      overflow-wrap: break-word;
+    }
+    /* First column reads as the row's label. */
+    tbody td:first-child {
+      @apply font-medium text-slate-900;
+    }
+    /* Zebra rows.
+       Declared before the hover rules on purpose: both are single-class
+       selectors, so nothing but source order separates them, and a zebra
+       rule written after the hover would repaint — and kill — the hover
+       on every even row. */
+    tbody tr:nth-child(even) {
+      @apply bg-slate-50/80;
+    }
+    .wp-block-table.is-style-stripes tbody tr:nth-child(odd) {
+      @apply bg-slate-50/80;
+    }
+    .wp-block-table.is-style-stripes tbody tr:nth-child(even) {
+      @apply bg-white;
+    }
+    /* Hover last, so it wins over any banding above. A <th> paints its
+       own background, so it has to be recoloured explicitly or the row
+       highlight stops at the first column. */
+    tbody tr:hover {
+      @apply bg-indigo-50/60;
+    }
+    tbody tr:hover th {
+      @apply bg-indigo-50/60;
+    }
+    /* Fixed layout */
+    .wp-block-table.has-fixed-layout table,
+    table.has-fixed-layout {
+      table-layout: fixed;
+    }
+
+    /* ── Footer rows ────────────────────────────────────────────────
+       A single rule above the footer, so a total row reads as a summary
+       rather than as more data. */
+    tfoot {
+      @apply bg-slate-50 text-slate-900;
+      border-top: 1px solid var(--color-slate-200) !important;
+    }
+    tfoot th,
+    tfoot td {
+      @apply text-sm font-semibold text-left align-middle bg-transparent;
+      border-bottom: 0 !important;
+    }
+    tfoot tr:last-child th,
+    tfoot tr:last-child td {
+      border-bottom: 0 !important;
+    }
+    tfoot td:first-child,
+    tfoot th:first-child {
+      @apply text-slate-900;
+    }
+
+    /* ── Caption ──────────────────────────────────────────────────── */
+    caption {
+      @apply text-xs text-slate-500 italic mt-2.5 text-center font-medium;
+      caption-side: bottom;
+    }
+
+    /* ── Alignment ──────────────────────────────────────────────────
+       Alignment chosen per cell in the editor. These must clear both the
+       base `text-align: left` above and the prose plugin's own alignment,
+       which sits in the outranking utilities layer — hence !important. */
+    thead th.has-text-align-center,
+    thead td.has-text-align-center,
+    tbody th.has-text-align-center,
+    tbody td.has-text-align-center,
+    tfoot th.has-text-align-center,
+    tfoot td.has-text-align-center {
+      text-align: center !important;
+    }
+    thead th.has-text-align-right,
+    thead td.has-text-align-right,
+    tbody th.has-text-align-right,
+    tbody td.has-text-align-right,
+    tfoot th.has-text-align-right,
+    tfoot td.has-text-align-right {
+      text-align: right !important;
+    }
+    thead th.has-text-align-left,
+    thead td.has-text-align-left,
+    tbody th.has-text-align-left,
+    tbody td.has-text-align-left,
+    tfoot th.has-text-align-left,
+    tfoot td.has-text-align-left {
+      text-align: left !important;
+    }
+
+    /* ── Narrow screens ─────────────────────────────────────────────
+       Header labels wrap instead of forcing the table wide, and long
+       words in cells may break rather than push a column out. */
+    @media (max-width: 639px) {
+      thead th,
+      thead td {
+        overflow-wrap: anywhere;
+        letter-spacing: 0.04em;
+      }
+      tbody td,
+      tbody th {
+        overflow-wrap: anywhere;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      tbody tr {
+        transition: none;
+      }
+    }
+
+    /* ── Print ──────────────────────────────────────────────────────
+       Unclip the scroll container and drop the card chrome, then repeat
+       the header on every page. The header is restyled dark-on-light so
+       it does not print as a solid ink block. */
+    @media print {
+      figure.wp-block-table,
+      .wp-block-table,
+      .bp-table-scroll,
+      table:not(.wp-block-table table):not(.bp-table-scroll table) {
+        overflow: visible !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+      }
+      thead {
+        display: table-header-group;
+      }
+      thead tr {
+        background-image: none !important;
+      }
+      thead,
+      thead th,
+      thead td {
+        color: #1e1b4b !important;
+        background-color: #e0e7ff !important;
+        border-bottom: 1px solid #a5b4fc !important;
+      }
+      tbody tr {
+        break-inside: avoid;
+      }
+      tbody tr:hover,
+      tbody tr:hover th {
+        background-color: transparent !important;
+      }
+    }
+
+    /* Media, figures, and embeds */
+    figure:not(.wp-block-table) {
+      @apply my-8 max-w-full flex flex-col items-center justify-center;
+    }
+    img {
+      @apply max-w-full h-auto rounded-2xl shadow-sm transition-transform duration-300;
+    }
+    figcaption {
+      @apply mt-3 text-center text-xs md:text-sm text-slate-500 italic leading-snug tracking-normal;
+    }
+    .wp-block-image {
+      @apply w-full my-8 flex flex-col items-center justify-center;
+    }
+    .wp-block-image img {
+      @apply rounded-2xl shadow-sm;
+    }
+    .wp-block-gallery,
+    .blocks-gallery-grid {
+      @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 my-8;
+    }
+    .wp-block-gallery figure {
+      @apply my-0;
+    }
+    .wp-block-gallery img {
+      @apply rounded-xl shadow-sm aspect-square object-cover w-full;
+    }
+    video {
+      @apply w-full rounded-2xl shadow-sm my-6 bg-black overflow-hidden;
+    }
+    audio {
+      @apply w-full my-6 rounded-xl;
+    }
+    iframe {
+      @apply w-full rounded-2xl shadow-sm my-6 border-0;
+    }
+    .wp-block-cover {
+      @apply rounded-2xl my-8 overflow-hidden min-h-75 flex items-center justify-center p-8 text-white;
+    }
+    .wp-block-cover h2 {
+      @apply text-white border-0 pb-0 mt-0;
+    }
+    .wp-block-cover p {
+      @apply text-white;
+    }
+
+    /* Accordions & Details — exclude .bp-faq which manages its own accordion styles */
+    details:not(.bp-faq details),
+    .wp-block-details {
+      @apply my-6 rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden transition-all duration-200 open:border-indigo-300 open:ring-2 open:ring-indigo-500/10;
+    }
+    summary:not(.bp-faq summary) {
+      @apply p-4 md:p-5 font-bold text-slate-900 cursor-pointer select-none bg-slate-50/60 hover:bg-indigo-50/30 transition-colors flex items-center justify-between list-none;
+    }
+    summary:not(.bp-faq summary)::-webkit-details-marker {
+      display: none;
+    }
+    details:not(.bp-faq details) > *:not(summary) {
+      @apply px-5 py-4 text-slate-700 leading-relaxed border-t border-slate-100;
+    }
+
+    /* Gutenberg Buttons & Downloads */
+    .wp-block-button {
+      @apply my-6 inline-block;
+    }
+    .wp-block-button__link {
+      @apply inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-95 shadow-sm hover:shadow-md transition-all duration-200 no-underline cursor-pointer;
+    }
+    .wp-block-button.is-style-outline .wp-block-button__link {
+      @apply bg-transparent text-indigo-600 border-2 border-indigo-600 hover:bg-indigo-50;
+    }
+    .wp-block-file {
+      @apply my-6 p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-4 shadow-xs;
+    }
+    .wp-block-file a {
+      @apply text-slate-900 font-semibold no-underline hover:text-indigo-600 transition-colors;
+    }
+    .wp-block-file .wp-block-file__button {
+      @apply px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold no-underline hover:bg-indigo-700 transition-all shadow-sm;
+    }
+
+    /* Gutenberg Columns & Dividers */
+    .wp-block-columns {
+      @apply my-8 flex flex-col md:flex-row gap-6 md:gap-8;
+    }
+    .wp-block-column {
+      @apply flex-1 min-w-0;
+    }
+    .wp-block-group {
+      @apply my-8;
+    }
+    .wp-block-separator,
+    hr {
+      @apply my-12 border-0 h-px bg-linear-to-r from-transparent via-slate-300 to-transparent;
+    }
+    .wp-block-spacer {
+      @apply my-4;
+    }
+
+    /* Inline semantic typography */
+    strong,
+    b {
+      @apply font-bold text-slate-900;
+    }
+    em,
+    i {
+      @apply italic;
+    }
+    mark {
+      @apply bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-medium;
+    }
+    del,
+    s {
+      @apply line-through text-slate-400;
+    }
+    ins {
+      @apply underline decoration-emerald-500 text-emerald-800 font-medium;
+    }
+    sub {
+      @apply text-xs align-sub relative bottom-[-0.25em];
+    }
+    sup {
+      @apply text-xs align-super relative top-[-0.5em];
+    }
+    abbr {
+      @apply underline decoration-dotted decoration-slate-400 cursor-help;
+    }
+    q {
+      @apply italic text-slate-600;
+    }
+    cite {
+      @apply italic text-slate-600;
+    }
+    time {
+      @apply text-slate-600;
+    }
+    small {
+      @apply text-xs md:text-sm text-slate-500;
+    }
+
+    /* Forms and interactive input fields in post content (e.g., password forms, feedback) */
+    form {
+      @apply my-8 p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-4 max-w-xl;
+    }
+    form label {
+      @apply block text-sm font-semibold text-slate-700 mb-1.5;
+    }
+    form input[type="text"],
+    form input[type="password"],
+    form input[type="email"],
+    form input[type="url"],
+    form input[type="tel"],
+    form input[type="search"],
+    form input[type="number"],
+    form textarea,
+    form select {
+      @apply w-full px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder:text-slate-400 shadow-xs;
+    }
+    form input[type="submit"],
+    form button[type="submit"] {
+      @apply inline-flex items-center justify-center px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 active:scale-95 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md;
+    }
+    .post-password-form {
+      @apply my-8 p-6 bg-indigo-50/50 border border-indigo-100 rounded-2xl max-w-lg space-y-4;
+    }
+
+    /* Alignments & Gutenberg bleed containers */
+    .aligncenter {
+      @apply mx-auto text-center block;
+    }
+    .alignleft {
+      @apply float-none sm:float-left sm:mr-6 mb-4 max-w-full sm:max-w-xs md:max-w-sm;
+    }
+    .alignright {
+      @apply float-none sm:float-right sm:ml-6 mb-4 max-w-full sm:max-w-xs md:max-w-sm;
+    }
+    .alignwide {
+      @apply max-w-5xl mx-auto w-full;
+    }
+    .alignfull {
+      @apply w-full max-w-none;
+    }
+
+    /* Footnotes */
+    .wp-block-footnotes {
+      @apply text-sm text-slate-500 border-t border-slate-200 pt-6 mt-12 space-y-2;
+    }
   }
 }

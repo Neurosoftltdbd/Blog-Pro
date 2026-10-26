@@ -19,12 +19,13 @@ while ( have_posts() ) : the_post();
 		<div class="text-sm font-semibold text-indigo-600 tracking-widest py-4"><?php blogpro_posted_on(); ?></div>
 
 		<div class="<?php echo $blogpro_toc_on ? 'lg:grid lg:grid-cols-[minmax(0,1fr)_260px] xl:grid-cols-[minmax(0,1fr)_300px] lg:gap-10 items-start' : ''; ?> [&_h2]:scroll-mt-24 [&_h3]:scroll-mt-24">
-			<div class="entry-content prose prose-lg md:prose-xl prose-indigo max-w-none mx-auto mb-16 text-gray-800 leading-relaxed">
+			<div class="entry-content prose prose-lg md:prose-xl prose-indigo prose-a:no-underline prose-a:hover:underline prose-table:m-0 max-w-none mx-auto mb-16 text-gray-800 leading-relaxed">
 			<?php the_content(); ?>
 		</div>
 		<?php if ( $blogpro_toc_on ) : ?>
 			<aside class="hidden lg:block sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pb-2 scrollbar-none z-30" aria-label="<?php esc_attr_e( 'Table of contents', 'blog-pro' ); ?>">
 				<?php echo blogpro_toc_nav( array( 'post_id' => get_the_ID(), 'compact' => true, 'progress' => true, 'class' => 'lg:block' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in helper. ?>
+				<?php if ( function_exists( 'blogpro_ad' ) ) : blogpro_ad( 'sidebar' ); endif; ?>
 			</aside>
 		<?php endif; ?>
 		</div>

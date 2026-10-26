@@ -331,7 +331,12 @@ function blogpro_wrap_tables( $content ) {
 			if ( false !== stripos( $m[2], 'wp-block-table' ) ) {
 				return $m[1]; // Gutenberg wraps these itself
 			}
-			return '<div class="bp-table-scroll overflow-x-auto">' . $m[1] . '</div>';
+			// A scrollable region is only reachable by keyboard if it is
+			// focusable and labelled — otherwise the table can be cut off
+			// with no way to scroll it without a mouse or touch gesture.
+			return '<div class="bp-table-scroll overflow-x-auto" role="region" tabindex="0" aria-label="'
+				. esc_attr__( 'Scrollable table', 'blog-pro' )
+				. '">' . $m[1] . '</div>';
 		},
 		$content
 	);
